@@ -36,6 +36,16 @@ class User {
   }
 
   static User? current;
+
+  Author toAuthor() {
+    return Author(
+      ID: ID,
+      Name: Name,
+      RegisterDate: RegisterDate,
+      Upvotes: Upvotes,
+      Downvotes: Downvotes,
+    );
+  }
 }
 
 class Author {
@@ -52,6 +62,16 @@ class Author {
     required this.Upvotes,
     required this.Downvotes,
   });
+
+  factory Author.fromInt(int json) {
+    return Author(
+      ID: json as int,
+      Name: "",
+      RegisterDate: DateTime.fromMicrosecondsSinceEpoch(0),
+      Upvotes: 0,
+      Downvotes: 0,
+    );
+  }
 
   factory Author.fromJson(Map<String, dynamic> json) {
     return Author(

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ParserMapping {
@@ -12,7 +13,7 @@ class ParserMapping {
   const ParserMapping({required this.pattern, required this.result});
 
   static InlineSpan defaultMap(String s, dynamic c) =>
-      TextSpan(text: s, style: const TextStyle(fontSize: 24));
+      TextSpan(text: s, style: MyTheme.current.textTheme.bodyLarge);
 
   static ParserMapping email(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(
@@ -28,19 +29,21 @@ class ParserMapping {
   }
 
   static ParserMapping h1(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!.+$"), result: f);
+    return ParserMapping(
+        pattern: RegExp(r"^![^\n]+$", dotAll: true, multiLine: true),
+        result: f);
   }
 
   static ParserMapping h2(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!!.+$"), result: f);
+    return ParserMapping(pattern: RegExp(r"^!!.+$", dotAll: true), result: f);
   }
 
   static ParserMapping h3(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!!!.+$"), result: f);
+    return ParserMapping(pattern: RegExp(r"^!!!.+$", dotAll: true), result: f);
   }
 
   static ParserMapping h4(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!!!!.+$"), result: f);
+    return ParserMapping(pattern: RegExp(r"^!!!!.+$", dotAll: true), result: f);
   }
 }
 
@@ -106,8 +109,9 @@ class Parser {
           return WidgetSpan(child: Center(child: img));
         } else {
           final text = TextSpan(
-              text: s,
-              style: const TextStyle(decoration: TextDecoration.underline));
+            text: s,
+            style: MyTheme.current.textTheme.caption,
+          );
           final well = InkWell(
             child: RichText(text: text),
             onTap: () => launchURL(s),
@@ -119,7 +123,7 @@ class Parser {
     ParserMapping.h1((s, c) {
       return TextSpan(
           text: s.substring(1), // remove !
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
+          style: MyTheme.current.textTheme.headline1);
     }),
   ], defaultMap: ParserMapping.defaultMap);
 }

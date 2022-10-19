@@ -5,15 +5,40 @@ import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
 
-class ForYouPage extends StatefulWidget {
-  const ForYouPage({super.key});
+class PostsPage extends StatefulWidget {
+  final int? userId;
+  final List<String>? origin;
+  final List<int>? tags;
+  final List<String>? popularIn;
+  final int? upvotes;
+  final int? downvotes;
+  final String? order;
+  final DateTime? start;
+  final DateTime? end;
+  final DateTime? startCreated;
+  final DateTime? endCreated;
+  final int? forUser;
+
+  const PostsPage(
+      {super.key,
+      this.userId,
+      this.origin,
+      this.tags,
+      this.popularIn,
+      this.upvotes,
+      this.downvotes,
+      this.order,
+      this.start,
+      this.end,
+      this.startCreated,
+      this.endCreated,
+      this.forUser});
 
   @override
-  State<ForYouPage> createState() => _ForYouPageState();
+  State<PostsPage> createState() => _PostsPageState();
 }
 
-class _ForYouPageState extends State<ForYouPage> {
-  // late Future<List<Tag>> tags;
+class _PostsPageState extends State<PostsPage> {
   late Future<List<Post>> posts;
   int offset = 0;
   int count = 0;
@@ -24,51 +49,38 @@ class _ForYouPageState extends State<ForYouPage> {
   @override
   void initState() {
     super.initState();
-    posts =
-        NewSource.getPosts(offset: offset, limit: pageSize, order: "createdat")
-            .then((value) {
+    posts = loadPosts().then((value) {
       count += value.length;
       isLoading = false;
       return value;
     });
 
-    // tags = NewSource.getTags(offset: offset, limit: pageSize).then(
-    //   (value) {
-    //     count += value.length;
-    //     isLoading = false;
-    //     return value;
-    //   },
-    // );
     offset = pageSize;
   }
 
-  // void _loadMoreTags() async {
-  //   final newTags = await NewSource.getTags(offset: offset, limit: pageSize);
-  //   var oldTags = await tags;
-  //   offset += newTags.length;
-  //   for (final i in newTags) {
-  //     print(i);
-  //   }
-  //   if (newTags.isEmpty) {
-  //     hasMore = false;
-  //   }
-  //   oldTags.addAll(newTags);
-  //   tags = Future(() => oldTags);
-  //   setState(() {
-  //     count = oldTags.length;
-  //     isLoading = false;
-  //     print("done loading");
-  //   });
-  // }
+  Future<List<Post>> loadPosts() {
+    return NewSource.getPosts(
+      userId: widget.userId,
+      origin: widget.origin,
+      tags: widget.tags,
+      popularIn: widget.popularIn,
+      upvotes: widget.upvotes,
+      downvotes: widget.downvotes,
+      order: widget.order,
+      offset: offset,
+      limit: pageSize,
+      start: widget.start,
+      end: widget.end,
+      startCreated: widget.startCreated,
+      endCreated: widget.endCreated,
+      forUser: widget.forUser,
+    );
+  }
 
   void _loadMorePosts() async {
-    final newPosts = await NewSource.getPosts(
-        offset: offset, limit: pageSize, order: "createdat");
+    final newPosts = await loadPosts();
     var oldPosts = await posts;
     offset += newPosts.length;
-    // for (final i in newPosts) {
-    //   print(i);
-    // }
     if (newPosts.isEmpty) {
       hasMore = false;
     }
@@ -104,7 +116,7 @@ class _ForYouPageState extends State<ForYouPage> {
                     }
                   }
                   final item = snapshot.data![index];
-                  return item.card(context);
+                  return item.card(context, false);
                 });
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");

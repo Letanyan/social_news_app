@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:social_news_app/comments_page.dart';
+import 'package:social_news_app/model/comment_reply.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
@@ -41,7 +43,20 @@ class Post {
     );
   }
 
-  Widget card(BuildContext context) {
+  void Function() openComments(BuildContext context) {
+    final commentsPage = Scaffold(
+      appBar: AppBar(title: const Text("Comments")),
+      body: CommentsPage(post: this),
+    );
+    return () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => commentsPage),
+      );
+    };
+  }
+
+  Widget card(BuildContext context, bool directLink) {
     final parser = Parser.basic;
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
 
@@ -51,9 +66,12 @@ class Post {
     if (firstUrl != null && firstUrl.start == 0) {
       newContent = Content.substring(firstUrl.end);
       final sourceUrl = Content.substring(firstUrl.start, firstUrl.end);
-      onTap = () => launchURL(sourceUrl);
+      onTap = directLink ? (() => launchURL(sourceUrl)) : openComments(context);
     } else {
       newContent = Content;
+      onTap = directLink ? null : openComments(context);
+    }
+    if (ID == -1) {
       onTap = null;
     }
 
@@ -64,14 +82,27 @@ class Post {
     final creator = Text(Creator.Name);
 
     final resolvedTags = Tag.getTags(Tags);
-    final tags = Tag.chips(resolvedTags);
+    final tags = Tag.chips(context, resolvedTags);
+
+    final reply = TextButton(
+        onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CommentReplyPage(post: this),
+            )),
+        child: const Text("Reply"));
+
+    var items = <Widget>[
+      body,
+      creator,
+      tags,
+    ];
+    if (ID != -1) {
+      items.add(reply);
+    }
 
     final post = Column(
-      children: [
-        body,
-        creator,
-        tags,
-      ],
+      children: items,
     );
 
     final card = Card(

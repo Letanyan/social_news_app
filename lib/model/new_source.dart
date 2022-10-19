@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/post.dart';
 
 import 'user.dart';
@@ -78,33 +79,44 @@ class NewSource {
   //----------------------------------------------------------------------------
   // Create
   //----------------------------------------------------------------------------
+  static Future<Comment> createComment(
+      int postId, int replyId, String content) async {
+    if (User.current == null) {
+      throw userNotSignedIn;
+    }
+
+    final obj = await post(["posts", "$postId", "comments"], [],
+        {"userId": User.current!.ID, "replyId": replyId, "content": content});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return Comment.fromJson(obj["payload"]);
+    }
+  }
 
   //----------------------------------------------------------------------------
   // Delete
   //----------------------------------------------------------------------------
 
   //----------------------------------------------------------------------------
-  // Get Posts
+  // Get Users
   //----------------------------------------------------------------------------
-  static Future<List<Post>> getPosts(
-      {int? userId,
-      List<String>? origin,
-      List<String>? tags,
-      List<String>? popularIn,
+  static Future<List<Author>> getUsers(
+      {List<String>? popularIn,
       int? upvotes,
       int? downvotes,
       String? order,
-      int? offset,
       int? limit,
+      int? offset,
       DateTime? start,
       DateTime? end,
-      DateTime? startDate,
-      DateTime? endDate,
-      int? forUser}) async {
+      int? forUser,
+      String? search}) async {
     var args = <String>[];
-    addI("uid", userId, args);
-    addL("origin", origin, args);
-    addL("tags", tags, args);
     addL("popularIn", popularIn, args);
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
@@ -113,9 +125,77 @@ class NewSource {
     addI("limit", limit, args);
     addD("start", start, args);
     addD("end", end, args);
-    addD("startCreated", startDate, args);
-    addD("endCreated", endDate, args);
     addI("for", forUser, args);
+    addS("search", search, args);
+
+    final obj = await get(["users"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final list = obj["payload"];
+      var result = <Author>[];
+      for (final item in list) {
+        final p = Author.fromJson(item);
+        result.add(p);
+      }
+      return result;
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  // Get Posts
+  //----------------------------------------------------------------------------
+  static Future<Post> getPost(int id) async {
+    final obj = await get(["posts", "$id"], []);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final item = obj["payload"];
+      final result = Post.fromJson(item);
+      return result;
+    }
+  }
+
+  static Future<List<Post>> getPosts(
+      {int? userId,
+      List<String>? origin,
+      List<int>? tags,
+      List<String>? popularIn,
+      int? upvotes,
+      int? downvotes,
+      String? order,
+      int? offset,
+      int? limit,
+      DateTime? start,
+      DateTime? end,
+      DateTime? startCreated,
+      DateTime? endCreated,
+      int? forUser,
+      String? search}) async {
+    var args = <String>[];
+    addI("uid", userId, args);
+    addL("origin", origin, args);
+    addIL("tags", tags, args);
+    addL("popularIn", popularIn, args);
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+    addD("start", start, args);
+    addD("end", end, args);
+    addD("startCreated", startCreated, args);
+    addD("endCreated", endCreated, args);
+    addI("for", forUser, args);
+    addS("search", search, args);
 
     final obj = await get(["posts"], args);
     if (obj == null) {
@@ -176,7 +256,8 @@ class NewSource {
       int? offset,
       int? limit,
       DateTime? start,
-      DateTime? end}) async {
+      DateTime? end,
+      String? search}) async {
     var args = <String>[];
     addL("location", location, args);
     addL("tags", tags, args);
@@ -187,6 +268,7 @@ class NewSource {
     addI("limit", limit, args);
     addD("start", start, args);
     addD("end", end, args);
+    addS("search", search, args);
 
     final obj = await get(["tags"], args);
     if (obj == null) {
@@ -200,6 +282,59 @@ class NewSource {
       var result = <Tag>[];
       for (final item in list) {
         result.add(Tag.fromJson(item));
+      }
+      return result;
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  // Get Comments
+  //----------------------------------------------------------------------------
+  static Future<List<Comment>> getComments(
+      {int? postId,
+      int? userId,
+      int? replyId,
+      DateTime? startCreated,
+      DateTime? endCreated,
+      List<String>? popularIn,
+      int? upvotes,
+      int? downvotes,
+      String? order,
+      int? limit,
+      int? offset,
+      DateTime? start,
+      DateTime? end,
+      int? forUser,
+      String? search}) async {
+    var args = <String>[];
+    addI("uid", userId, args);
+    addI("pid", postId, args);
+    addI("reply", replyId, args);
+    addL("popularIn", popularIn, args);
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+    addD("start", start, args);
+    addD("end", end, args);
+    addD("startCreated", startCreated, args);
+    addD("endCreated", endCreated, args);
+    addI("for", forUser, args);
+    addS("search", search, args);
+
+    final obj = await get(["posts", "comments"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final list = obj["payload"];
+      var result = <Comment>[];
+      for (final item in list) {
+        result.add(Comment.fromJson(item));
       }
       return result;
     }
@@ -231,6 +366,7 @@ NSError err(String message) {
 }
 
 final unknownError = err("An unknown error has occurred");
+final userNotSignedIn = err("No user appears to be signed in");
 
 void addS(String name, String? value, List<String> args) {
   if (value != null) {
@@ -253,10 +389,17 @@ void addL(String name, List<String>? value, List<String> args) {
   }
 }
 
+void addIL(String name, List<int>? value, List<String> args) {
+  if (value != null) {
+    args.add(name);
+    args.add(value.map((v) => "$v").join(","));
+  }
+}
+
 void addD(String name, DateTime? value, List<String> args) {
   if (value != null) {
     args.add(name);
-    final formatter = DateFormat("yyyy-MM-dd HH:mm:ss.zzzzzz");
+    final formatter = DateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
     final result = formatter.format(value.toUtc());
     args.add(result);
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/new_source.dart';
 
 class Tag {
@@ -28,21 +29,36 @@ class Tag {
     return json.map((e) => Tag.fromJson(e)).toList();
   }
 
-  Widget chip() {
-    return ActionChip(label: Text(Name));
+  Widget chip(BuildContext context) {
+    final fullPostPage = Scaffold(
+      appBar: AppBar(title: Text(Name)),
+      body: PostsPage(
+        tags: [ID],
+      ),
+    );
+
+    return ActionChip(
+      label: Text(Name),
+      onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => fullPostPage,
+          )),
+    );
   }
 
-  static Widget chips(List<Tag> tags) {
+  static Widget chips(BuildContext context, List<Tag> tags) {
     final xs = tags.map((e) => Container(
           padding: const EdgeInsets.all(8),
           color: Colors.transparent,
-          child: e.chip(),
+          child: e.chip(context),
         ));
 
     late Widget holder;
     if (xs.isEmpty) {
       holder = const SizedBox();
     } else {
+      // FIXME: Overflow to next row down
       holder = Row(children: xs.toList());
     }
 

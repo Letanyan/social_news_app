@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:social_news_app/for_you.dart';
+import 'package:social_news_app/model/comment_reply.dart';
+import 'package:social_news_app/posts_page.dart';
+import 'package:social_news_app/model/search.dart';
+import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/theme.dart';
 
 class HomeView extends StatefulWidget {
@@ -11,7 +14,8 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
   List<Widget> screens = [];
   List<Widget> loadedScreens = [];
   Map<int, bool> hasLoadedScreen = {};
@@ -22,12 +26,12 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    screens = const [
-      ForYouPage(),
-      Text("Trending"),
-      Text("Create"),
-      Text("Search"),
-      Text("Profile")
+    screens = [
+      const PostsPage(order: "createdat"),
+      const SearchPage(showSearch: false),
+      CommentReplyPage(),
+      const SearchPage(showSearch: true),
+      const Text("Profile")
     ];
     for (int i = 0; i < screens.length; i++) {
       hasLoadedScreen[i] = false;
@@ -125,17 +129,33 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> actions = [];
+    if (tabIndex == 2) {
+      final action = IconButton(
+        onPressed: () {
+          final page = (screens[2] as CommentReplyPage);
+          final controller = page.controller;
+          final text = controller?.text ?? "";
+          previewPost(context, text)();
+        },
+        icon: const Icon(Icons.preview),
+      );
+      actions.add(action);
+    }
+
     return MaterialApp(
         theme: MyTheme.current,
         darkTheme: MyTheme.dark,
         themeMode: ThemeMode.system,
         home: Scaffold(
           appBar: AppBar(
-              backgroundColor: MyTheme.current.backgroundColor,
-              title: Text(
-                _viewName(tabIndex),
-                style: TextStyle(color: MyTheme.current.primaryColor),
-              )),
+            backgroundColor: MyTheme.current.backgroundColor,
+            title: Text(
+              _viewName(tabIndex),
+              style: TextStyle(color: MyTheme.current.primaryColor),
+            ),
+            actions: actions,
+          ),
           body: IndexedStack(
             index: loadedIndices.indexOf(tabIndex),
             children: loadedScreens,
