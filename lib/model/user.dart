@@ -1,15 +1,19 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:social_news_app/account_page.dart';
+
 class User {
   final int ID;
-  final String Name;
+  String Name;
   final String Email;
-  final String Password;
+  String Password;
   final DateTime RegisterDate;
-  final double Upvotes;
-  final double Downvotes;
-  final int Credits;
+  double Upvotes;
+  double Downvotes;
+  int Credits;
   final int ValidationKey;
 
-  const User({
+  User({
     required this.ID,
     required this.Name,
     required this.Email,
@@ -80,6 +84,18 @@ class Author {
       RegisterDate: DateTime.parse(json["RegisterDate"]),
       Upvotes: json["Upvotes"],
       Downvotes: json["Downvotes"],
+    );
+  }
+
+  void showUserPage(BuildContext context) {
+    final page = Scaffold(
+      appBar: AppBar(title: Text(Name)),
+      body: AccountPage(user: this),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
     );
   }
 }

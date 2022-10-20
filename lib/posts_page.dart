@@ -92,6 +92,10 @@ class _PostsPageState extends State<PostsPage> {
     });
   }
 
+  void updateState() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Post>>(
@@ -116,7 +120,7 @@ class _PostsPageState extends State<PostsPage> {
                     }
                   }
                   final item = snapshot.data![index];
-                  return item.card(context, false);
+                  return item.card(context, false, updateState);
                 });
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");

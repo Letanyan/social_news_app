@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment_reply.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/search.dart';
@@ -31,7 +32,7 @@ class _HomeViewState extends State<HomeView>
       const SearchPage(showSearch: false),
       CommentReplyPage(),
       const SearchPage(showSearch: true),
-      const Text("Profile")
+      AccountPage(user: User.current?.toAuthor() ?? Author.fromInt(-1)),
     ];
     for (int i = 0; i < screens.length; i++) {
       hasLoadedScreen[i] = false;

@@ -2,70 +2,71 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/model/user_pref.dart';
 import 'package:social_news_app/posts_page.dart';
-import 'helpers.dart';
 
-class SearchPage extends StatefulWidget {
+class UserPrefPage extends StatefulWidget {
   final bool showSearch;
+  final int prefKind;
+  final Author user;
 
-  const SearchPage({super.key, required this.showSearch});
+  const UserPrefPage(
+      {super.key,
+      required this.showSearch,
+      required this.prefKind,
+      required this.user});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  State<UserPrefPage> createState() => _UserPrefPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
-  late Future<List<Tag>> tags;
-  late Future<List<Post>> posts;
-  late Future<List<Author>> users;
-  late Future<List<Comment>> comments;
+class _UserPrefPageState extends State<UserPrefPage> {
+  late Future<List<UserPrefTag>> tags;
+  late Future<List<UserPrefPost>> posts;
+  late Future<List<UserPrefUser>> users;
+  late Future<List<UserPrefComment>> comments;
   late TextEditingController controller;
 
   var current = 0;
-  var offset = [0, 0, 0, 0];
+  var offset = 0;
   var pageSize = 20;
-  var location = ["", "", "", ""];
-  var count = [0, 0, 0, 0];
-  var startDate = [
-    DateTime.now().add(const Duration(days: -7)),
-    DateTime.now().add(const Duration(days: -7)),
-    DateTime.now().add(const Duration(days: -7)),
-    DateTime.now().add(const Duration(days: -7)),
-  ];
-  var endDate = [
-    DateTime.now(),
-    DateTime.now(),
-    DateTime.now(),
-    DateTime.now()
-  ];
-  var searchString = ["", "", "", ""];
-  var hasMore = [true, true, true, true];
-  var isLoading = [false, false, false, false];
+  var location = "";
+  var count = 0;
+  var startDate = DateTime.now().add(const Duration(days: -7));
+  var endDate = DateTime.now();
+  var searchString = "";
+  var hasMore = true;
+  var isLoading = false;
 
   @override
   void initState() {
     super.initState();
 
     controller = TextEditingController();
+    current = widget.prefKind;
 
-    if (widget.showSearch) {
-      tags = Future(() => []);
-    } else {
-      tags = getNewItems<Tag>().then(updateItemsState);
-      offset[0] = pageSize;
-    }
-
+    tags = Future(() => []);
     posts = Future(() => []);
     users = Future(() => []);
     comments = Future(() => []);
+    if (current == 0) {
+      tags = getNewItems<UserPrefTag>().then(updateItemsState);
+    } else if (current == 1) {
+      posts = getNewItems<UserPrefPost>().then(updateItemsState);
+    } else if (current == 2) {
+      users = getNewItems<UserPrefUser>().then(updateItemsState);
+    } else if (current == 3) {
+      comments = getNewItems<UserPrefComment>().then(updateItemsState);
+    }
+
+    offset = pageSize;
   }
 
   @override
@@ -75,13 +76,13 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   int currentIndex<T>() {
-    if (isTypeEqual<T, Tag>()) {
+    if (isTypeEqual<T, UserPrefTag>()) {
       return 0;
-    } else if (isTypeEqual<T, Post>()) {
+    } else if (isTypeEqual<T, UserPrefPost>()) {
       return 1;
-    } else if (isTypeEqual<T, Author>()) {
+    } else if (isTypeEqual<T, UserPrefUser>()) {
       return 2;
-    } else if (isTypeEqual<T, Comment>()) {
+    } else if (isTypeEqual<T, UserPrefComment>()) {
       return 3;
     } else {
       return 100;
@@ -90,49 +91,37 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = widget.showSearch ? null : startDate[idx];
-    final ed = widget.showSearch ? null : endDate[idx];
+    final sd = widget.showSearch ? null : startDate;
+    final ed = widget.showSearch ? null : endDate;
     final loc = getLocationArg();
     final src = getSearchString();
-    if (isTypeEqual<T, Tag>()) {
-      return NewSource.getTags(
-        offset: offset[idx],
+    if (isTypeEqual<T, UserPrefTag>()) {
+      return NewSource.getUserPrefTags(
+        uid: widget.user.ID,
+        offset: offset,
         limit: pageSize,
-        order: "upvotes",
-        start: sd,
-        end: ed,
-        location: loc,
-        search: src,
+        order: "createdat", // FIXME: sort by vote date?
       ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Post>()) {
-      return NewSource.getPosts(
-        offset: offset[idx],
+    } else if (isTypeEqual<T, UserPrefPost>()) {
+      return NewSource.getUserPrefPosts(
+        uid: widget.user.ID,
+        offset: offset,
         limit: pageSize,
-        order: "upvotes",
-        start: sd,
-        end: ed,
-        popularIn: loc,
-        search: src,
+        order: "createdat", // FIXME: sort by vote date?
       ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Author>()) {
-      return NewSource.getUsers(
-        offset: offset[idx],
+    } else if (isTypeEqual<T, UserPrefUser>()) {
+      return NewSource.getUserPrefUsers(
+        uid: widget.user.ID,
+        offset: offset,
         limit: pageSize,
-        order: "upvotes",
-        start: sd,
-        end: ed,
-        popularIn: loc,
-        search: src,
+        order: "createdat", // FIXME: sort by vote date?
       ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Comment>()) {
-      return NewSource.getComments(
-        offset: offset[idx],
+    } else if (isTypeEqual<T, UserPrefComment>()) {
+      return NewSource.getUserPrefComments(
+        uid: widget.user.ID,
+        offset: offset,
         limit: pageSize,
-        order: "upvotes",
-        start: sd,
-        end: ed,
-        popularIn: loc,
-        search: src,
+        order: "createdat", // FIXME: sort by vote date?
       ) as Future<List<T>>;
     } else {
       return Future(() => <T>[]);
@@ -140,84 +129,84 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<List<T>> updateItemsState<T>(List<T> value) async {
-    count[current] += value.length;
-    isLoading[current] = false;
+    count += value.length;
+    isLoading = false;
     return value;
   }
 
   void updateFilter(void Function() f) {
     setState(() {
       f();
-      count[current] = 0;
-      offset[current] = 0;
+      count = 0;
+      offset = 0;
       if (current == 0) {
-        tags = getNewItems<Tag>().then(updateItemsState);
+        tags = getNewItems<UserPrefTag>().then(updateItemsState);
       } else if (current == 1) {
-        posts = getNewItems<Post>().then(updateItemsState);
+        posts = getNewItems<UserPrefPost>().then(updateItemsState);
       } else if (current == 2) {
-        users = getNewItems<Author>().then(updateItemsState);
+        users = getNewItems<UserPrefUser>().then(updateItemsState);
       } else if (current == 3) {
-        comments = getNewItems<Comment>().then(updateItemsState);
+        comments = getNewItems<UserPrefComment>().then(updateItemsState);
       }
-      offset[current] = pageSize;
+      offset = pageSize;
     });
   }
 
   List<String>? getLocationArg() {
-    if (location[current] == "") {
+    if (location == "") {
       return null;
     } else {
-      return location[current].split(",");
+      return location.split(",");
     }
   }
 
   String? getSearchString() {
-    if (searchString[current] == "") {
+    if (searchString == "") {
       return null;
     } else {
-      return searchString[current];
+      return searchString;
     }
   }
 
   String getLocationPresentation() {
-    if (location[current] == "") {
+    if (location == "") {
       return "Everywhere";
     } else {
-      final args = location[current].split(",");
+      final args = location.split(",");
       return args.join(", ");
     }
   }
 
   Widget buildFilter() {
     final startChip = ActionChip(
-      label: Text("From: ${formatDate(startDate[current])}"),
+      label: Text("From: ${formatDate(startDate)}"),
       onPressed: () async {
         final date = await showDatePicker(
             context: context,
-            initialDate: startDate[current],
+            initialDate: startDate,
             firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
             lastDate: DateTime.now());
         if (date == null) {
           return;
         }
         updateFilter(() {
-          startDate[current] = date;
+          startDate = date;
         });
       },
     );
     final endChip = ActionChip(
-        label: Text("To: ${formatDate(endDate[current])}"),
+        label: Text("To: ${formatDate(endDate)}"),
         onPressed: () async {
           final date = await showDatePicker(
               context: context,
-              initialDate: endDate[current],
+              initialDate: endDate,
               firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
               lastDate: DateTime.now());
           if (date == null) {
             return;
           }
           updateFilter(() {
-            endDate[current] = date;
+            endDate = date;
           });
         });
     final dateRange = Row(
@@ -241,7 +230,7 @@ class _SearchPageState extends State<SearchPage> {
           return;
         }
         updateFilter(() {
-          location[current] = loc;
+          location = loc;
         });
       },
     );
@@ -256,7 +245,7 @@ class _SearchPageState extends State<SearchPage> {
       },
       onValueChanged: (int? index) {
         updateFilter(() => current = index ?? 0);
-        controller.text = searchString[current];
+        controller.text = searchString;
       },
       groupValue: current,
     );
@@ -271,7 +260,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       onSubmitted: (value) async {
         updateFilter(() {
-          searchString[current] = value;
+          searchString = value;
         });
       },
     );
@@ -309,14 +298,14 @@ class _SearchPageState extends State<SearchPage> {
   void _loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
     final newPosts = await newItems;
     var oldPosts = await oldItems;
-    offset[current] += newPosts.length;
+    offset += newPosts.length;
     if (newPosts.isEmpty) {
-      hasMore[current] = false;
+      hasMore = false;
     }
     oldPosts.addAll(newPosts);
     setState(() {
-      count[current] = oldPosts.length;
-      isLoading[current] = false;
+      count = oldPosts.length;
+      isLoading = false;
     });
     oldItems = Future(() => oldPosts);
   }
@@ -342,27 +331,27 @@ class _SearchPageState extends State<SearchPage> {
               return const SizedBox();
             }
             return ListView.builder(
-                itemCount: count[current] + 1,
-                padding: const EdgeInsets.only(top: 106.0),
+                itemCount: count,
+                // padding: const EdgeInsets.only(top: 106.0),
                 itemBuilder: (context, index) {
-                  if (index >= count[current]) {
-                    if (isLoading[current]) {
+                  if (index >= count) {
+                    if (isLoading) {
                       return const CircularProgressIndicator();
-                    } else if (hasMore[current]) {
+                    } else if (hasMore) {
                       if (current == 0) {
-                        final newItems = getNewItems<Tag>();
+                        final newItems = getNewItems<UserPrefTag>();
                         _loadMore(newItems, tags);
                       } else if (current == 1) {
-                        final newItems = getNewItems<Post>();
+                        final newItems = getNewItems<UserPrefPost>();
                         _loadMore(newItems, posts);
                       } else if (current == 2) {
-                        final newItems = getNewItems<Author>();
+                        final newItems = getNewItems<UserPrefUser>();
                         _loadMore(newItems, users);
                       } else if (current == 3) {
-                        final newItems = getNewItems<Comment>();
+                        final newItems = getNewItems<UserPrefComment>();
                         _loadMore(newItems, comments);
                       }
-                      isLoading[current] = true;
+                      isLoading = true;
                       return const CircularProgressIndicator();
                     } else {
                       return const SizedBox();
@@ -370,7 +359,7 @@ class _SearchPageState extends State<SearchPage> {
                   }
                   final item = snapshot.data![index];
                   if (current == 0) {
-                    final tag = item as Tag;
+                    final tag = (item as UserPrefTag).tag;
                     final page = Scaffold(
                       appBar: AppBar(title: Text(tag.Name)),
                       body: PostsPage(tags: [tag.ID]),
@@ -383,16 +372,15 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     );
                   } else if (current == 1) {
-                    return (item as Post).card(context, false, updateState);
+                    return (item as UserPrefPost)
+                        .post
+                        .card(context, false, updateState);
                   } else if (current == 2) {
                     // FIXME: Show user profile on tap
-                    final user = item as Author;
                     return ListTile(
-                        title: Text(user.Name),
-                        onTap: () => user.showUserPage(context));
+                        title: Text((item as UserPrefUser).author.Name));
                   } else if (current == 3) {
-                    // FIXME: tap should open post (add a static method in the comment.dart)
-                    final comment = item as Comment;
+                    final comment = (item as UserPrefComment).comment;
                     return comment.card(context, false, 0,
                         (c) => c.showParentPost(context)(), updateState);
                   } else {
@@ -408,7 +396,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filter = buildFilter();
+    // final filter = buildFilter();
     late final Widget list;
     // final list = makeList();
 
@@ -424,10 +412,6 @@ class _SearchPageState extends State<SearchPage> {
       list = const SizedBox();
     }
 
-    return Stack(children: [
-      // filter,
-      list,
-      filter,
-    ]);
+    return list;
   }
 }

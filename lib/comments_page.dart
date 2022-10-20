@@ -48,6 +48,10 @@ class _CommentsPageState extends State<CommentsPage> {
     });
   }
 
+  void updateState() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final list = FutureBuilder<Map<int, List<Comment>>>(
@@ -55,7 +59,8 @@ class _CommentsPageState extends State<CommentsPage> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-            return ListView(children: [widget.post.card(context, true)]);
+            return ListView(
+                children: [widget.post.card(context, true, updateState)]);
           }
           var path = <int>[0];
           var pathCount = <int>[0];
@@ -63,7 +68,7 @@ class _CommentsPageState extends State<CommentsPage> {
             itemCount: count + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return widget.post.card(context, true);
+                return widget.post.card(context, true, updateState);
               }
               if (path.isEmpty) {
                 return const SizedBox();
@@ -82,22 +87,22 @@ class _CommentsPageState extends State<CommentsPage> {
               final item = snapshot.data![path.last]![pathCount.last];
               final indent =
                   min((path.length.toDouble() - 1) * 16, 160).toDouble();
-              if (snapshot.data![item.ID] != null) {
-                path.add(item.ID);
+              if (snapshot.data![item.id] != null) {
+                path.add(item.id);
                 pathCount.add(0);
               } else {
                 pathCount[pathCount.length - 1] += 1;
               }
               return item.card(context, true, indent, (c) {
-                _loadMoreComments(c.ID);
-              });
+                _loadMoreComments(c.id);
+              }, updateState);
             },
           );
         }
 
         return ListView(
           children: [
-            widget.post.card(context, true),
+            widget.post.card(context, true, updateState),
             const CircularProgressIndicator()
           ],
         );

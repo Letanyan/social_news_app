@@ -7,41 +7,41 @@ import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
 
 class Comment {
-  final int ID;
-  final int PostID;
-  final Author User;
-  final int ReplyID;
-  final String Content;
-  final DateTime CreatedAt;
-  final double Upvotes;
-  final double Downvotes;
-  final int ReplyCount;
+  final int id;
+  final int postId;
+  final Author author;
+  final int replyId;
+  final String content;
+  final DateTime createdAt;
+  double upvotes;
+  double downvotes;
+  final int replyCount;
 
-  const Comment({
-    required this.ID,
-    required this.PostID,
-    required this.User,
-    required this.ReplyID,
-    required this.Content,
-    required this.CreatedAt,
-    required this.Upvotes,
-    required this.Downvotes,
-    required this.ReplyCount,
+  Comment({
+    required this.id,
+    required this.postId,
+    required this.author,
+    required this.replyId,
+    required this.content,
+    required this.createdAt,
+    required this.upvotes,
+    required this.downvotes,
+    required this.replyCount,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
-      ID: json["ID"],
-      PostID: json["PostID"],
-      User: json["Author"] == null
+      id: json["ID"],
+      postId: json["PostID"],
+      author: json["Author"] == null
           ? Author.fromInt(json["UserID"])
           : Author.fromJson(json["Author"]),
-      ReplyID: json["ReplyID"],
-      Content: json["Content"],
-      CreatedAt: DateTime.parse(json["CreatedAt"]),
-      Upvotes: json["Upvotes"],
-      Downvotes: json["Downvotes"],
-      ReplyCount: json["ReplyCount"],
+      replyId: json["ReplyID"],
+      content: json["Content"],
+      createdAt: DateTime.parse(json["CreatedAt"]),
+      upvotes: json["Upvotes"],
+      downvotes: json["Downvotes"],
+      replyCount: json["ReplyCount"],
     );
   }
 
@@ -51,7 +51,7 @@ class Comment {
 
   void Function() showParentPost(BuildContext context) {
     return () {
-      final post = NewSource.getPost(PostID).then(((value) {
+      final post = NewSource.getPost(postId).then(((value) {
         final page = Scaffold(
           appBar: AppBar(title: const Text("Comments")),
           body: CommentsPage(post: value),
@@ -65,11 +65,13 @@ class Comment {
   }
 
   Widget card(BuildContext context, bool showReply, double offset,
-      void Function(Comment)? onTap) {
-    final text = Text(Content);
-    final user = Text(User.Name);
-    final replies = Text("$ReplyCount Replies");
-    print(onTap);
+      void Function(Comment)? onTap, VoidCallback updateState) {
+    final text = Text(content);
+    final user = InkWell(
+      onTap: () => author.showUserPage(context),
+      child: Text(author.Name),
+    );
+    final replies = Text("$replyCount Replies");
     final reply = TextButton(
         onPressed: () => Navigator.push(
             context,
@@ -77,18 +79,65 @@ class Comment {
               builder: (context) => CommentReplyPage(comment: this),
             )),
         child: const Text("Reply"));
+    final upvoteButton = ElevatedButton.icon(
+      onPressed: () async {
+        if (User.current == null) {
+          return;
+        }
+        upvotes += 1;
+        updateState();
+        try {
+          final rem = await NewSource.voteForComment(
+              postId: postId,
+              commentId: id,
+              userId: User.current!.ID,
+              amount: 1);
+          User.current!.Credits = rem;
+        } catch (e) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      },
+      icon: const Icon(Icons.thumb_up),
+      label: Text("$upvotes"),
+    );
+    final downvoteButton = ElevatedButton.icon(
+      onPressed: () async {
+        if (User.current == null) {
+          return;
+        }
+        downvotes += 1;
+        updateState();
+        try {
+          final rem = await NewSource.voteForComment(
+              postId: postId,
+              commentId: id,
+              userId: User.current!.ID,
+              amount: -1);
+          User.current!.Credits = rem;
+        } catch (e) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      },
+      icon: const Icon(Icons.thumb_down),
+      label: Text("$downvotes"),
+    );
+
+    var buttonRowItems = <Widget>[upvoteButton, downvoteButton];
 
     var items = <Widget>[text, user];
     void Function()? finalOnTap;
-    if (ReplyCount > 0 || !showReply) {
+    if (replyCount > 0 || !showReply) {
       items.add(replies);
       if (onTap != null) {
         finalOnTap = () => onTap(this);
       }
     }
     if (showReply) {
-      items.add(reply);
+      buttonRowItems.add(reply);
     }
+    items.add(Row(children: buttonRowItems));
 
     final body = Column(children: items);
 

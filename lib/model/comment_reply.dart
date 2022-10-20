@@ -36,7 +36,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     // TODO: Show progress indicator
     if (widget.comment != null) {
       final result = NewSource.createComment(
-              widget.comment!.PostID, widget.comment!.ID, controller.text)
+              widget.comment!.postId, widget.comment!.id, controller.text)
           .then((value) => Navigator.pop(context));
     } else if (widget.post != null) {
       final result =
@@ -45,13 +45,17 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     }
   }
 
+  void updateState() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     late Widget preview;
     if (widget.comment != null) {
-      preview = widget.comment!.card(context, false, 0, null);
+      preview = widget.comment!.card(context, false, 0, null, updateState);
     } else if (widget.post != null) {
-      preview = widget.post!.card(context, false);
+      preview = widget.post!.card(context, false, updateState);
     } else {
       preview = const SizedBox();
     }
@@ -107,7 +111,7 @@ void Function() previewPost(BuildContext context, String content) {
         title: const Text("Preview"),
         actions: [makePost],
       ),
-      body: ListView(children: [previewPost.card(context, false)]),
+      body: ListView(children: [previewPost.card(context, false, () {})]),
     );
 
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));

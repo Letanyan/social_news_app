@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/post.dart';
+import 'package:social_news_app/model/user_pref.dart';
 
 import 'user.dart';
 import 'tag.dart';
@@ -36,7 +38,6 @@ class NewSource {
     dynamic responseJson;
     try {
       final query = buildURL(path, args);
-      print(query);
       final response = await http.get(Uri.parse(query));
       responseJson = json.decode(response.body);
     } catch (e) {
@@ -57,6 +58,21 @@ class NewSource {
       return null;
     }
     return responseJson;
+  }
+
+  static List<T> handlePayload<T>(
+      dynamic obj, T Function(Map<String, dynamic> json) map) {
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final list = obj["payload"];
+      var result = <T>[];
+      for (final item in list) {
+        final p = map(item);
+        result.add(p);
+      }
+      return result;
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -133,17 +149,147 @@ class NewSource {
       throw unknownError;
     }
 
-    if (obj["success"] == false) {
-      throw err(obj["reason"]);
-    } else {
-      final list = obj["payload"];
-      var result = <Author>[];
-      for (final item in list) {
-        final p = Author.fromJson(item);
-        result.add(p);
-      }
-      return result;
+    return handlePayload(obj, Author.fromJson);
+  }
+
+  static Future<List<UserPrefUser>> getUserPrefUsers({
+    int? uid,
+    int? upvotes,
+    int? downvotes,
+    String? order,
+    int? limit,
+    int? offset,
+    bool? isBlacklist,
+  }) async {
+    var args = <String>[];
+    addI("isBlacklist", (isBlacklist ?? false) ? 1 : 0, args);
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+
+    final obj = await get(["users", "$uid", "prefs", "users"], args);
+    if (obj == null) {
+      throw unknownError;
     }
+
+    return handlePayload(obj, UserPrefUser.fromJson);
+  }
+
+  static Future<List<UserPrefPost>> getUserPrefPosts({
+    int? uid,
+    int? upvotes,
+    int? downvotes,
+    String? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+
+    final obj = await get(["users", "$uid", "prefs", "posts"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, UserPrefPost.fromJson);
+  }
+
+  static Future<List<UserPrefComment>> getUserPrefComments({
+    int? uid,
+    int? upvotes,
+    int? downvotes,
+    String? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+
+    final obj = await get(["users", "$uid", "prefs", "comments"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, UserPrefComment.fromJson);
+  }
+
+  static Future<List<UserPrefTag>> getUserPrefTags({
+    int? uid,
+    int? upvotes,
+    int? downvotes,
+    String? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+
+    final obj = await get(["users", "$uid", "prefs", "tags"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, UserPrefTag.fromJson);
+  }
+
+  static Future<List<Post>> getUserContPost({
+    int? uid,
+    int? upvotes,
+    int? downvotes,
+    String? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+
+    final obj = await get(["users", "$uid", "content", "posts"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, Post.fromJson);
+  }
+
+  static Future<List<Comment>> getUserContComments({
+    int? uid,
+    int? upvotes,
+    int? downvotes,
+    String? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addS("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+
+    final obj = await get(["users", "$uid", "content", "comments"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, Comment.fromJson);
   }
 
   //----------------------------------------------------------------------------
@@ -275,16 +421,7 @@ class NewSource {
       throw unknownError;
     }
 
-    if (obj["success"] == false) {
-      throw err(obj["reason"]);
-    } else {
-      final list = obj["payload"];
-      var result = <Tag>[];
-      for (final item in list) {
-        result.add(Tag.fromJson(item));
-      }
-      return result;
-    }
+    return handlePayload(obj, Tag.fromJson);
   }
 
   //----------------------------------------------------------------------------
@@ -328,21 +465,49 @@ class NewSource {
       throw unknownError;
     }
 
-    if (obj["success"] == false) {
-      throw err(obj["reason"]);
-    } else {
-      final list = obj["payload"];
-      var result = <Comment>[];
-      for (final item in list) {
-        result.add(Comment.fromJson(item));
-      }
-      return result;
-    }
+    return handlePayload(obj, Comment.fromJson);
   }
 
   //----------------------------------------------------------------------------
   // Vote
   //----------------------------------------------------------------------------
+  static Future<int> voteForPost({
+    required int postId,
+    required int userId,
+    required int amount,
+  }) async {
+    final obj =
+        await post(["posts", "$postId"], [], {"uid": userId, "amount": amount});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    print(obj);
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return obj["payload"];
+    }
+  }
+
+  static Future<int> voteForComment({
+    required int postId,
+    required int commentId,
+    required int userId,
+    required int amount,
+  }) async {
+    final obj = await post(["posts", "$postId", "comments", "$commentId"], [],
+        {"uid": userId, "amount": amount});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return obj["payload"];
+    }
+  }
 
   //----------------------------------------------------------------------------
   // Flags

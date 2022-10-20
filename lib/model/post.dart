@@ -16,10 +16,10 @@ class Post {
   final List<int> Tags;
   final DateTime CreatedAt;
   final List<String> Location;
-  final double Upvotes;
-  final double Downvotes;
+  double Upvotes;
+  double Downvotes;
 
-  const Post({
+  Post({
     required this.ID,
     required this.Creator,
     required this.Content,
@@ -56,7 +56,7 @@ class Post {
     };
   }
 
-  Widget card(BuildContext context, bool directLink) {
+  Widget card(BuildContext context, bool directLink, VoidCallback updateState) {
     final parser = Parser.basic;
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
 
@@ -79,7 +79,10 @@ class Post {
     final size = <String, dynamic>{"w": query.width, "h": query.height};
     final body = RichText(text: parser.parse(newContent, size));
 
-    final creator = Text(Creator.Name);
+    final creator = InkWell(
+      onTap: () => Creator.showUserPage(context),
+      child: Text(Creator.Name),
+    );
 
     final resolvedTags = Tag.getTags(Tags);
     final tags = Tag.chips(context, resolvedTags);
@@ -91,6 +94,46 @@ class Post {
               builder: (context) => CommentReplyPage(post: this),
             )),
         child: const Text("Reply"));
+    final upvotes = ElevatedButton.icon(
+      onPressed: () async {
+        if (User.current == null) {
+          return;
+        }
+        Upvotes += 1;
+        updateState();
+        try {
+          final rem = await NewSource.voteForPost(
+              postId: ID, userId: User.current!.ID, amount: 1);
+          User.current!.Credits = rem;
+        } catch (e) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      },
+      icon: const Icon(Icons.thumb_up),
+      label: Text("$Upvotes"),
+    );
+    final downvotes = ElevatedButton.icon(
+      onPressed: () async {
+        if (User.current == null) {
+          return;
+        }
+        Downvotes += 1;
+        updateState();
+        try {
+          final rem = await NewSource.voteForPost(
+              postId: ID, userId: User.current!.ID, amount: -1);
+          User.current!.Credits = rem;
+        } catch (e) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      },
+      icon: const Icon(Icons.thumb_down),
+      label: Text("$Downvotes"),
+    );
+
+    final buttonRow = Row(children: [upvotes, downvotes, reply]);
 
     var items = <Widget>[
       body,
@@ -98,7 +141,7 @@ class Post {
       tags,
     ];
     if (ID != -1) {
-      items.add(reply);
+      items.add(buttonRow);
     }
 
     final post = Column(
