@@ -1,8 +1,12 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment_reply.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
@@ -29,9 +33,9 @@ class _HomeViewState extends State<HomeView>
     super.initState();
     screens = [
       const PostsPage(order: "createdat"),
-      const SearchPage(showSearch: false),
+      const SearchPage(key: Key("trending"), showSearch: false),
       CommentReplyPage(),
-      const SearchPage(showSearch: true),
+      const SearchPage(key: Key("search"), showSearch: true),
       AccountPage(user: User.current?.toAuthor() ?? Author.fromInt(-1)),
     ];
     for (int i = 0; i < screens.length; i++) {
@@ -60,17 +64,22 @@ class _HomeViewState extends State<HomeView>
   }
 
   IconData _viewIconData(int index) {
+    final isSelected = index == this.tabIndex;
     switch (index) {
       case 0:
-        return Icons.home_filled;
+        return isSelected ? Icons.favorite : Icons.favorite_border;
       case 1:
-        return Icons.auto_graph;
+        return isSelected ? Icons.auto_graph : Icons.auto_graph_outlined;
       case 2:
-        return Icons.add_circle_outline_rounded;
+        return isSelected
+            ? Icons.add_circle_rounded
+            : Icons.add_circle_outline_rounded;
       case 3:
-        return Icons.search;
+        return isSelected ? Icons.search : Icons.search_outlined;
       case 4:
-        return Icons.account_circle_rounded;
+        return isSelected
+            ? Icons.account_circle_rounded
+            : Icons.account_circle_outlined;
       default:
         return Icons.circle;
     }
@@ -148,6 +157,7 @@ class _HomeViewState extends State<HomeView>
         theme: MyTheme.current,
         darkTheme: MyTheme.dark,
         themeMode: ThemeMode.system,
+        scrollBehavior: MyCustomScrollBehavior(),
         home: Scaffold(
           appBar: AppBar(
             backgroundColor: MyTheme.current.backgroundColor,

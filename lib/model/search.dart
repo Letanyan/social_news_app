@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/filter_widget.dart';
 import 'package:social_news_app/model/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -27,34 +28,18 @@ class _SearchPageState extends State<SearchPage> {
   late Future<List<Post>> posts;
   late Future<List<Author>> users;
   late Future<List<Comment>> comments;
-  late TextEditingController controller;
 
   var current = 0;
   var offset = [0, 0, 0, 0];
   var pageSize = 20;
-  var location = ["", "", "", ""];
   var count = [0, 0, 0, 0];
-  var startDate = [
-    DateTime.now().add(const Duration(days: -7)),
-    DateTime.now().add(const Duration(days: -7)),
-    DateTime.now().add(const Duration(days: -7)),
-    DateTime.now().add(const Duration(days: -7)),
-  ];
-  var endDate = [
-    DateTime.now(),
-    DateTime.now(),
-    DateTime.now(),
-    DateTime.now()
-  ];
-  var searchString = ["", "", "", ""];
   var hasMore = [true, true, true, true];
   var isLoading = [false, false, false, false];
+  FilterBox? filterBox;
 
   @override
   void initState() {
     super.initState();
-
-    controller = TextEditingController();
 
     if (widget.showSearch) {
       tags = Future(() => []);
@@ -66,12 +51,39 @@ class _SearchPageState extends State<SearchPage> {
     posts = Future(() => []);
     users = Future(() => []);
     comments = Future(() => []);
-  }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
+    if (widget.showSearch) {
+      filterBox = FilterBox(
+        selector: const <int, String>{
+          0: "Tags",
+          1: "Posts",
+          2: "Users",
+          3: "Comments"
+        },
+        search: true,
+        valueChanged: (fb) {
+          updateFilter(() {
+            current = fb.current;
+          });
+        },
+      );
+    } else {
+      filterBox = FilterBox(
+        selector: const <int, String>{
+          0: "Tags",
+          1: "Posts",
+          2: "Users",
+          3: "Comments"
+        },
+        date: true,
+        location: true,
+        valueChanged: (fb) {
+          updateFilter(() {
+            current = fb.current;
+          });
+        },
+      );
+    }
   }
 
   int currentIndex<T>() {
@@ -90,10 +102,10 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = widget.showSearch ? null : startDate[idx];
-    final ed = widget.showSearch ? null : endDate[idx];
-    final loc = getLocationArg();
-    final src = getSearchString();
+    final sd = widget.showSearch ? null : filterBox?.currentState?.start;
+    final ed = widget.showSearch ? null : filterBox?.currentState?.end;
+    final loc = filterBox?.currentState?.location;
+    final src = filterBox?.currentState?.search;
     if (isTypeEqual<T, Tag>()) {
       return NewSource.getTags(
         offset: offset[idx],
@@ -150,6 +162,7 @@ class _SearchPageState extends State<SearchPage> {
       f();
       count[current] = 0;
       offset[current] = 0;
+      isLoading[current] = true;
       if (current == 0) {
         tags = getNewItems<Tag>().then(updateItemsState);
       } else if (current == 1) {
@@ -163,149 +176,6 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  List<String>? getLocationArg() {
-    if (location[current] == "") {
-      return null;
-    } else {
-      return location[current].split(",");
-    }
-  }
-
-  String? getSearchString() {
-    if (searchString[current] == "") {
-      return null;
-    } else {
-      return searchString[current];
-    }
-  }
-
-  String getLocationPresentation() {
-    if (location[current] == "") {
-      return "Everywhere";
-    } else {
-      final args = location[current].split(",");
-      return args.join(", ");
-    }
-  }
-
-  Widget buildFilter() {
-    final startChip = ActionChip(
-      label: Text("From: ${formatDate(startDate[current])}"),
-      onPressed: () async {
-        final date = await showDatePicker(
-            context: context,
-            initialDate: startDate[current],
-            firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-            lastDate: DateTime.now());
-        if (date == null) {
-          return;
-        }
-        updateFilter(() {
-          startDate[current] = date;
-        });
-      },
-    );
-    final endChip = ActionChip(
-        label: Text("To: ${formatDate(endDate[current])}"),
-        onPressed: () async {
-          final date = await showDatePicker(
-              context: context,
-              initialDate: endDate[current],
-              firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-              lastDate: DateTime.now());
-          if (date == null) {
-            return;
-          }
-          updateFilter(() {
-            endDate[current] = date;
-          });
-        });
-    final dateRange = Row(
-      children: [
-        Expanded(
-            child: Align(alignment: Alignment.centerRight, child: startChip)),
-        const SizedBox(width: 8),
-        Expanded(child: Align(alignment: Alignment.centerLeft, child: endChip)),
-      ],
-    );
-
-    final area = ActionChip(
-      label: Text("Location: ${getLocationPresentation()}"),
-      onPressed: () async {
-        var loc = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LocationPickerPage(),
-            ));
-        if (loc == null) {
-          return;
-        }
-        updateFilter(() {
-          location[current] = loc;
-        });
-      },
-    );
-
-    final selector = CupertinoSlidingSegmentedControl<int>(
-      // padding: const EdgeInsets.all(15),
-      children: const {
-        0: Text("Tags"),
-        1: Text("Posts"),
-        2: Text("Users"),
-        3: Text("Comments"),
-      },
-      onValueChanged: (int? index) {
-        updateFilter(() => current = index ?? 0);
-        controller.text = searchString[current];
-      },
-      groupValue: current,
-    );
-
-    final searchBox = TextField(
-      keyboardType: TextInputType.text,
-      maxLines: 1,
-      controller: controller,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        hintText: 'Search',
-      ),
-      onSubmitted: (value) async {
-        updateFilter(() {
-          searchString[current] = value;
-        });
-      },
-    );
-
-    var filterItems = <Widget>[
-      const SizedBox(height: 4),
-      selector,
-      const SizedBox(height: 4),
-    ];
-
-    if (widget.showSearch) {
-      filterItems.add(searchBox);
-    } else {
-      filterItems.addAll([
-        dateRange,
-        const SizedBox(height: 4),
-        area,
-      ]);
-    }
-    filterItems.add(const SizedBox(height: 4));
-
-    final body = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: filterItems,
-    );
-
-    final filter = BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-      child: body,
-    );
-
-    return ClipRect(child: filter);
-  }
-
   void _loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
     final newPosts = await newItems;
     var oldPosts = await oldItems;
@@ -314,8 +184,8 @@ class _SearchPageState extends State<SearchPage> {
       hasMore[current] = false;
     }
     oldPosts.addAll(newPosts);
+    count[current] = oldPosts.length;
     setState(() {
-      count[current] = oldPosts.length;
       isLoading[current] = false;
     });
     oldItems = Future(() => oldPosts);
@@ -343,7 +213,7 @@ class _SearchPageState extends State<SearchPage> {
             }
             return ListView.builder(
                 itemCount: count[current] + 1,
-                padding: const EdgeInsets.only(top: 106.0),
+                padding: const EdgeInsets.only(top: 128.0),
                 itemBuilder: (context, index) {
                   if (index >= count[current]) {
                     if (isLoading[current]) {
@@ -408,9 +278,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filter = buildFilter();
     late final Widget list;
-    // final list = makeList();
 
     if (current == 0) {
       list = buildList(context, tags);
@@ -424,10 +292,11 @@ class _SearchPageState extends State<SearchPage> {
       list = const SizedBox();
     }
 
-    return Stack(children: [
-      // filter,
-      list,
-      filter,
-    ]);
+    var stack = <Widget>[list];
+    if (filterBox != null) {
+      stack.add(filterBox!);
+    }
+
+    return Stack(children: stack);
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -47,3 +49,12 @@ String formatDate(DateTime date) {
 }
 
 bool isTypeEqual<S, T>() => S == T;
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
+}

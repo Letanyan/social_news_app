@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/comment_reply.dart';
+import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
@@ -71,7 +73,6 @@ class Comment {
       onTap: () => author.showUserPage(context),
       child: Text(author.Name),
     );
-    final replies = Text("$replyCount Replies");
     final reply = TextButton(
         onPressed: () => Navigator.push(
             context,
@@ -98,7 +99,7 @@ class Comment {
               .showSnackBar(SnackBar(content: Text(e.toString())));
         }
       },
-      icon: const Icon(Icons.thumb_up),
+      icon: const Icon(Icons.arrow_upward_rounded),
       label: Text("$upvotes"),
     );
     final downvoteButton = ElevatedButton.icon(
@@ -120,24 +121,48 @@ class Comment {
               .showSnackBar(SnackBar(content: Text(e.toString())));
         }
       },
-      icon: const Icon(Icons.thumb_down),
+      icon: const Icon(Icons.arrow_downward_rounded),
       label: Text("$downvotes"),
     );
 
-    var buttonRowItems = <Widget>[upvoteButton, downvoteButton];
+    var buttonRowItems = <Widget>[
+      upvoteButton,
+      const SizedBox(width: 8),
+      downvoteButton
+    ];
+    if (showReply) {
+      buttonRowItems.add(const SizedBox(width: 8));
+      buttonRowItems.add(reply);
+    }
 
     var items = <Widget>[text, user];
     void Function()? finalOnTap;
     if (replyCount > 0 || !showReply) {
-      items.add(replies);
+      buttonRowItems.add(const SizedBox(width: 8));
+      buttonRowItems.add(Text("$replyCount Replies"));
       if (onTap != null) {
         finalOnTap = () => onTap(this);
       }
     }
-    if (showReply) {
-      buttonRowItems.add(reply);
-    }
-    items.add(Row(children: buttonRowItems));
+    final moreButton = PopupMenuButton(
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          onTap: () {
+            showPlatformDialog(
+              context: context,
+              builder: (context) => FlagDialog(pid: postId, sid: id),
+            );
+          },
+          child: Text("Report"),
+        ),
+      ],
+    );
+    buttonRowItems.add(Expanded(
+        child: Align(alignment: Alignment.centerRight, child: moreButton)));
+
+    items.add(const Divider());
+    items.add(Padding(
+        padding: EdgeInsets.all(8), child: Row(children: buttonRowItems)));
 
     final body = Column(children: items);
 

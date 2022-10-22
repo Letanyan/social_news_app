@@ -58,8 +58,11 @@ class Tag {
     if (xs.isEmpty) {
       holder = const SizedBox();
     } else {
-      // FIXME: Overflow to next row down
-      holder = Row(children: xs.toList());
+      holder = Container(
+        height: 48,
+        child:
+            ListView(scrollDirection: Axis.horizontal, children: xs.toList()),
+      );
     }
 
     return holder;

@@ -28,12 +28,18 @@ class MyTheme {
         bodyText1: TextStyle(
             fontSize: 18, fontFamily: 'SF', fontWeight: FontWeight.w400),
         bodyText2: TextStyle(
-            fontSize: 16, fontFamily: 'SF', fontWeight: FontWeight.w400),
-        caption: TextStyle(
-            fontSize: 16,
+            fontSize: 18, fontFamily: 'SF', fontWeight: FontWeight.bold),
+        subtitle2: TextStyle(
+            fontSize: 18,
             fontFamily: 'SF',
             fontWeight: FontWeight.w300,
             decoration: TextDecoration.underline),
+        caption: TextStyle(
+          fontSize: 18,
+          fontFamily: 'SF',
+          fontWeight: FontWeight.w300,
+          fontStyle: FontStyle.italic,
+        ),
       ));
 
   static final dark = ThemeData(

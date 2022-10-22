@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/filter_widget.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -12,12 +13,14 @@ import 'package:social_news_app/model/user.dart';
 class UserContPage extends StatefulWidget {
   final bool showSearch;
   final bool isPost;
+  final int playlist;
   final Author user;
 
   const UserContPage(
       {super.key,
       required this.showSearch,
       required this.isPost,
+      required this.playlist,
       required this.user});
 
   @override
@@ -32,13 +35,10 @@ class _UserContPageState extends State<UserContPage> {
   var current = 0;
   var offset = 0;
   var pageSize = 20;
-  var location = "";
   var count = 0;
-  var startDate = DateTime.now().add(const Duration(days: -7));
-  var endDate = DateTime.now();
-  var searchString = "";
   var hasMore = true;
   var isLoading = false;
+  FilterBox? filterBox;
 
   @override
   void initState() {
@@ -76,17 +76,18 @@ class _UserContPageState extends State<UserContPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = widget.showSearch ? null : startDate;
-    final ed = widget.showSearch ? null : endDate;
-    final loc = getLocationArg();
-    final src = getSearchString();
-
+    final sd = filterBox?.currentState?.start;
+    final ed = filterBox?.currentState?.end;
+    final loc = filterBox?.currentState?.location;
+    final src = filterBox?.currentState?.search;
     if (isTypeEqual<T, Post>()) {
       return NewSource.getUserContPost(
         uid: widget.user.ID,
+        kind: widget.playlist,
         offset: offset,
         limit: pageSize,
         order: "createdat",
+        search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, Comment>()) {
       return NewSource.getUserContComments(
@@ -94,6 +95,7 @@ class _UserContPageState extends State<UserContPage> {
         offset: offset,
         limit: pageSize,
         order: "createdat",
+        search: src,
       ) as Future<List<T>>;
     } else {
       return Future(() => <T>[]);
@@ -118,149 +120,6 @@ class _UserContPageState extends State<UserContPage> {
       }
       offset = pageSize;
     });
-  }
-
-  List<String>? getLocationArg() {
-    if (location == "") {
-      return null;
-    } else {
-      return location.split(",");
-    }
-  }
-
-  String? getSearchString() {
-    if (searchString == "") {
-      return null;
-    } else {
-      return searchString;
-    }
-  }
-
-  String getLocationPresentation() {
-    if (location == "") {
-      return "Everywhere";
-    } else {
-      final args = location.split(",");
-      return args.join(", ");
-    }
-  }
-
-  Widget buildFilter() {
-    final startChip = ActionChip(
-      label: Text("From: ${formatDate(startDate)}"),
-      onPressed: () async {
-        final date = await showDatePicker(
-            context: context,
-            initialDate: startDate,
-            firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-            lastDate: DateTime.now());
-        if (date == null) {
-          return;
-        }
-        updateFilter(() {
-          startDate = date;
-        });
-      },
-    );
-    final endChip = ActionChip(
-        label: Text("To: ${formatDate(endDate)}"),
-        onPressed: () async {
-          final date = await showDatePicker(
-              context: context,
-              initialDate: endDate,
-              firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-              lastDate: DateTime.now());
-          if (date == null) {
-            return;
-          }
-          updateFilter(() {
-            endDate = date;
-          });
-        });
-    final dateRange = Row(
-      children: [
-        Expanded(
-            child: Align(alignment: Alignment.centerRight, child: startChip)),
-        const SizedBox(width: 8),
-        Expanded(child: Align(alignment: Alignment.centerLeft, child: endChip)),
-      ],
-    );
-
-    final area = ActionChip(
-      label: Text("Location: ${getLocationPresentation()}"),
-      onPressed: () async {
-        var loc = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LocationPickerPage(),
-            ));
-        if (loc == null) {
-          return;
-        }
-        updateFilter(() {
-          location = loc;
-        });
-      },
-    );
-
-    final selector = CupertinoSlidingSegmentedControl<int>(
-      // padding: const EdgeInsets.all(15),
-      children: const {
-        0: Text("Tags"),
-        1: Text("Posts"),
-        2: Text("Users"),
-        3: Text("Comments"),
-      },
-      onValueChanged: (int? index) {
-        updateFilter(() => current = index ?? 0);
-        controller.text = searchString;
-      },
-      groupValue: current,
-    );
-
-    final searchBox = TextField(
-      keyboardType: TextInputType.text,
-      maxLines: 1,
-      controller: controller,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        hintText: 'Search',
-      ),
-      onSubmitted: (value) async {
-        updateFilter(() {
-          searchString = value;
-        });
-      },
-    );
-
-    var filterItems = <Widget>[
-      const SizedBox(height: 4),
-      selector,
-      const SizedBox(height: 4),
-    ];
-
-    if (widget.showSearch) {
-      filterItems.add(searchBox);
-    } else {
-      filterItems.addAll([
-        dateRange,
-        const SizedBox(height: 4),
-        area,
-      ]);
-    }
-    filterItems.add(const SizedBox(height: 4));
-
-    final body = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: filterItems,
-    );
-
-    final filter = BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-      child: body,
-    );
-
-    return ClipRect(child: filter);
   }
 
   void _loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
@@ -300,7 +159,7 @@ class _UserContPageState extends State<UserContPage> {
             }
             return ListView.builder(
                 itemCount: count,
-                // padding: const EdgeInsets.only(top: 106.0),
+                padding: const EdgeInsets.only(top: 114.0),
                 itemBuilder: (context, index) {
                   if (index >= count) {
                     if (isLoading) {
@@ -339,9 +198,13 @@ class _UserContPageState extends State<UserContPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final filter = buildFilter();
+    filterBox = FilterBox(
+      search: true,
+      valueChanged: (p0) {
+        updateFilter(() {});
+      },
+    );
     late final Widget list;
-    // final list = makeList();
 
     if (current == 0) {
       list = buildList(context, posts);
@@ -351,6 +214,11 @@ class _UserContPageState extends State<UserContPage> {
       list = const SizedBox();
     }
 
-    return list;
+    var stack = <Widget>[list];
+    if (filterBox != null) {
+      stack.add(filterBox!);
+    }
+
+    return Stack(children: stack);
   }
 }

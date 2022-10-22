@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:social_news_app/login.dart';
+import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/user_cont_page.dart';
@@ -25,8 +27,7 @@ class _AccountPageState extends State<AccountPage> {
 
       final body = Scaffold(
         appBar: AppBar(title: Text(title)),
-        body:
-            UserPrefPage(showSearch: false, prefKind: kind, user: widget.user),
+        body: UserPrefPage(showSearch: true, prefKind: kind, user: widget.user),
       );
 
       Navigator.push(
@@ -38,14 +39,19 @@ class _AccountPageState extends State<AccountPage> {
     };
   }
 
-  void Function() showUserContPage(BuildContext context, bool isPost) {
+  void Function() showUserContPage(
+      BuildContext context, bool isPost, int playlist) {
     return () {
       final title = isPost ? "Posts" : "Comments";
 
       final body = Scaffold(
         appBar: AppBar(title: Text(title)),
-        body:
-            UserContPage(showSearch: false, isPost: isPost, user: widget.user),
+        body: UserContPage(
+          showSearch: true,
+          isPost: isPost,
+          playlist: playlist,
+          user: widget.user,
+        ),
       );
 
       Navigator.push(
@@ -60,20 +66,39 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     final Text? credit;
+    final TextButton? logout;
     if (widget.user.ID == User.current?.ID) {
       credit = Text("${User.current!.Credits}");
+      logout = TextButton(
+        onPressed: () {
+          User.current = null;
+          Navigator.pop(context);
+          Navigator.push(
+              context, MaterialPageRoute(builder: (c) => const MyApp()));
+        },
+        child: const Text("Logout"),
+      );
     } else {
       credit = null;
+      logout = null;
     }
     final name = ListTile(
       title: Text(widget.user.Name),
       subtitle: credit,
+      trailing: logout,
     );
 
     final userPosts = ListTile(
-        title: const Text("Posts"), onTap: showUserContPage(context, true));
+        title: const Text("Posts"), onTap: showUserContPage(context, true, 0));
     final userComments = ListTile(
-        title: const Text("Comments"), onTap: showUserContPage(context, false));
+        title: const Text("Comments"),
+        onTap: showUserContPage(context, false, 0));
+
+    final viewed = ListTile(
+        title: const Text("Viewed"), onTap: showUserContPage(context, true, 1));
+    final readLater = ListTile(
+        title: const Text("Read Later"),
+        onTap: showUserContPage(context, true, 2));
 
     final votedPosts = ListTile(
       title: const Text("Posts"),
@@ -88,17 +113,29 @@ class _AccountPageState extends State<AccountPage> {
     final votedComments = ListTile(
         title: const Text("Comments"), onTap: showUserPrefPage(context, 3));
 
-    return ListView(children: [
+    final list = ListView(children: [
       name,
-      const Text("Created Content"),
+      const Divider(),
+      const Padding(padding: EdgeInsets.all(8), child: Text("Created Content")),
+      const Divider(),
       userPosts,
       userComments,
-      const SizedBox(height: 8),
-      const Text("Voted For"),
+      const Divider(),
+      const Padding(padding: EdgeInsets.all(8), child: Text("Collections")),
+      const Divider(),
+      viewed,
+      readLater,
+      const Divider(),
+      const Padding(padding: EdgeInsets.all(8), child: Text("Voted For")),
+      const Divider(),
       votedPosts,
       votedUsers,
       votedTags,
       votedComments,
     ]);
+
+    return Scaffold(
+      body: list,
+    );
   }
 }

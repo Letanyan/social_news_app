@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/comment_reply.dart';
+import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
@@ -49,6 +51,9 @@ class Post {
       body: CommentsPage(post: this),
     );
     return () {
+      if (User.current != null) {
+        NewSource.addUserContPost(uid: User.current!.ID, kind: 1, pid: ID);
+      }
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => commentsPage),
@@ -110,7 +115,7 @@ class Post {
               .showSnackBar(SnackBar(content: Text(e.toString())));
         }
       },
-      icon: const Icon(Icons.thumb_up),
+      icon: const Icon(Icons.arrow_upward_rounded),
       label: Text("$Upvotes"),
     );
     final downvotes = ElevatedButton.icon(
@@ -129,18 +134,59 @@ class Post {
               .showSnackBar(SnackBar(content: Text(e.toString())));
         }
       },
-      icon: const Icon(Icons.thumb_down),
+      icon: const Icon(Icons.arrow_downward_rounded),
       label: Text("$Downvotes"),
     );
+    final moreButton = PopupMenuButton(
+      itemBuilder: (context) => [
+        PopupMenuItem(
+            onTap: () async {
+              if (User.current == null) {
+                return;
+              }
+              await NewSource.addUserContPost(
+                uid: User.current!.ID,
+                kind: 2,
+                pid: ID,
+              );
+            },
+            child: Text("Read Later")),
+        PopupMenuItem(
+          onTap: () {
+            showPlatformDialog(
+              context: context,
+              builder: (context) => FlagDialog(pid: ID, sid: -1),
+            );
+          },
+          child: Text("Report"),
+        ),
+      ],
+    );
 
-    final buttonRow = Row(children: [upvotes, downvotes, reply]);
+    final buttonRow = Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        children: [
+          upvotes,
+          const SizedBox(width: 8),
+          downvotes,
+          const SizedBox(width: 8),
+          reply,
+          Expanded(
+              child:
+                  Align(alignment: Alignment.centerRight, child: moreButton)),
+        ],
+      ),
+    );
 
     var items = <Widget>[
-      body,
-      creator,
+      Padding(padding: const EdgeInsets.all(8), child: body),
+      const Divider(),
+      Padding(padding: const EdgeInsets.all(8), child: creator),
       tags,
     ];
     if (ID != -1) {
+      items.add(const Divider());
       items.add(buttonRow);
     }
 
@@ -156,6 +202,7 @@ class Post {
       ),
     );
 
-    return card;
+    return Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8, top: 4), child: card);
   }
 }

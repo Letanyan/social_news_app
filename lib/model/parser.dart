@@ -6,6 +6,17 @@ import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+abstract class RegexPatterns {
+  static final email =
+      RegExp(r"\b[\w.!#$%&’*+\/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)*\b");
+  static final url = RegExp(
+      r"http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+");
+  static final bold = RegExp(r"\[\[[^\]]+\]\]", dotAll: true, multiLine: true);
+  static final italic =
+      RegExp(r"\{\{[^\}]+\}\}", dotAll: true, multiLine: true);
+  static final underline = RegExp(r"__[^_]+__", dotAll: true, multiLine: true);
+}
+
 class ParserMapping {
   final RegExp pattern;
   final InlineSpan Function(String, dynamic) result;
@@ -13,19 +24,26 @@ class ParserMapping {
   const ParserMapping({required this.pattern, required this.result});
 
   static InlineSpan defaultMap(String s, dynamic c) =>
-      TextSpan(text: s, style: MyTheme.current.textTheme.bodyLarge);
+      TextSpan(text: s, style: MyTheme.current.textTheme.bodyText1);
 
   static ParserMapping email(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(
-        pattern: RegExp(r"\b[\w.!#$%&’*+\/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)*\b"),
-        result: f);
+    return ParserMapping(pattern: RegexPatterns.email, result: f);
   }
 
   static ParserMapping url(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(
-        pattern: RegExp(
-            r"http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
-        result: f);
+    return ParserMapping(pattern: RegexPatterns.url, result: f);
+  }
+
+  static ParserMapping bold(InlineSpan Function(String, dynamic) f) {
+    return ParserMapping(pattern: RegexPatterns.bold, result: f);
+  }
+
+  static ParserMapping italic(InlineSpan Function(String, dynamic) f) {
+    return ParserMapping(pattern: RegexPatterns.italic, result: f);
+  }
+
+  static ParserMapping underline(InlineSpan Function(String, dynamic) f) {
+    return ParserMapping(pattern: RegexPatterns.underline, result: f);
   }
 
   static ParserMapping h1(InlineSpan Function(String, dynamic) f) {
@@ -110,7 +128,7 @@ class Parser {
         } else {
           final text = TextSpan(
             text: s,
-            style: MyTheme.current.textTheme.caption,
+            style: MyTheme.current.textTheme.subtitle1,
           );
           final well = InkWell(
             child: RichText(text: text),
@@ -124,6 +142,24 @@ class Parser {
       return TextSpan(
           text: s.substring(1), // remove !
           style: MyTheme.current.textTheme.headline1);
+    }),
+    ParserMapping.bold((s, c) {
+      return TextSpan(
+        text: s.substring(2, s.length - 2),
+        style: MyTheme.current.textTheme.bodyText2,
+      );
+    }),
+    ParserMapping.italic((s, c) {
+      return TextSpan(
+        text: s.substring(2, s.length - 2),
+        style: MyTheme.current.textTheme.caption,
+      );
+    }),
+    ParserMapping.underline((s, c) {
+      return TextSpan(
+        text: s.substring(2, s.length - 2),
+        style: MyTheme.current.textTheme.subtitle2,
+      );
     }),
   ], defaultMap: ParserMapping.defaultMap);
 }

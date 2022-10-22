@@ -59,7 +59,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     } else {
       preview = const SizedBox();
     }
-
+    final size = MediaQuery.of(context).size;
     final input = TextField(
         keyboardType: TextInputType.multiline,
         maxLines: null,
@@ -69,7 +69,10 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
           hintText: 'Enter a reply',
         ));
 
-    final body = ListView(children: [preview, SizedBox(height: 8), input]);
+    final body = ListView(
+      padding: EdgeInsets.only(bottom: size.height * 0.8),
+      children: [preview, const SizedBox(height: 8), input],
+    );
 
     late AppBar? bar;
     if (widget.comment == null && widget.post == null) {
@@ -85,7 +88,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
 
     return Scaffold(
       appBar: bar,
-      body: body,
+      body: Padding(padding: const EdgeInsets.all(8), child: body),
     );
   }
 }

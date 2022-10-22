@@ -26,7 +26,7 @@ class NewSource {
     }
     for (int i = 0; i < args.length; i += 2) {
       // FIXME: escape values
-      result += "${args[i]}=${args[i + 1]}";
+      result += "${args[i]}=${Uri.encodeComponent(args[i + 1])}";
       if (i != args.length - 2) {
         result += "&";
       }
@@ -89,6 +89,36 @@ class NewSource {
       throw err(obj["reason"]);
     } else {
       return User.fromJson(obj["payload"]["user"]);
+    }
+  }
+
+  static Future<User> signUpUser(
+      String user, String email, String password) async {
+    final obj = await post(
+        ["users"], [], {"email": email, "name": user, "password": password});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return User.fromJson(obj["payload"]);
+    }
+  }
+
+  static Future<int> sendVerificationLink(
+      int uid, String email, int key) async {
+    final obj = await post(["auth", "verification", "users", "$uid"], [],
+        {"email": email, "key": key});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return obj["payload"];
     }
   }
 
@@ -160,6 +190,7 @@ class NewSource {
     int? limit,
     int? offset,
     bool? isBlacklist,
+    String? search,
   }) async {
     var args = <String>[];
     addI("isBlacklist", (isBlacklist ?? false) ? 1 : 0, args);
@@ -168,6 +199,7 @@ class NewSource {
     addS("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addS("search", search, args);
 
     final obj = await get(["users", "$uid", "prefs", "users"], args);
     if (obj == null) {
@@ -184,6 +216,7 @@ class NewSource {
     String? order,
     int? limit,
     int? offset,
+    String? search,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -191,13 +224,27 @@ class NewSource {
     addS("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addS("search", search, args);
 
     final obj = await get(["users", "$uid", "prefs", "posts"], args);
     if (obj == null) {
       throw unknownError;
     }
 
-    return handlePayload(obj, UserPrefPost.fromJson);
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final list = obj["payload"];
+      var result = <UserPrefPost>[];
+      var uncached = <int>[];
+      for (final item in list) {
+        final p = UserPrefPost.fromJson(item);
+        result.add(p);
+        uncached.addAll(p.post.Tags);
+      }
+      await Tag.cacheTags(uncached);
+      return result;
+    }
   }
 
   static Future<List<UserPrefComment>> getUserPrefComments({
@@ -207,6 +254,7 @@ class NewSource {
     String? order,
     int? limit,
     int? offset,
+    String? search,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -214,6 +262,7 @@ class NewSource {
     addS("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addS("search", search, args);
 
     final obj = await get(["users", "$uid", "prefs", "comments"], args);
     if (obj == null) {
@@ -230,6 +279,7 @@ class NewSource {
     String? order,
     int? limit,
     int? offset,
+    String? search,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -237,6 +287,7 @@ class NewSource {
     addS("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addS("search", search, args);
 
     final obj = await get(["users", "$uid", "prefs", "tags"], args);
     if (obj == null) {
@@ -247,12 +298,14 @@ class NewSource {
   }
 
   static Future<List<Post>> getUserContPost({
-    int? uid,
+    required int uid,
+    required int kind,
     int? upvotes,
     int? downvotes,
     String? order,
-    int? limit,
-    int? offset,
+    required int limit,
+    required int offset,
+    String? search,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -260,22 +313,44 @@ class NewSource {
     addS("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addS("search", search, args);
 
-    final obj = await get(["users", "$uid", "content", "posts"], args);
+    var path = ["users", "$uid", "content", "posts"];
+    if (kind == 1) {
+      path.add("viewed");
+    } else if (kind == 2) {
+      path.add("read-later");
+    }
+
+    final obj = await get(path, args);
     if (obj == null) {
       throw unknownError;
     }
 
-    return handlePayload(obj, Post.fromJson);
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final list = obj["payload"];
+      var result = <Post>[];
+      var uncached = <int>[];
+      for (final item in list) {
+        final p = Post.fromJson(item);
+        result.add(p);
+        uncached.addAll(p.Tags);
+      }
+      await Tag.cacheTags(uncached);
+      return result;
+    }
   }
 
   static Future<List<Comment>> getUserContComments({
-    int? uid,
+    required int uid,
     int? upvotes,
     int? downvotes,
     String? order,
-    int? limit,
-    int? offset,
+    required int limit,
+    required int offset,
+    String? search,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -283,6 +358,7 @@ class NewSource {
     addS("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addS("search", search, args);
 
     final obj = await get(["users", "$uid", "content", "comments"], args);
     if (obj == null) {
@@ -482,7 +558,6 @@ class NewSource {
       throw unknownError;
     }
 
-    print(obj);
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
@@ -509,10 +584,53 @@ class NewSource {
     }
   }
 
+  static Future<bool> addUserContPost({
+    required int uid,
+    required int kind,
+    required int pid,
+  }) async {
+    var path = ["users", "$uid", "content", "posts", "$pid"];
+    if (kind == 1) {
+      path.add("viewed");
+    } else if (kind == 2) {
+      path.add("read-later");
+    }
+
+    final obj = await post(path, [], {});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   //----------------------------------------------------------------------------
   // Flags
   //----------------------------------------------------------------------------
+  static Future<bool> createFlag(
+    int uid,
+    int pid,
+    int sid,
+    int kind,
+    String reason,
+  ) async {
+    var path = ["flags"];
+    final obj = await post(path, [],
+        {"uid": uid, "pid": pid, "sid": sid, "kind": kind, "reason": reason});
+    if (obj == null) {
+      throw unknownError;
+    }
 
+    if (obj["success"] == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 
 class NSError implements Exception {

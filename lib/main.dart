@@ -46,7 +46,6 @@ class _RandomWordsState extends State<RandomWords> {
       final body = jsonDecode(response.body);
       final List<NewsAgent> result = [];
       for (final item in body["payload"]) {
-        print(item);
         result.add(NewsAgent.fromJson(item));
       }
       return result;

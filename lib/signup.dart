@@ -1,0 +1,130 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/container.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:social_news_app/email_verification_page.dart';
+import 'package:social_news_app/home.dart';
+import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/parser.dart';
+import 'package:social_news_app/model/user.dart';
+
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  var usernameController = TextEditingController();
+  var emailController = TextEditingController();
+  var passwordController = TextEditingController();
+  var passwordValidateController = TextEditingController();
+  var isLoading = false;
+
+  bool validateLength(String name, String value, int min, int max) {
+    if (value.length > max) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("$name must be at most $max characters long")));
+      return false;
+    }
+    if (value.length < min) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("$name must be at least $min characters long")));
+      return false;
+    }
+    return true;
+  }
+
+  void signUp(BuildContext context) async {
+    try {
+      final p1 = passwordController.text;
+      final p2 = passwordValidateController.text;
+      final un = usernameController.text;
+      final em = emailController.text;
+
+      if (p1 != p2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("passwords do not match")));
+        return;
+      }
+      if (!validateLength("username", un, 3, 15)) {
+        return;
+      }
+      if (!validateLength("password", p1, 8, 2048)) {
+        return;
+      }
+      if (!RegexPatterns.email.hasMatch(em)) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("email address appears to be invalid")));
+        return;
+      }
+
+      setState(() {
+        isLoading = true;
+      });
+      final user = await NewSource.signUpUser(un, em, p1);
+      User.current = user;
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+      if (User.current != null) {
+        if (User.current?.ValidationKey != 0) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const EmailVerificationPage()),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeView()),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var username = TextField(
+      controller: usernameController,
+      decoration: const InputDecoration(labelText: "Username"),
+    );
+    var email = TextField(
+      controller: emailController,
+      decoration: const InputDecoration(labelText: "Email"),
+    );
+    var password = TextField(
+      controller: passwordController,
+      obscureText: true,
+      decoration: const InputDecoration(labelText: "Password"),
+    );
+    var passwordValidate = TextField(
+      controller: passwordValidateController,
+      obscureText: true,
+      decoration: const InputDecoration(labelText: "Re-enter Password"),
+    );
+
+    final create = ElevatedButton(
+      onPressed: () async => signUp(context),
+      child: const Text("Create Account"),
+    );
+
+    final list = ListView(children: [
+      username,
+      email,
+      const SizedBox(height: 16),
+      password,
+      passwordValidate,
+      const SizedBox(height: 32),
+      create,
+    ]);
+
+    return Padding(padding: const EdgeInsets.all(8), child: list);
+  }
+}
