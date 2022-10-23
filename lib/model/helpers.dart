@@ -48,6 +48,36 @@ String formatDate(DateTime date) {
   }
 }
 
+String formatDateTime(DateTime date) {
+  final today = DateTime.now();
+  final sameHour = today.hour == date.hour;
+  final sameMinute = today.minute == date.minute;
+
+  final sameYear = today.year == date.year;
+  final sameMonth = today.month == date.month;
+  final sameDay = today.day == date.day;
+
+  if (sameYear && sameMonth && sameDay) {
+    if (sameHour) {
+      final diff = today.minute - date.minute;
+      if (diff == 1) {
+        return "1 Minute Ago";
+      } else {
+        return "$diff Minutes Ago";
+      }
+    } else {
+      final diff = today.hour - date.hour;
+      if (diff == 1) {
+        return "1 Hour Ago";
+      } else {
+        return "$diff Hours Ago";
+      }
+    }
+  } else {
+    return formatDate(date);
+  }
+}
+
 bool isTypeEqual<S, T>() => S == T;
 
 class MyCustomScrollBehavior extends MaterialScrollBehavior {

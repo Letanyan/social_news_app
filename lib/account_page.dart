@@ -4,6 +4,7 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/main.dart';
+import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/user_cont_page.dart';
@@ -40,15 +41,15 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   void Function() showUserContPage(
-      BuildContext context, bool isPost, int playlist) {
+      BuildContext context, ContentKind kind, UserContKind playlist) {
     return () {
-      final title = isPost ? "Posts" : "Comments";
+      final String title = contentKindToString(kind);
 
       final body = Scaffold(
         appBar: AppBar(title: Text(title)),
         body: UserContPage(
           showSearch: true,
-          isPost: isPost,
+          kind: kind,
           playlist: playlist,
           user: widget.user,
         ),
@@ -66,10 +67,10 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     final Text? credit;
-    final TextButton? logout;
+    final TextButton? action;
     if (widget.user.ID == User.current?.ID) {
       credit = Text("${User.current!.Credits}");
-      logout = TextButton(
+      action = TextButton(
         onPressed: () {
           User.current = null;
           Navigator.pop(context);
@@ -80,25 +81,78 @@ class _AccountPageState extends State<AccountPage> {
       );
     } else {
       credit = null;
-      logout = null;
+      final isFollowing = User.current!.following
+              .firstWhere((u) => u.ID == widget.user.ID,
+                  orElse: () => User.current!.toAuthor())
+              .ID !=
+          User.current!.ID;
+      final isIgnored = User.current!.ignored
+              .firstWhere((u) => u.ID == widget.user.ID,
+                  orElse: () => User.current!.toAuthor())
+              .ID !=
+          User.current!.ID;
+      final actionText = isIgnored
+          ? "Don't Ignore"
+          : isFollowing
+              ? "Unfollow"
+              : "Follow";
+      action = TextButton(
+        onPressed: () async {
+          if (User.current == null) {
+            return;
+          }
+          if (isIgnored) {
+            User.current?.ignored.removeWhere((u) => u.ID == widget.user.ID);
+            NewSource.deleteUserCont(
+                User.current!.ID, widget.user.ID, UserContKind.ignored);
+          } else if (isFollowing) {
+            User.current?.following.removeWhere((u) => u.ID == widget.user.ID);
+            NewSource.deleteUserCont(
+                User.current!.ID, widget.user.ID, UserContKind.userFollow);
+          } else {
+            User.current?.following.add(widget.user);
+            NewSource.addUserCont(
+                uid: User.current!.ID,
+                kind: UserContKind.userFollow,
+                pid: widget.user.ID);
+          }
+          setState(() {});
+        },
+        child: Text(actionText),
+      );
     }
     final name = ListTile(
       title: Text(widget.user.Name),
       subtitle: credit,
-      trailing: logout,
+      trailing: action,
     );
 
     final userPosts = ListTile(
-        title: const Text("Posts"), onTap: showUserContPage(context, true, 0));
+        title: const Text("Posts"),
+        onTap:
+            showUserContPage(context, ContentKind.post, UserContKind.created));
     final userComments = ListTile(
         title: const Text("Comments"),
-        onTap: showUserContPage(context, false, 0));
+        onTap: showUserContPage(
+            context, ContentKind.comment, UserContKind.created));
 
     final viewed = ListTile(
-        title: const Text("Viewed"), onTap: showUserContPage(context, true, 1));
+        title: const Text("Viewed"),
+        onTap:
+            showUserContPage(context, ContentKind.post, UserContKind.viewed));
     final readLater = ListTile(
         title: const Text("Read Later"),
-        onTap: showUserContPage(context, true, 2));
+        onTap: showUserContPage(
+            context, ContentKind.post, UserContKind.readLater));
+    final following = ListTile(
+      title: const Text("Following"),
+      onTap:
+          showUserContPage(context, ContentKind.user, UserContKind.userFollow),
+    );
+    final ignored = ListTile(
+      title: const Text("Ignored"),
+      onTap: showUserContPage(context, ContentKind.user, UserContKind.ignored),
+    );
 
     final votedPosts = ListTile(
       title: const Text("Posts"),
@@ -125,6 +179,8 @@ class _AccountPageState extends State<AccountPage> {
       const Divider(),
       viewed,
       readLater,
+      following,
+      ignored,
       const Divider(),
       const Padding(padding: EdgeInsets.all(8), child: Text("Voted For")),
       const Divider(),
@@ -137,5 +193,20 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       body: list,
     );
+  }
+}
+
+enum ContentKind { post, comment, user, tag }
+
+String contentKindToString(ContentKind ck) {
+  switch (ck) {
+    case ContentKind.comment:
+      return "Comments";
+    case ContentKind.post:
+      return "Posts";
+    case ContentKind.user:
+      return "Users";
+    case ContentKind.tag:
+      return "Tags";
   }
 }

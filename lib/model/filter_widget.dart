@@ -6,9 +6,11 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/location_picker.dart';
+import 'package:social_news_app/model/new_source.dart';
 
 class FilterBoxState {
   int current;
+  SortOrder order;
   DateTime start;
   DateTime end;
   List<String>? location;
@@ -16,6 +18,7 @@ class FilterBoxState {
 
   FilterBoxState({
     required this.current,
+    required this.order,
     required this.start,
     required this.end,
     required this.location,
@@ -25,6 +28,7 @@ class FilterBoxState {
 
 class FilterBox extends StatefulWidget {
   final Map<int, String>? selector;
+  final List<SortOrder>? sorting;
   final bool date;
   final bool location;
   final bool search;
@@ -33,6 +37,7 @@ class FilterBox extends StatefulWidget {
   FilterBox({
     super.key,
     this.selector,
+    this.sorting,
     this.date = false,
     this.location = false,
     this.search = false,
@@ -46,6 +51,7 @@ class FilterBox extends StatefulWidget {
 
 class _FilterBoxState extends State<FilterBox> {
   var current = 0;
+  var sortOrder = <SortOrder>[];
   var location = <String>[];
   var startDate = <DateTime>[];
   var endDate = <DateTime>[];
@@ -57,12 +63,14 @@ class _FilterBoxState extends State<FilterBox> {
     super.initState();
 
     if (widget.selector == null) {
+      sortOrder = [SortOrder.upvotes];
       location = [""];
       searchString = [""];
       startDate = [DateTime.now().add(const Duration(days: -7))];
       endDate = [DateTime.now()];
     } else {
       for (final key in widget.selector!.keys) {
+        sortOrder.add(SortOrder.upvotes);
         location.add("");
         searchString.add("");
         startDate.add(DateTime.now().add(const Duration(days: -7)));
@@ -71,6 +79,7 @@ class _FilterBoxState extends State<FilterBox> {
     }
     widget.currentState = FilterBoxState(
       current: current,
+      order: sortOrder[current],
       start: startDate[current],
       end: endDate[current],
       location: getLocationArg(),
@@ -81,6 +90,7 @@ class _FilterBoxState extends State<FilterBox> {
   void updateState() {
     widget.currentState = FilterBoxState(
       current: current,
+      order: sortOrder[current],
       start: startDate[current],
       end: endDate[current],
       location: getLocationArg(),
@@ -189,6 +199,23 @@ class _FilterBoxState extends State<FilterBox> {
       groupValue: current,
     );
 
+    List<DropdownMenuItem<SortOrder>> dropMenuItems = [];
+    for (final so in widget.sorting ?? []) {
+      dropMenuItems.add(
+        DropdownMenuItem(
+          value: so,
+          child: Text(sortOrderPresentation(so)),
+        ),
+      );
+    }
+    final sortDropDown = DropdownButton<SortOrder>(
+        value: sortOrder[current],
+        onChanged: (value) {
+          sortOrder[current] = value ?? SortOrder.upvotes;
+          updateState();
+        },
+        items: dropMenuItems);
+
     final searchBox = TextField(
       keyboardType: TextInputType.text,
       maxLines: 1,
@@ -221,6 +248,10 @@ class _FilterBoxState extends State<FilterBox> {
     if (widget.location) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(area);
+    }
+    if (widget.sorting != null) {
+      filterItems.add(const SizedBox(height: 8));
+      filterItems.add(sortDropDown);
     }
     filterItems.add(const SizedBox(height: 8));
 

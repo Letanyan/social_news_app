@@ -12,7 +12,7 @@ class PostsPage extends StatefulWidget {
   final List<String>? popularIn;
   final int? upvotes;
   final int? downvotes;
-  final String? order;
+  final SortOrder? order;
   final DateTime? start;
   final DateTime? end;
   final DateTime? startCreated;

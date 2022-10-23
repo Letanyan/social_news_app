@@ -7,6 +7,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment_reply.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
@@ -26,16 +27,19 @@ class _HomeViewState extends State<HomeView>
   Map<int, bool> hasLoadedScreen = {};
   List<int> loadedIndices = [];
 
+  final GlobalKey<SearchPageState> trendingPageKey = GlobalKey();
+  final GlobalKey<SearchPageState> searchPageKey = GlobalKey();
+
   int tabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     screens = [
-      const PostsPage(order: "createdat"),
-      const SearchPage(key: Key("trending"), showSearch: false),
+      PostsPage(order: SortOrder.score, forUser: User.current!.ID),
+      SearchPage(key: trendingPageKey, hasSearch: false),
       CommentReplyPage(),
-      const SearchPage(key: Key("search"), showSearch: true),
+      SearchPage(key: searchPageKey, hasSearch: true),
       AccountPage(user: User.current?.toAuthor() ?? Author.fromInt(-1)),
     ];
     for (int i = 0; i < screens.length; i++) {
@@ -140,7 +144,17 @@ class _HomeViewState extends State<HomeView>
   @override
   Widget build(BuildContext context) {
     List<Widget> actions = [];
-    if (tabIndex == 2) {
+    if (tabIndex == 1) {
+      final action = IconButton(
+        onPressed: () {
+          final page = (screens[1] as SearchPage);
+          page.shouldShowFilter = !page.shouldShowFilter;
+          trendingPageKey.currentState?.setState(() {});
+        },
+        icon: Icon(Icons.filter, color: MyTheme.current.primaryColor),
+      );
+      actions.add(action);
+    } else if (tabIndex == 2) {
       final action = IconButton(
         onPressed: () {
           final page = (screens[2] as CommentReplyPage);
@@ -148,30 +162,42 @@ class _HomeViewState extends State<HomeView>
           final text = controller?.text ?? "";
           previewPost(context, text)();
         },
-        icon: const Icon(Icons.preview),
+        icon: Icon(Icons.preview, color: MyTheme.current.primaryColor),
+      );
+      actions.add(action);
+    } else if (tabIndex == 3) {
+      final action = IconButton(
+        onPressed: () {
+          final page = (screens[3] as SearchPage);
+          page.shouldShowFilter = !page.shouldShowFilter;
+          searchPageKey.currentState?.setState(() {});
+        },
+        icon: Icon(Icons.filter, color: MyTheme.current.primaryColor),
       );
       actions.add(action);
     }
 
     return MaterialApp(
-        theme: MyTheme.current,
-        darkTheme: MyTheme.dark,
-        themeMode: ThemeMode.system,
-        scrollBehavior: MyCustomScrollBehavior(),
-        home: Scaffold(
-          appBar: AppBar(
-            backgroundColor: MyTheme.current.backgroundColor,
-            title: Text(
-              _viewName(tabIndex),
-              style: TextStyle(color: MyTheme.current.primaryColor),
-            ),
-            actions: actions,
+      theme: MyTheme.current,
+      darkTheme: MyTheme.dark,
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
+      home: Scaffold(
+        appBar: AppBar(
+          backgroundColor: MyTheme.current.backgroundColor,
+          title: Text(
+            _viewName(tabIndex),
+            style: TextStyle(color: MyTheme.current.primaryColor),
           ),
-          body: IndexedStack(
-            index: loadedIndices.indexOf(tabIndex),
-            children: loadedScreens,
-          ),
-          bottomNavigationBar: _buildTabBar(),
-        ));
+          actions: actions,
+        ),
+        body: IndexedStack(
+          index: loadedIndices.indexOf(tabIndex),
+          children: loadedScreens,
+        ),
+        bottomNavigationBar: _buildTabBar(),
+      ),
+    );
   }
 }

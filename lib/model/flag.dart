@@ -14,17 +14,8 @@ class FlagDialog extends StatefulWidget {
 }
 
 class _FlagDialogState extends State<FlagDialog> {
-  String selectReason = "";
-  List<String> kinds = [
-    "Sexual Content",
-    "Violent Content",
-    "Hateful Content",
-    "Harassing Content",
-    "Harmful Content",
-    "Abusive Content",
-    "Spam",
-    "Other",
-  ];
+  FlagReason selectReason = FlagReason.other;
+
   var controller = TextEditingController();
 
   @override
@@ -33,36 +24,25 @@ class _FlagDialogState extends State<FlagDialog> {
     super.dispose();
   }
 
-  void updateReason(String? s) {
+  void updateReason(FlagReason? fr) {
     setState(() {
-      selectReason = s ?? "";
+      selectReason = fr ?? FlagReason.other;
     });
   }
 
-  int indexOfKind(String s) {
-    int i = 0;
-    for (final k in kinds) {
-      if (k == s) {
-        return i;
-      }
-      i++;
-    }
-    return kinds.length;
-  }
-
-  RadioListTile radioTile(String s) {
-    return RadioListTile<String>(
-      value: s,
+  RadioListTile radioTile(FlagReason fr) {
+    return RadioListTile<FlagReason>(
+      value: fr,
       groupValue: selectReason,
       onChanged: updateReason,
-      title: Text(s),
+      title: Text(flagReasonToString(fr)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     var items = <Widget>[];
-    for (final s in kinds) {
+    for (final s in FlagReason.values) {
       items.add(radioTile(s));
     }
     items.add(const Text(
@@ -92,7 +72,7 @@ class _FlagDialogState extends State<FlagDialog> {
                 User.current!.ID,
                 widget.pid,
                 widget.sid,
-                indexOfKind(selectReason),
+                selectReason,
                 controller.text,
               );
             }

@@ -12,6 +12,8 @@ class User {
   double Downvotes;
   int Credits;
   final int ValidationKey;
+  List<Author> following;
+  List<Author> ignored;
 
   User({
     required this.ID,
@@ -23,7 +25,8 @@ class User {
     required this.Downvotes,
     required this.Credits,
     required this.ValidationKey,
-  });
+  })  : following = [],
+        ignored = [];
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(

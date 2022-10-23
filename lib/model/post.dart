@@ -52,7 +52,8 @@ class Post {
     );
     return () {
       if (User.current != null) {
-        NewSource.addUserContPost(uid: User.current!.ID, kind: 1, pid: ID);
+        NewSource.addUserCont(
+            uid: User.current!.ID, kind: UserContKind.viewed, pid: ID);
       }
       Navigator.push(
         context,
@@ -87,6 +88,14 @@ class Post {
     final creator = InkWell(
       onTap: () => Creator.showUserPage(context),
       child: Text(Creator.Name),
+    );
+    final date = Text(formatDateTime(CreatedAt));
+    final meta = Padding(
+      padding: EdgeInsets.all(8),
+      child: Row(children: [
+        date,
+        Expanded(child: Align(alignment: Alignment.centerRight, child: creator))
+      ]),
     );
 
     final resolvedTags = Tag.getTags(Tags);
@@ -144,13 +153,25 @@ class Post {
               if (User.current == null) {
                 return;
               }
-              await NewSource.addUserContPost(
+              await NewSource.addUserCont(
                 uid: User.current!.ID,
-                kind: 2,
+                kind: UserContKind.readLater,
                 pid: ID,
               );
             },
-            child: Text("Read Later")),
+            child: const Text("Read Later")),
+        PopupMenuItem(
+            onTap: () async {
+              if (User.current == null) {
+                return;
+              }
+              await NewSource.addUserCont(
+                uid: User.current!.ID,
+                kind: UserContKind.ignored,
+                pid: Creator.ID,
+              );
+            },
+            child: const Text("Ignore User")),
         PopupMenuItem(
           onTap: () {
             showPlatformDialog(
@@ -182,7 +203,7 @@ class Post {
     var items = <Widget>[
       Padding(padding: const EdgeInsets.all(8), child: body),
       const Divider(),
-      Padding(padding: const EdgeInsets.all(8), child: creator),
+      Padding(padding: const EdgeInsets.all(8), child: meta),
       tags,
     ];
     if (ID != -1) {

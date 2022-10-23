@@ -15,15 +15,16 @@ import 'package:social_news_app/posts_page.dart';
 import 'helpers.dart';
 
 class SearchPage extends StatefulWidget {
-  final bool showSearch;
+  final bool hasSearch;
+  bool shouldShowFilter;
 
-  const SearchPage({super.key, required this.showSearch});
+  SearchPage({super.key, required this.hasSearch}) : shouldShowFilter = true;
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  State<SearchPage> createState() => SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class SearchPageState extends State<SearchPage> {
   late Future<List<Tag>> tags;
   late Future<List<Post>> posts;
   late Future<List<Author>> users;
@@ -34,55 +35,47 @@ class _SearchPageState extends State<SearchPage> {
   var pageSize = 20;
   var count = [0, 0, 0, 0];
   var hasMore = [true, true, true, true];
-  var isLoading = [false, false, false, false];
-  FilterBox? filterBox;
+  var isLoading = [true, true, true, true];
+  late final FilterBox filterBox;
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.showSearch) {
-      tags = Future(() => []);
-    } else {
-      tags = getNewItems<Tag>().then(updateItemsState);
-      offset[0] = pageSize;
-    }
-
     posts = Future(() => []);
     users = Future(() => []);
     comments = Future(() => []);
 
-    if (widget.showSearch) {
-      filterBox = FilterBox(
-        selector: const <int, String>{
-          0: "Tags",
-          1: "Posts",
-          2: "Users",
-          3: "Comments"
-        },
-        search: true,
-        valueChanged: (fb) {
-          updateFilter(() {
-            current = fb.current;
-          });
-        },
-      );
+    const selector = <int, String>{
+      0: "Tags",
+      1: "Posts",
+      2: "Users",
+      3: "Comments"
+    };
+    final search = widget.hasSearch;
+    const sortOrder = SortOrder.values;
+    final date = !widget.hasSearch;
+    final location = !widget.hasSearch;
+
+    filterBox = FilterBox(
+      selector: selector,
+      sorting: sortOrder,
+      search: search,
+      date: date,
+      location: location,
+      valueChanged: (FilterBoxState fb) {
+        updateFilter(() {
+          current = fb.current;
+        });
+      },
+    );
+
+    if (widget.hasSearch) {
+      tags = Future(() => []);
     } else {
-      filterBox = FilterBox(
-        selector: const <int, String>{
-          0: "Tags",
-          1: "Posts",
-          2: "Users",
-          3: "Comments"
-        },
-        date: true,
-        location: true,
-        valueChanged: (fb) {
-          updateFilter(() {
-            current = fb.current;
-          });
-        },
-      );
+      updateFilter(() {
+        current = 0;
+      });
     }
   }
 
@@ -102,15 +95,16 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = widget.showSearch ? null : filterBox?.currentState?.start;
-    final ed = widget.showSearch ? null : filterBox?.currentState?.end;
-    final loc = filterBox?.currentState?.location;
-    final src = filterBox?.currentState?.search;
+    final sd = widget.hasSearch ? null : filterBox.currentState?.start;
+    final ed = widget.hasSearch ? null : filterBox.currentState?.end;
+    final loc = filterBox.currentState?.location;
+    final src = filterBox.currentState?.search;
+    final so = filterBox.currentState?.order;
     if (isTypeEqual<T, Tag>()) {
       return NewSource.getTags(
         offset: offset[idx],
         limit: pageSize,
-        order: "upvotes",
+        order: so,
         start: sd,
         end: ed,
         location: loc,
@@ -120,7 +114,7 @@ class _SearchPageState extends State<SearchPage> {
       return NewSource.getPosts(
         offset: offset[idx],
         limit: pageSize,
-        order: "upvotes",
+        order: so,
         start: sd,
         end: ed,
         popularIn: loc,
@@ -130,7 +124,7 @@ class _SearchPageState extends State<SearchPage> {
       return NewSource.getUsers(
         offset: offset[idx],
         limit: pageSize,
-        order: "upvotes",
+        order: so,
         start: sd,
         end: ed,
         popularIn: loc,
@@ -140,7 +134,7 @@ class _SearchPageState extends State<SearchPage> {
       return NewSource.getComments(
         offset: offset[idx],
         limit: pageSize,
-        order: "upvotes",
+        order: so,
         start: sd,
         end: ed,
         popularIn: loc,
@@ -213,7 +207,7 @@ class _SearchPageState extends State<SearchPage> {
             }
             return ListView.builder(
                 itemCount: count[current] + 1,
-                padding: const EdgeInsets.only(top: 128.0),
+                // padding: const EdgeInsets.only(top: 128.0),
                 itemBuilder: (context, index) {
                   if (index >= count[current]) {
                     if (isLoading[current]) {
@@ -255,13 +249,11 @@ class _SearchPageState extends State<SearchPage> {
                   } else if (current == 1) {
                     return (item as Post).card(context, false, updateState);
                   } else if (current == 2) {
-                    // FIXME: Show user profile on tap
                     final user = item as Author;
                     return ListTile(
                         title: Text(user.Name),
                         onTap: () => user.showUserPage(context));
                   } else if (current == 3) {
-                    // FIXME: tap should open post (add a static method in the comment.dart)
                     final comment = item as Comment;
                     return comment.card(context, false, 0,
                         (c) => c.showParentPost(context)(), updateState);
@@ -294,7 +286,11 @@ class _SearchPageState extends State<SearchPage> {
 
     var stack = <Widget>[list];
     if (filterBox != null) {
-      stack.add(filterBox!);
+      stack.add(Visibility(
+        visible: widget.shouldShowFilter,
+        maintainState: true,
+        child: filterBox,
+      ));
     }
 
     return Stack(children: stack);

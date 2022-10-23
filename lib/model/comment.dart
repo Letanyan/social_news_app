@@ -4,6 +4,7 @@ import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
@@ -69,9 +70,17 @@ class Comment {
   Widget card(BuildContext context, bool showReply, double offset,
       void Function(Comment)? onTap, VoidCallback updateState) {
     final text = Text(content);
-    final user = InkWell(
+    final creator = InkWell(
       onTap: () => author.showUserPage(context),
       child: Text(author.Name),
+    );
+    final date = Text(formatDateTime(createdAt));
+    final meta = Padding(
+      padding: EdgeInsets.all(8),
+      child: Row(children: [
+        date,
+        Expanded(child: Align(alignment: Alignment.centerRight, child: creator))
+      ]),
     );
     final reply = TextButton(
         onPressed: () => Navigator.push(
@@ -135,7 +144,7 @@ class Comment {
       buttonRowItems.add(reply);
     }
 
-    var items = <Widget>[text, user];
+    var items = <Widget>[text, meta];
     void Function()? finalOnTap;
     if (replyCount > 0 || !showReply) {
       buttonRowItems.add(const SizedBox(width: 8));

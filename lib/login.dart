@@ -39,7 +39,12 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      User.current = await NewSource.signInUser(email, password);
+      final user = await NewSource.signInUser(email, password);
+      User.current = user;
+      User.current?.following =
+          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+      User.current?.ignored =
+          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
     } catch (e) {
       ScaffoldMessenger.of(_context)
           .showSnackBar(SnackBar(content: Text(e.toString())));

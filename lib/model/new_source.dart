@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -25,7 +26,6 @@ class NewSource {
       throw Exception("args must be even key-value pairs");
     }
     for (int i = 0; i < args.length; i += 2) {
-      // FIXME: escape values
       result += "${args[i]}=${Uri.encodeComponent(args[i + 1])}";
       if (i != args.length - 2) {
         result += "&";
@@ -53,6 +53,18 @@ class NewSource {
       final query = buildURL(path, args);
       final response =
           await http.post(Uri.parse(query), body: json.encode(body));
+      responseJson = json.decode(response.body);
+    } catch (e) {
+      return null;
+    }
+    return responseJson;
+  }
+
+  static Future<dynamic> delete(List<String> path, List<String> args) async {
+    dynamic responseJson;
+    try {
+      final query = buildURL(path, args);
+      final response = await http.post(Uri.parse(query));
       responseJson = json.decode(response.body);
     } catch (e) {
       return null;
@@ -155,7 +167,7 @@ class NewSource {
       {List<String>? popularIn,
       int? upvotes,
       int? downvotes,
-      String? order,
+      SortOrder? order,
       int? limit,
       int? offset,
       DateTime? start,
@@ -166,7 +178,7 @@ class NewSource {
     addL("popularIn", popularIn, args);
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addD("start", start, args);
@@ -186,7 +198,7 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
-    String? order,
+    SortOrder? order,
     int? limit,
     int? offset,
     bool? isBlacklist,
@@ -196,7 +208,7 @@ class NewSource {
     addI("isBlacklist", (isBlacklist ?? false) ? 1 : 0, args);
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
@@ -213,7 +225,7 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
-    String? order,
+    SortOrder? order,
     int? limit,
     int? offset,
     String? search,
@@ -221,7 +233,7 @@ class NewSource {
     var args = <String>[];
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
@@ -251,7 +263,7 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
-    String? order,
+    SortOrder? order,
     int? limit,
     int? offset,
     String? search,
@@ -259,7 +271,7 @@ class NewSource {
     var args = <String>[];
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
@@ -276,7 +288,7 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
-    String? order,
+    SortOrder? order,
     int? limit,
     int? offset,
     String? search,
@@ -284,7 +296,7 @@ class NewSource {
     var args = <String>[];
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
@@ -299,10 +311,10 @@ class NewSource {
 
   static Future<List<Post>> getUserContPost({
     required int uid,
-    required int kind,
+    required UserContKind kind,
     int? upvotes,
     int? downvotes,
-    String? order,
+    SortOrder? order,
     required int limit,
     required int offset,
     String? search,
@@ -310,15 +322,15 @@ class NewSource {
     var args = <String>[];
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
 
     var path = ["users", "$uid", "content", "posts"];
-    if (kind == 1) {
+    if (kind == UserContKind.viewed) {
       path.add("viewed");
-    } else if (kind == 2) {
+    } else if (kind == UserContKind.readLater) {
       path.add("read-later");
     }
 
@@ -347,7 +359,7 @@ class NewSource {
     required int uid,
     int? upvotes,
     int? downvotes,
-    String? order,
+    SortOrder? order,
     required int limit,
     required int offset,
     String? search,
@@ -355,7 +367,7 @@ class NewSource {
     var args = <String>[];
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
@@ -366,6 +378,21 @@ class NewSource {
     }
 
     return handlePayload(obj, Comment.fromJson);
+  }
+
+  static Future<List<Author>> getUserContUsers(
+      int uid, UserContKind kind) async {
+    late List<String> path;
+    if (kind == UserContKind.userFollow) {
+      path = ["users", "$uid", "content", "user-follows"];
+    } else {
+      path = ["users", "$uid", "content", "ignored"];
+    }
+    final obj = await get(path, []);
+    if (obj == null) {
+      throw unknownError;
+    }
+    return handlePayload(obj, Author.fromJson);
   }
 
   //----------------------------------------------------------------------------
@@ -393,7 +420,7 @@ class NewSource {
       List<String>? popularIn,
       int? upvotes,
       int? downvotes,
-      String? order,
+      SortOrder? order,
       int? offset,
       int? limit,
       DateTime? start,
@@ -409,7 +436,7 @@ class NewSource {
     addL("popularIn", popularIn, args);
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addD("start", start, args);
@@ -474,7 +501,7 @@ class NewSource {
       List<String>? tags,
       int? upvotes,
       int? downvotes,
-      String? order,
+      SortOrder? order,
       int? offset,
       int? limit,
       DateTime? start,
@@ -485,7 +512,7 @@ class NewSource {
     addL("tags", tags, args);
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addD("start", start, args);
@@ -512,7 +539,7 @@ class NewSource {
       List<String>? popularIn,
       int? upvotes,
       int? downvotes,
-      String? order,
+      SortOrder? order,
       int? limit,
       int? offset,
       DateTime? start,
@@ -526,7 +553,7 @@ class NewSource {
     addL("popularIn", popularIn, args);
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
-    addS("order", order, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
     addD("start", start, args);
@@ -584,19 +611,72 @@ class NewSource {
     }
   }
 
-  static Future<bool> addUserContPost({
+  static Future<bool> addUserCont({
     required int uid,
-    required int kind,
+    required UserContKind kind,
     required int pid,
   }) async {
-    var path = ["users", "$uid", "content", "posts", "$pid"];
-    if (kind == 1) {
-      path.add("viewed");
-    } else if (kind == 2) {
-      path.add("read-later");
+    if (uid == pid) {
+      return Future(() => false);
+    }
+    final List<String> path;
+    switch (kind) {
+      case UserContKind.created:
+        return Future(() => false);
+      case UserContKind.viewed:
+        path = ["users", "$uid", "content", "posts", "viewed"];
+        break;
+      case UserContKind.readLater:
+        path = ["users", "$uid", "content", "posts", "read-later"];
+        break;
+      case UserContKind.userFollow:
+        path = ["users", "$uid", "content", "user-follows"];
+        break;
+      case UserContKind.ignored:
+        path = ["users", "$uid", "content", "ignored"];
+        break;
     }
 
-    final obj = await post(path, [], {});
+    final obj = await post(path, [], {"pid": pid});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static Future<bool> deleteUserCont(
+      int uid, int pid, UserContKind kind) async {
+    late List<String> path;
+    switch (kind) {
+      case UserContKind.viewed:
+        path = ["trash", "users", "$uid", "content", "posts", "viewed", "$pid"];
+        break;
+      case UserContKind.readLater:
+        path = [
+          "trash",
+          "users",
+          "$uid",
+          "content",
+          "posts",
+          "read-later",
+          "$pid"
+        ];
+        break;
+      case UserContKind.userFollow:
+        path = ["trash", "users", "$uid", "content", "user-follows", "$pid"];
+        break;
+      case UserContKind.ignored:
+        path = ["trash", "users", "$uid", "content", "ignored", "$pid"];
+        break;
+      case UserContKind.created:
+        return Future(() => false);
+    }
+    final obj = await delete(path, []);
     if (obj == null) {
       throw unknownError;
     }
@@ -615,12 +695,17 @@ class NewSource {
     int uid,
     int pid,
     int sid,
-    int kind,
+    FlagReason kind,
     String reason,
   ) async {
     var path = ["flags"];
-    final obj = await post(path, [],
-        {"uid": uid, "pid": pid, "sid": sid, "kind": kind, "reason": reason});
+    final obj = await post(path, [], {
+      "uid": uid,
+      "pid": pid,
+      "sid": sid,
+      "kind": kind.index,
+      "reason": reason
+    });
     if (obj == null) {
       throw unknownError;
     }
@@ -685,5 +770,102 @@ void addD(String name, DateTime? value, List<String> args) {
     final formatter = DateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
     final result = formatter.format(value.toUtc());
     args.add(result);
+  }
+}
+
+void addSO(String name, SortOrder? value, List<String> args) {
+  if (value != null) {
+    args.add(name);
+    args.add(sortOrderToString(value));
+  }
+}
+
+enum UserContKind {
+  created,
+  viewed,
+  readLater,
+  userFollow,
+  ignored,
+}
+
+enum UserPrefKind {
+  user,
+  comment,
+  post,
+  tag,
+}
+
+enum FlagReason {
+  sexual,
+  violent,
+  hateful,
+  harassment,
+  harmful,
+  abuse,
+  spam,
+  other,
+}
+
+enum SortOrder {
+  score,
+  cred,
+  upvotes,
+  downvotes,
+  controversial,
+  createdAt,
+}
+
+String sortOrderToString(SortOrder so) {
+  switch (so) {
+    case SortOrder.score:
+      return "score";
+    case SortOrder.cred:
+      return "cred";
+    case SortOrder.upvotes:
+      return "upvotes";
+    case SortOrder.downvotes:
+      return "downvotes";
+    case SortOrder.controversial:
+      return "controversial";
+    case SortOrder.createdAt:
+      return "createdat";
+  }
+}
+
+String sortOrderPresentation(SortOrder so) {
+  switch (so) {
+    case SortOrder.score:
+      return "Score";
+    case SortOrder.cred:
+      return "Credibility";
+    case SortOrder.upvotes:
+      return "Upvotes";
+    case SortOrder.downvotes:
+      return "Downvotes";
+    case SortOrder.controversial:
+      return "Controversial";
+    case SortOrder.createdAt:
+      return "New";
+  }
+}
+
+String flagReasonToString(FlagReason fr) {
+  switch (fr) {
+    case FlagReason.sexual:
+      return "Sexual Content";
+    case FlagReason.violent:
+      return "Violent Content";
+    case FlagReason.hateful:
+      return "Hateful Content";
+    case FlagReason.harassment:
+      return "Harassing Content";
+    case FlagReason.harmful:
+      return "Harmful Content";
+    case FlagReason.abuse:
+      return "Abusive Content";
+    case FlagReason.spam:
+      return "Spam";
+    case FlagReason.other:
+      return "Other";
   }
 }

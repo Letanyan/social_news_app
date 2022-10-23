@@ -90,7 +90,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         uid: widget.user.ID,
         offset: offset,
         limit: pageSize,
-        order: "upvotes", // FIXME: sort by vote date?
+        order: SortOrder.upvotes, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefPost>()) {
@@ -98,7 +98,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         uid: widget.user.ID,
         offset: offset,
         limit: pageSize,
-        order: "createdat", // FIXME: sort by vote date?
+        order: SortOrder.createdAt, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefUser>()) {
@@ -106,7 +106,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         uid: widget.user.ID,
         offset: offset,
         limit: pageSize,
-        order: "upvotes", // FIXME: sort by vote date?
+        order: SortOrder.upvotes, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefComment>()) {
@@ -114,7 +114,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         uid: widget.user.ID,
         offset: offset,
         limit: pageSize,
-        order: "createdat", // FIXME: sort by vote date?
+        order: SortOrder.createdAt, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else {
@@ -133,6 +133,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       f();
       count = 0;
       offset = 0;
+      isLoading = true;
       if (current == 0) {
         tags = getNewItems<UserPrefTag>().then(updateItemsState);
       } else if (current == 1) {
