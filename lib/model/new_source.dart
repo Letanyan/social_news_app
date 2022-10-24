@@ -649,6 +649,17 @@ class NewSource {
     }
   }
 
+  static Future<bool> refreshUserContRecommendations(
+      int uid, List<int> pids) async {
+    final path = ["users", "$uid", "content", "recommendations"];
+    final obj = await post(path, [], {"pid": pids});
+    if (obj["success"] == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   static Future<bool> deleteUserCont(
       int uid, int pid, UserContKind kind) async {
     late List<String> path;

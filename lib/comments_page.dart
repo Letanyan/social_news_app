@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:english_words/english_words.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
@@ -19,33 +20,55 @@ class CommentsPage extends StatefulWidget {
 
 class _CommentsPageState extends State<CommentsPage> {
   late Future<Map<int, List<Comment>>> comments;
+  late Future<List<Comment>> allComments;
   bool isLoading = true;
   int count = 0;
 
   @override
   void initState() {
     super.initState();
-    comments = Future(() => <int, List<Comment>>{});
-    _loadMoreComments(0);
+    loadComments(-1);
   }
 
-  Future<List<Comment>> loadComments(int commentId) {
-    return NewSource.getComments(
+  Future<void> loadComments(int commentId) async {
+    allComments = NewSource.getComments(
       postId: widget.post.ID,
       replyId: commentId,
     );
+    comments = Future(() => <int, List<Comment>>{});
+    showComments(0);
   }
 
-  void _loadMoreComments(int commentId) async {
-    final newPosts = await loadComments(commentId);
-    var oldPosts = await comments;
-    final oldCount = oldPosts[commentId]?.length ?? 0;
-    oldPosts[commentId] = newPosts;
-    comments = Future(() => oldPosts);
-    setState(() {
-      count += newPosts.length - oldCount;
-      isLoading = false;
-    });
+  Future<void> showComments(int replyId) async {
+    var list = <Comment>[];
+    for (final c in await allComments) {
+      if (c.replyId == replyId) {
+        list.add(c);
+      }
+    }
+    var result = await comments;
+    result[replyId] = list;
+    count += list.length;
+    comments = Future(() => result);
+    setState(() {});
+  }
+
+  Future<void> hideComments(int replyId) async {
+    var result = await comments;
+    final len = result[replyId]?.length ?? 0;
+    result.remove(replyId);
+    count -= len;
+    comments = Future(() => result);
+    setState(() {});
+  }
+
+  Future<void> toggleComments(int replyId) async {
+    final result = await comments;
+    if (result.containsKey(replyId)) {
+      await hideComments(replyId);
+    } else {
+      await showComments(replyId);
+    }
   }
 
   void updateState() {
@@ -64,7 +87,7 @@ class _CommentsPageState extends State<CommentsPage> {
           }
           var path = <int>[0];
           var pathCount = <int>[0];
-          return ListView.builder(
+          final list = ListView.builder(
             itemCount: count + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
@@ -94,17 +117,33 @@ class _CommentsPageState extends State<CommentsPage> {
                 pathCount[pathCount.length - 1] += 1;
               }
               return item.card(context, true, indent, (c) {
-                _loadMoreComments(c.id);
+                toggleComments(c.id);
+                setState(() {});
               }, updateState);
             },
           );
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              loadComments(-1);
+              return;
+            },
+            child: list,
+          );
         }
 
-        return ListView(
+        final list = ListView(
           children: [
             widget.post.card(context, true, updateState),
             const CircularProgressIndicator()
           ],
+        );
+        return RefreshIndicator(
+          onRefresh: () async {
+            loadComments(-1);
+            return;
+          },
+          child: list,
         );
       },
     );

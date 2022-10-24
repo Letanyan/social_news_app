@@ -104,6 +104,7 @@ void Function() previewPost(BuildContext context, String content) {
       Location: [],
       Upvotes: 0,
       Downvotes: 0,
+      CommentCount: 0,
     );
 
     final makePost =

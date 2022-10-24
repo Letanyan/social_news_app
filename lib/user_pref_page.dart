@@ -182,63 +182,74 @@ class _UserPrefPageState extends State<UserPrefPage> {
             if (snapshot.data == null || snapshot.data?.isEmpty == true) {
               return const SizedBox();
             }
-            return ListView.builder(
-                itemCount: count,
-                padding: const EdgeInsets.only(top: 114.0),
-                itemBuilder: (context, index) {
-                  if (index >= count) {
-                    if (isLoading) {
-                      return const CircularProgressIndicator();
-                    } else if (hasMore) {
-                      if (current == 0) {
-                        final newItems = getNewItems<UserPrefTag>();
-                        _loadMore(newItems, tags);
-                      } else if (current == 1) {
-                        final newItems = getNewItems<UserPrefPost>();
-                        _loadMore(newItems, posts);
-                      } else if (current == 2) {
-                        final newItems = getNewItems<UserPrefUser>();
-                        _loadMore(newItems, users);
-                      } else if (current == 3) {
-                        final newItems = getNewItems<UserPrefComment>();
-                        _loadMore(newItems, comments);
-                      }
-                      isLoading = true;
-                      return const CircularProgressIndicator();
-                    } else {
-                      return const SizedBox();
+            final list = ListView.builder(
+              itemCount: count,
+              padding: const EdgeInsets.only(top: 114.0),
+              itemBuilder: (context, index) {
+                if (index >= count) {
+                  if (isLoading) {
+                    return const CircularProgressIndicator();
+                  } else if (hasMore) {
+                    if (current == 0) {
+                      final newItems = getNewItems<UserPrefTag>();
+                      _loadMore(newItems, tags);
+                    } else if (current == 1) {
+                      final newItems = getNewItems<UserPrefPost>();
+                      _loadMore(newItems, posts);
+                    } else if (current == 2) {
+                      final newItems = getNewItems<UserPrefUser>();
+                      _loadMore(newItems, users);
+                    } else if (current == 3) {
+                      final newItems = getNewItems<UserPrefComment>();
+                      _loadMore(newItems, comments);
                     }
-                  }
-                  final item = snapshot.data![index];
-                  if (current == 0) {
-                    final tag = (item as UserPrefTag).tag;
-                    final page = Scaffold(
-                      appBar: AppBar(title: Text(tag.Name)),
-                      body: PostsPage(tags: [tag.ID]),
-                    );
-                    return ListTile(
-                      title: Text(tag.Name),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => page),
-                      ),
-                    );
-                  } else if (current == 1) {
-                    return (item as UserPrefPost)
-                        .post
-                        .card(context, false, updateState);
-                  } else if (current == 2) {
-                    // FIXME: Show user profile on tap
-                    return ListTile(
-                        title: Text((item as UserPrefUser).author.Name));
-                  } else if (current == 3) {
-                    final comment = (item as UserPrefComment).comment;
-                    return comment.card(context, false, 0,
-                        (c) => c.showParentPost(context)(), updateState);
+                    isLoading = true;
+                    return const CircularProgressIndicator();
                   } else {
                     return const SizedBox();
                   }
-                });
+                }
+                final item = snapshot.data![index];
+                if (current == 0) {
+                  final tag = (item as UserPrefTag);
+                  final page = Scaffold(
+                    appBar: AppBar(title: Text(tag.tag.Name)),
+                    body: PostsPage(tags: [tag.tag.ID]),
+                  );
+                  return ListTile(
+                    title: Text(tag.tag.Name),
+                    trailing: Text("${tag.upvotes} - ${tag.downvotes}"),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => page),
+                    ),
+                  );
+                } else if (current == 1) {
+                  final post = item as UserPrefPost;
+                  return post.post.card(context, false, updateState,
+                      up: post.upvotes, down: post.downvotes);
+                } else if (current == 2) {
+                  final user = item as UserPrefUser;
+                  return ListTile(
+                      title: Text(user.author.Name),
+                      trailing: Text("${user.upvotes} - ${user.downvotes}"),
+                      onTap: () => user.author.showUserPage(context));
+                } else if (current == 3) {
+                  final comment = (item as UserPrefComment);
+                  return comment.comment.card(context, false, 0,
+                      (c) => c.showParentPost(context)(), updateState,
+                      up: comment.upvotes, down: comment.downvotes);
+                } else {
+                  return const SizedBox();
+                }
+              },
+            );
+            return RefreshIndicator(
+              onRefresh: () async {
+                updateFilter(() {});
+              },
+              child: list,
+            );
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }

@@ -118,8 +118,8 @@ class _HomeViewState extends State<HomeView>
 
   Widget _buildTabItem(int index, ValueChanged<int> onPressed) {
     var color = tabIndex == index
-        ? MyTheme.current.primaryColor
-        : MyTheme.current.primaryColorLight;
+        ? ThemeData(primarySwatch: Colors.brown).primaryColor
+        : ThemeData(primarySwatch: Colors.brown).backgroundColor;
     return Expanded(
       child: SizedBox(
         height: 60,
@@ -151,7 +151,7 @@ class _HomeViewState extends State<HomeView>
           page.shouldShowFilter = !page.shouldShowFilter;
           trendingPageKey.currentState?.setState(() {});
         },
-        icon: Icon(Icons.filter, color: MyTheme.current.primaryColor),
+        icon: const Icon(Icons.filter_alt_rounded),
       );
       actions.add(action);
     } else if (tabIndex == 2) {
@@ -162,7 +162,7 @@ class _HomeViewState extends State<HomeView>
           final text = controller?.text ?? "";
           previewPost(context, text)();
         },
-        icon: Icon(Icons.preview, color: MyTheme.current.primaryColor),
+        icon: const Icon(Icons.remove_red_eye_rounded),
       );
       actions.add(action);
     } else if (tabIndex == 3) {
@@ -172,23 +172,24 @@ class _HomeViewState extends State<HomeView>
           page.shouldShowFilter = !page.shouldShowFilter;
           searchPageKey.currentState?.setState(() {});
         },
-        icon: Icon(Icons.filter, color: MyTheme.current.primaryColor),
+        icon: const Icon(Icons.filter_alt_rounded),
       );
       actions.add(action);
     }
 
     return MaterialApp(
-      theme: MyTheme.current,
-      darkTheme: MyTheme.dark,
-      themeMode: ThemeMode.system,
+      // theme: MyTheme.current,
+      // darkTheme: MyTheme.dark,
+      // themeMode: ThemeMode.system,
+      theme: ThemeData(primarySwatch: Colors.brown),
       debugShowCheckedModeBanner: false,
       scrollBehavior: MyCustomScrollBehavior(),
       home: Scaffold(
         appBar: AppBar(
-          backgroundColor: MyTheme.current.backgroundColor,
+          // backgroundColor: MyTheme.current.backgroundColor,
           title: Text(
             _viewName(tabIndex),
-            style: TextStyle(color: MyTheme.current.primaryColor),
+            // style: TextStyle(color: MyTheme.current.primaryColor),
           ),
           actions: actions,
         ),

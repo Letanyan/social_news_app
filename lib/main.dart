@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'New Source',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.brown),
       home: Scaffold(
         appBar: AppBar(
           title: const Text('New Source'),

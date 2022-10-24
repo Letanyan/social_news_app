@@ -49,7 +49,7 @@ class Tag {
 
   static Widget chips(BuildContext context, List<Tag> tags) {
     final xs = tags.map((e) => Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(2),
           color: Colors.transparent,
           child: e.chip(context),
         ));

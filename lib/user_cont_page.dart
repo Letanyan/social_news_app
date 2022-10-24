@@ -177,46 +177,53 @@ class _UserContPageState extends State<UserContPage> {
             if (snapshot.data == null || snapshot.data?.isEmpty == true) {
               return const SizedBox();
             }
-            return ListView.builder(
-                itemCount: count,
-                padding: const EdgeInsets.only(top: 114.0),
-                itemBuilder: (context, index) {
-                  if (index >= count) {
-                    if (isLoading) {
-                      return const CircularProgressIndicator();
-                    } else if (hasMore) {
-                      if (current == 0) {
-                        final newItems = getNewItems<Post>();
-                        _loadMore(newItems, posts);
-                      } else if (current == 1) {
-                        final newItems = getNewItems<Comment>();
-                        _loadMore(newItems, comments);
-                      } else if (current == 2) {
-                        final newItems = getNewItems<Author>();
-                        _loadMore(newItems, users);
-                      }
-                      isLoading = true;
-                      return const CircularProgressIndicator();
-                    } else {
-                      return const SizedBox();
+            final list = ListView.builder(
+              itemCount: count,
+              padding: const EdgeInsets.only(top: 114.0),
+              itemBuilder: (context, index) {
+                if (index >= count) {
+                  if (isLoading) {
+                    return const CircularProgressIndicator();
+                  } else if (hasMore) {
+                    if (current == 0) {
+                      final newItems = getNewItems<Post>();
+                      _loadMore(newItems, posts);
+                    } else if (current == 1) {
+                      final newItems = getNewItems<Comment>();
+                      _loadMore(newItems, comments);
+                    } else if (current == 2) {
+                      final newItems = getNewItems<Author>();
+                      _loadMore(newItems, users);
                     }
-                  }
-                  final item = snapshot.data![index];
-                  if (current == 0) {
-                    return (item as Post).card(context, false, updateState);
-                  } else if (current == 1) {
-                    final comment = (item as Comment);
-                    return comment.card(context, false, 0,
-                        (c) => c.showParentPost(context)(), updateState);
-                  } else if (current == 2) {
-                    final user = item as Author;
-                    return ListTile(
-                        title: Text(user.Name),
-                        onTap: () => user.showUserPage(context));
+                    isLoading = true;
+                    return const CircularProgressIndicator();
                   } else {
                     return const SizedBox();
                   }
-                });
+                }
+                final item = snapshot.data![index];
+                if (current == 0) {
+                  return (item as Post).card(context, false, updateState);
+                } else if (current == 1) {
+                  final comment = (item as Comment);
+                  return comment.card(context, false, 0,
+                      (c) => c.showParentPost(context)(), updateState);
+                } else if (current == 2) {
+                  final user = item as Author;
+                  return ListTile(
+                      title: Text(user.Name),
+                      onTap: () => user.showUserPage(context));
+                } else {
+                  return const SizedBox();
+                }
+              },
+            );
+            return RefreshIndicator(
+              onRefresh: () async {
+                updateFilter(() {});
+              },
+              child: list,
+            );
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }

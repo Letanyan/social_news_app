@@ -11,10 +11,10 @@ abstract class RegexPatterns {
       RegExp(r"\b[\w.!#$%&’*+\/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)*\b");
   static final url = RegExp(
       r"http[s]?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+");
-  static final bold = RegExp(r"\[\[[^\]]+\]\]", dotAll: true, multiLine: true);
-  static final italic =
-      RegExp(r"\{\{[^\}]+\}\}", dotAll: true, multiLine: true);
-  static final underline = RegExp(r"__[^_]+__", dotAll: true, multiLine: true);
+  static final bold = RegExp(r"\[\[[^\]]+\]\]", multiLine: true);
+  static final italic = RegExp(r"\{\{[^\}]+\}\}", multiLine: true);
+  static final underline = RegExp(r"__[^_]+__", multiLine: true);
+  static final strikeThrough = RegExp(r"--[^-]+--", multiLine: true);
 }
 
 class ParserMapping {
@@ -46,22 +46,30 @@ class ParserMapping {
     return ParserMapping(pattern: RegexPatterns.underline, result: f);
   }
 
+  static ParserMapping strikeThrough(InlineSpan Function(String, dynamic) f) {
+    return ParserMapping(pattern: RegexPatterns.strikeThrough, result: f);
+  }
+
   static ParserMapping h1(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(
-        pattern: RegExp(r"^![^\n]+$", dotAll: true, multiLine: true),
+        pattern: RegExp(r"^![^!\n]+$", dotAll: true, multiLine: true),
         result: f);
   }
 
   static ParserMapping h2(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!!.+$", dotAll: true), result: f);
+    return ParserMapping(
+        pattern: RegExp(r"^!![^(!!)\n]+$", dotAll: true, multiLine: true),
+        result: f);
   }
 
   static ParserMapping h3(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!!!.+$", dotAll: true), result: f);
+    return ParserMapping(
+        pattern: RegExp(r"^!!!.+$", dotAll: true, multiLine: true), result: f);
   }
 
   static ParserMapping h4(InlineSpan Function(String, dynamic) f) {
-    return ParserMapping(pattern: RegExp(r"^!!!!.+$", dotAll: true), result: f);
+    return ParserMapping(
+        pattern: RegExp(r"^!!!!.+$", dotAll: true, multiLine: true), result: f);
   }
 }
 
@@ -116,14 +124,10 @@ class Parser {
     ParserMapping.email(ParserMapping.defaultMap),
     ParserMapping.url(
       (s, c) {
-        if (s.endsWith(".jpg")) {
+        // FIXME: Check header if url is image
+        if (s.endsWith(".jpg") || s.endsWith(".png")) {
           final m = min(c["w"] as double, c["h"] as double);
-          final img = Image.network(
-            s,
-            // scale: 0.25,
-            // width: m * 0.5,
-            // height: m * 0.5,
-          );
+          final img = Image.network(s);
           return WidgetSpan(child: Center(child: img));
         } else {
           final text = TextSpan(
@@ -140,8 +144,15 @@ class Parser {
     ),
     ParserMapping.h1((s, c) {
       return TextSpan(
-          text: s.substring(1), // remove !
-          style: MyTheme.current.textTheme.headline1);
+        text: s.substring(1), // remove !
+        style: MyTheme.current.textTheme.headline1,
+      );
+    }),
+    ParserMapping.h2((s, c) {
+      return TextSpan(
+        text: s.substring(2),
+        style: MyTheme.current.textTheme.headline2,
+      );
     }),
     ParserMapping.bold((s, c) {
       return TextSpan(
@@ -159,6 +170,17 @@ class Parser {
       return TextSpan(
         text: s.substring(2, s.length - 2),
         style: MyTheme.current.textTheme.subtitle2,
+      );
+    }),
+    ParserMapping.strikeThrough((s, c) {
+      var style = TextStyle(
+        fontSize: MyTheme.current.textTheme.bodyText1!.fontSize!,
+        decoration: TextDecoration.lineThrough,
+      );
+
+      return TextSpan(
+        text: s.substring(2, s.length - 2),
+        style: style,
       );
     }),
   ], defaultMap: ParserMapping.defaultMap);

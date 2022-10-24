@@ -205,62 +205,69 @@ class SearchPageState extends State<SearchPage> {
             if (snapshot.data == null || snapshot.data?.isEmpty == true) {
               return const SizedBox();
             }
-            return ListView.builder(
-                itemCount: count[current] + 1,
-                // padding: const EdgeInsets.only(top: 128.0),
-                itemBuilder: (context, index) {
-                  if (index >= count[current]) {
-                    if (isLoading[current]) {
-                      return const CircularProgressIndicator();
-                    } else if (hasMore[current]) {
-                      if (current == 0) {
-                        final newItems = getNewItems<Tag>();
-                        _loadMore(newItems, tags);
-                      } else if (current == 1) {
-                        final newItems = getNewItems<Post>();
-                        _loadMore(newItems, posts);
-                      } else if (current == 2) {
-                        final newItems = getNewItems<Author>();
-                        _loadMore(newItems, users);
-                      } else if (current == 3) {
-                        final newItems = getNewItems<Comment>();
-                        _loadMore(newItems, comments);
-                      }
-                      isLoading[current] = true;
-                      return const CircularProgressIndicator();
-                    } else {
-                      return const SizedBox();
+            final list = ListView.builder(
+              itemCount: count[current] + 1,
+              // padding: const EdgeInsets.only(top: 128.0),
+              itemBuilder: (context, index) {
+                if (index >= count[current]) {
+                  if (isLoading[current]) {
+                    return const CircularProgressIndicator();
+                  } else if (hasMore[current]) {
+                    if (current == 0) {
+                      final newItems = getNewItems<Tag>();
+                      _loadMore(newItems, tags);
+                    } else if (current == 1) {
+                      final newItems = getNewItems<Post>();
+                      _loadMore(newItems, posts);
+                    } else if (current == 2) {
+                      final newItems = getNewItems<Author>();
+                      _loadMore(newItems, users);
+                    } else if (current == 3) {
+                      final newItems = getNewItems<Comment>();
+                      _loadMore(newItems, comments);
                     }
-                  }
-                  final item = snapshot.data![index];
-                  if (current == 0) {
-                    final tag = item as Tag;
-                    final page = Scaffold(
-                      appBar: AppBar(title: Text(tag.Name)),
-                      body: PostsPage(tags: [tag.ID]),
-                    );
-                    return ListTile(
-                      title: Text(tag.Name),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => page),
-                      ),
-                    );
-                  } else if (current == 1) {
-                    return (item as Post).card(context, false, updateState);
-                  } else if (current == 2) {
-                    final user = item as Author;
-                    return ListTile(
-                        title: Text(user.Name),
-                        onTap: () => user.showUserPage(context));
-                  } else if (current == 3) {
-                    final comment = item as Comment;
-                    return comment.card(context, false, 0,
-                        (c) => c.showParentPost(context)(), updateState);
+                    isLoading[current] = true;
+                    return const CircularProgressIndicator();
                   } else {
                     return const SizedBox();
                   }
-                });
+                }
+                final item = snapshot.data![index];
+                if (current == 0) {
+                  final tag = item as Tag;
+                  final page = Scaffold(
+                    appBar: AppBar(title: Text(tag.Name)),
+                    body: PostsPage(tags: [tag.ID]),
+                  );
+                  return ListTile(
+                    title: Text(tag.Name),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => page),
+                    ),
+                  );
+                } else if (current == 1) {
+                  return (item as Post).card(context, false, updateState);
+                } else if (current == 2) {
+                  final user = item as Author;
+                  return ListTile(
+                      title: Text(user.Name),
+                      onTap: () => user.showUserPage(context));
+                } else if (current == 3) {
+                  final comment = item as Comment;
+                  return comment.card(context, false, 0,
+                      (c) => c.showParentPost(context)(), updateState);
+                } else {
+                  return const SizedBox();
+                }
+              },
+            );
+            return RefreshIndicator(
+              onRefresh: () async {
+                updateFilter(() {});
+              },
+              child: list,
+            );
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }

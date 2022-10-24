@@ -20,6 +20,7 @@ class Post {
   final List<String> Location;
   double Upvotes;
   double Downvotes;
+  final int CommentCount;
 
   Post({
     required this.ID,
@@ -30,6 +31,7 @@ class Post {
     required this.Location,
     required this.Upvotes,
     required this.Downvotes,
+    required this.CommentCount,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class Post {
       Location: List<String>.from(json["Location"]),
       Upvotes: json["Upvotes"],
       Downvotes: json["Downvotes"],
+      CommentCount: json["CommentCount"],
     );
   }
 
@@ -62,7 +65,8 @@ class Post {
     };
   }
 
-  Widget card(BuildContext context, bool directLink, VoidCallback updateState) {
+  Widget card(BuildContext context, bool directLink, VoidCallback updateState,
+      {double? up, double? down}) {
     final parser = Parser.basic;
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
 
@@ -108,7 +112,7 @@ class Post {
               builder: (context) => CommentReplyPage(post: this),
             )),
         child: const Text("Reply"));
-    final upvotes = ElevatedButton.icon(
+    final upvotesButton = ElevatedButton.icon(
       onPressed: () async {
         if (User.current == null) {
           return;
@@ -127,7 +131,7 @@ class Post {
       icon: const Icon(Icons.arrow_upward_rounded),
       label: Text("$Upvotes"),
     );
-    final downvotes = ElevatedButton.icon(
+    final downvotesButton = ElevatedButton.icon(
       onPressed: () async {
         if (User.current == null) {
           return;
@@ -184,15 +188,29 @@ class Post {
       ],
     );
 
+    late Widget? personalVotes;
+    if (up != null && down != null) {
+      personalVotes = Text("$up - $down");
+    } else {
+      personalVotes = const Text("");
+    }
+
     final buttonRow = Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
         children: [
-          upvotes,
+          upvotesButton,
           const SizedBox(width: 8),
-          downvotes,
+          downvotesButton,
           const SizedBox(width: 8),
           reply,
+          Text(CommentCount == 0
+              ? ""
+              : CommentCount == 1
+                  ? "$CommentCount Reply"
+                  : "$CommentCount Replies"),
+          const SizedBox(width: 8),
+          personalVotes,
           Expanded(
               child:
                   Align(alignment: Alignment.centerRight, child: moreButton)),

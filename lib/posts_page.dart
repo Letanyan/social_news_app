@@ -4,6 +4,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
+import 'package:social_news_app/model/user.dart';
 
 class PostsPage extends StatefulWidget {
   final int? userId;
@@ -77,7 +78,7 @@ class _PostsPageState extends State<PostsPage> {
     );
   }
 
-  void _loadMorePosts() async {
+  Future<void> _loadMorePosts() async {
     final newPosts = await loadPosts();
     var oldPosts = await posts;
     offset += newPosts.length;
@@ -105,23 +106,44 @@ class _PostsPageState extends State<PostsPage> {
             if (snapshot.data == null || snapshot.data?.isEmpty == true) {
               return const SizedBox();
             }
-            return ListView.builder(
-                itemCount: count + 1,
-                itemBuilder: (context, index) {
-                  if (index >= count) {
-                    if (isLoading) {
-                      return const CircularProgressIndicator();
-                    } else if (hasMore) {
-                      _loadMorePosts();
-                      isLoading = true;
-                      return const CircularProgressIndicator();
-                    } else {
-                      return const SizedBox();
-                    }
+            final list = ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: count + 1,
+              itemBuilder: (context, index) {
+                if (index >= count) {
+                  if (isLoading) {
+                    return const CircularProgressIndicator();
+                  } else if (hasMore) {
+                    _loadMorePosts();
+                    isLoading = true;
+                    return const CircularProgressIndicator();
+                  } else {
+                    return const SizedBox();
                   }
-                  final item = snapshot.data![index];
-                  return item.card(context, false, updateState);
-                });
+                }
+                final item = snapshot.data![index];
+                return item.card(context, false, updateState);
+              },
+            );
+            return RefreshIndicator(
+              onRefresh: () async {
+                if (User.current != null && widget.forUser != null) {
+                  var list = <int>[];
+                  for (final p in await posts) {
+                    list.add(p.ID);
+                  }
+                  NewSource.refreshUserContRecommendations(
+                      User.current!.ID, list);
+                }
+                offset = 0;
+                count = 0;
+                isLoading = true;
+                await _loadMorePosts();
+                hasMore = true;
+                return;
+              },
+              child: list,
+            );
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
           }

@@ -68,7 +68,8 @@ class Comment {
   }
 
   Widget card(BuildContext context, bool showReply, double offset,
-      void Function(Comment)? onTap, VoidCallback updateState) {
+      void Function(Comment)? onTap, VoidCallback updateState,
+      {double? up, double? down}) {
     final text = Text(content);
     final creator = InkWell(
       onTap: () => author.showUserPage(context),
@@ -148,11 +149,23 @@ class Comment {
     void Function()? finalOnTap;
     if (replyCount > 0 || !showReply) {
       buttonRowItems.add(const SizedBox(width: 8));
-      buttonRowItems.add(Text("$replyCount Replies"));
+      final rText = Text(replyCount == 0
+          ? ""
+          : replyCount == 1
+              ? "1 Reply"
+              : "$replyCount Replies");
+      buttonRowItems.add(rText);
       if (onTap != null) {
         finalOnTap = () => onTap(this);
       }
     }
+
+    if (up != null && down != null) {
+      final personalVotes = Text("$up - $down");
+      buttonRowItems.add(const SizedBox(width: 8));
+      buttonRowItems.add(personalVotes);
+    }
+
     final moreButton = PopupMenuButton(
       itemBuilder: (context) => [
         PopupMenuItem(

@@ -130,9 +130,9 @@ class _FilterBoxState extends State<FilterBox> {
 
   @override
   Widget build(BuildContext context) {
-    final startChip = ActionChip(
-      label: Text("From: ${formatDate(startDate[current])}"),
-      onPressed: () async {
+    final startTile = ListTile(
+      title: Text("From: ${formatDate(startDate[current])}"),
+      onTap: () async {
         final date = await showDatePicker(
             context: context,
             initialDate: startDate[current],
@@ -145,9 +145,9 @@ class _FilterBoxState extends State<FilterBox> {
         updateState();
       },
     );
-    final endChip = ActionChip(
-        label: Text("To: ${formatDate(endDate[current])}"),
-        onPressed: () async {
+    final endTile = ListTile(
+        title: Text("To: ${formatDate(endDate[current])}"),
+        onTap: () async {
           final date = await showDatePicker(
               context: context,
               initialDate: endDate[current],
@@ -159,17 +159,34 @@ class _FilterBoxState extends State<FilterBox> {
           endDate[current] = date;
           updateState();
         });
-    final dateRange = Row(
-      children: [
-        Expanded(
-            child: Align(alignment: Alignment.centerRight, child: startChip)),
-        const SizedBox(width: 8),
-        Expanded(child: Align(alignment: Alignment.centerLeft, child: endChip)),
-      ],
+    final closeDate = ElevatedButton(
+      onPressed: () => Navigator.pop(context),
+      child: const Text("Close"),
+    );
+    final dateButton = ActionChip(
+      label: Text(
+          "${formatDate(startDate[current])} - ${formatDate(endDate[current])}"),
+      avatar: const Icon(Icons.calendar_month_rounded),
+      onPressed: () {
+        showBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+              height: 200,
+              child: Column(children: [
+                startTile,
+                endTile,
+                closeDate,
+              ]),
+            );
+          },
+        );
+      },
     );
 
     final area = ActionChip(
-      label: Text("Location: ${getLocationPresentation()}"),
+      label: Text(getLocationPresentation()),
+      avatar: const Icon(Icons.map_rounded),
       onPressed: () async {
         var loc = await Navigator.push(
             context,
@@ -182,6 +199,64 @@ class _FilterBoxState extends State<FilterBox> {
         location[current] = loc;
         updateState();
       },
+    );
+    List<Widget> dropMenuItems = [];
+    for (final so in widget.sorting ?? []) {
+      dropMenuItems.add(
+        ListTile(
+          title: Text(sortOrderPresentation(so)),
+          onTap: () {
+            sortOrder[current] = so;
+            updateState();
+          },
+        ),
+      );
+    }
+    final closeSort = ElevatedButton(
+      onPressed: () => Navigator.pop(context),
+      child: const Text("Close"),
+    );
+    final sortDropDown = ActionChip(
+      label: Text(sortOrderPresentation(sortOrder[current])),
+      avatar: const Icon(Icons.sort_rounded),
+      onPressed: () {
+        showBottomSheet(
+          context: context,
+          backgroundColor: Colors.white,
+          builder: (context) {
+            return Container(
+              height: 200,
+              child: Column(children: [
+                Expanded(child: ListView(children: dropMenuItems)),
+                Padding(padding: EdgeInsets.all(8), child: closeSort),
+              ]),
+            );
+          },
+        );
+      },
+    );
+
+    var operatorItems = <Widget>[];
+    if (widget.sorting != null) {
+      operatorItems.add(const SizedBox(width: 8));
+      operatorItems.add(sortDropDown);
+    }
+    if (widget.date) {
+      operatorItems.add(const SizedBox(width: 8));
+      operatorItems.add(dateButton);
+      // operatorItems.add(startChip);
+      // operatorItems.add(endChip);
+    }
+    if (widget.location) {
+      operatorItems.add(const SizedBox(width: 8));
+      operatorItems.add(area);
+    }
+    final operatorRow = Container(
+      height: 48,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: operatorItems,
+      ),
     );
 
     final selector = CupertinoSlidingSegmentedControl<int>(
@@ -198,23 +273,6 @@ class _FilterBoxState extends State<FilterBox> {
       },
       groupValue: current,
     );
-
-    List<DropdownMenuItem<SortOrder>> dropMenuItems = [];
-    for (final so in widget.sorting ?? []) {
-      dropMenuItems.add(
-        DropdownMenuItem(
-          value: so,
-          child: Text(sortOrderPresentation(so)),
-        ),
-      );
-    }
-    final sortDropDown = DropdownButton<SortOrder>(
-        value: sortOrder[current],
-        onChanged: (value) {
-          sortOrder[current] = value ?? SortOrder.upvotes;
-          updateState();
-        },
-        items: dropMenuItems);
 
     final searchBox = TextField(
       keyboardType: TextInputType.text,
@@ -241,17 +299,9 @@ class _FilterBoxState extends State<FilterBox> {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(searchBox);
     }
-    if (widget.date) {
+    if (operatorItems.isNotEmpty) {
       filterItems.add(const SizedBox(height: 8));
-      filterItems.add(dateRange);
-    }
-    if (widget.location) {
-      filterItems.add(const SizedBox(height: 8));
-      filterItems.add(area);
-    }
-    if (widget.sorting != null) {
-      filterItems.add(const SizedBox(height: 8));
-      filterItems.add(sortDropDown);
+      filterItems.add(operatorRow);
     }
     filterItems.add(const SizedBox(height: 8));
 
