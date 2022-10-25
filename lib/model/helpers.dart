@@ -27,6 +27,7 @@ Future<void> launchURL(String url) async {
 
 String formatDate(DateTime date) {
   final today = DateTime.now();
+  date = date.toLocal();
   final sameYear = today.year == date.year;
   final sameMonth = today.month == date.month;
   final sameDay = today.day == date.day;
@@ -50,6 +51,7 @@ String formatDate(DateTime date) {
 
 String formatDateTime(DateTime date) {
   final today = DateTime.now();
+  date = date.toLocal();
   final sameHour = today.hour == date.hour;
   final sameMinute = today.minute == date.minute;
 
@@ -61,16 +63,16 @@ String formatDateTime(DateTime date) {
     if (sameHour) {
       final diff = today.minute - date.minute;
       if (diff == 1) {
-        return "1 Minute Ago";
+        return "1 Minute";
       } else {
-        return "$diff Minutes Ago";
+        return "$diff Minutes";
       }
     } else {
       final diff = today.hour - date.hour;
       if (diff == 1) {
-        return "1 Hour Ago";
+        return "1 Hour";
       } else {
-        return "$diff Hours Ago";
+        return "$diff Hours";
       }
     }
   } else {

@@ -14,6 +14,16 @@ class User {
   final int ValidationKey;
   List<Author> following;
   List<Author> ignored;
+  String Secret;
+
+  bool PublicViews;
+  bool PublicReadLater;
+  bool PublicFollowing;
+  bool PublicIgnored;
+  bool PublicPostVotes;
+  bool PublicCommentVotes;
+  bool PublicUserVotes;
+  bool PublicTagVotes;
 
   User({
     required this.ID,
@@ -25,8 +35,17 @@ class User {
     required this.Downvotes,
     required this.Credits,
     required this.ValidationKey,
+    required this.PublicViews,
+    required this.PublicReadLater,
+    required this.PublicFollowing,
+    required this.PublicIgnored,
+    required this.PublicPostVotes,
+    required this.PublicCommentVotes,
+    required this.PublicUserVotes,
+    required this.PublicTagVotes,
   })  : following = [],
-        ignored = [];
+        ignored = [],
+        Secret = "";
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -39,7 +58,40 @@ class User {
       Downvotes: json["Downvotes"],
       Credits: json["Credits"],
       ValidationKey: json["ValidationKey"],
+      PublicViews: json["PublicViews"],
+      PublicReadLater: json["PublicReadLater"],
+      PublicFollowing: json["PublicFollowing"],
+      PublicIgnored: json["PublicIgnored"],
+      PublicPostVotes: json["PublicPostVotes"],
+      PublicCommentVotes: json["PublicCommentVotes"],
+      PublicUserVotes: json["PublicUserVotes"],
+      PublicTagVotes: json["PublicTagVotes"],
     );
+  }
+
+  factory User.fromSecretJson(Map<String, dynamic> json) {
+    final obj = json["user"];
+    var user = User(
+      ID: obj["ID"],
+      Name: obj["Name"],
+      Email: obj["Email"],
+      Password: obj["Password"],
+      RegisterDate: DateTime.parse(obj["RegisterDate"]),
+      Upvotes: obj["Upvotes"],
+      Downvotes: obj["Downvotes"],
+      Credits: obj["Credits"],
+      ValidationKey: obj["ValidationKey"],
+      PublicViews: obj["PublicViews"],
+      PublicReadLater: obj["PublicReadLater"],
+      PublicFollowing: obj["PublicFollowing"],
+      PublicIgnored: obj["PublicIgnored"],
+      PublicPostVotes: obj["PublicPostVotes"],
+      PublicCommentVotes: obj["PublicCommentVotes"],
+      PublicUserVotes: obj["PublicUserVotes"],
+      PublicTagVotes: obj["PublicTagVotes"],
+    );
+    user.Secret = json["token"];
+    return user;
   }
 
   static User? current;

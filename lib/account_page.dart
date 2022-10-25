@@ -7,6 +7,7 @@ import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/settings.dart';
 import 'package:social_news_app/user_cont_page.dart';
 import 'package:social_news_app/user_pref_page.dart';
 
@@ -64,11 +65,36 @@ class _AccountPageState extends State<AccountPage> {
     };
   }
 
+  void Function() showSettingsPage(BuildContext context) {
+    return () {
+      var page = WillPopScope(
+        onWillPop: () async {
+          if (User.current != null) {
+            NewSource.updateUserPermissions(User.current!);
+          }
+          return true;
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text("Settings")),
+          body: const SettingsPage(),
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => page,
+        ),
+      );
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final Text? credit;
     final TextButton? action;
-    if (widget.user.ID == User.current?.ID) {
+    final isOwner = widget.user.ID == User.current?.ID;
+    if (isOwner) {
       credit = Text("${User.current!.Credits}");
       action = TextButton(
         onPressed: () {
@@ -167,6 +193,19 @@ class _AccountPageState extends State<AccountPage> {
     final votedComments = ListTile(
         title: const Text("Comments"), onTap: showUserPrefPage(context, 3));
 
+    final settings = ListTile(
+      title: const Text("Settings"),
+      onTap: showSettingsPage(context),
+    );
+    var settingsSection = <Widget>[];
+    if (isOwner) {
+      settingsSection.add(const Divider());
+      settingsSection.add(const Padding(
+          padding: EdgeInsets.all(8), child: Text("Preferences")));
+      settingsSection.add(const Divider());
+      settingsSection.add(settings);
+    }
+
     final list = ListView(children: [
       name,
       const Divider(),
@@ -188,6 +227,7 @@ class _AccountPageState extends State<AccountPage> {
       votedUsers,
       votedTags,
       votedComments,
+      ...settingsSection,
     ]);
 
     return Scaffold(

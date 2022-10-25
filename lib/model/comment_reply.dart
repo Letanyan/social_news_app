@@ -42,6 +42,9 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       final result =
           NewSource.createComment(widget.post!.ID, 0, controller.text)
               .then((value) => Navigator.pop(context));
+    } else {
+      final result = NewSource.createPost(controller.text)
+          .then((value) => Navigator.pop(context));
     }
   }
 

@@ -12,7 +12,12 @@ import 'user.dart';
 import 'tag.dart';
 
 class NewSource {
-  static const host = "http://localhost:8080/api/v1";
+  static const isDebug = true;
+  static const host = isDebug
+      ? "http://localhost:8080/api/v1"
+      : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
+  // static const host =
+  // "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
 
   static String buildURL(List<String> path, List<String> args) {
     var result = host;
@@ -51,6 +56,7 @@ class NewSource {
     dynamic responseJson;
     try {
       final query = buildURL(path, args);
+      print(query);
       final response =
           await http.post(Uri.parse(query), body: json.encode(body));
       responseJson = json.decode(response.body);
@@ -100,7 +106,7 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      return User.fromJson(obj["payload"]["user"]);
+      return User.fromSecretJson(obj["payload"]);
     }
   }
 
@@ -115,7 +121,7 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      return User.fromJson(obj["payload"]);
+      return User.fromSecretJson(obj["payload"]);
     }
   }
 
@@ -134,6 +140,30 @@ class NewSource {
     }
   }
 
+  static Future<bool> updateUserPermissions(User user) async {
+    var args = <String>[];
+    addSecret(args);
+
+    final path = ["permissions", "${user.ID}"];
+    final body = {
+      "PublicViews": user.PublicViews,
+      "PublicReadLater": user.PublicReadLater,
+      "PublicFollowing": user.PublicFollowing,
+      "PublicIgnored": user.PublicIgnored,
+      "PublicPostVotes": user.PublicPostVotes,
+      "PublicCommentVotes": user.PublicCommentVotes,
+      "PublicUserVotes": user.PublicUserVotes,
+      "PublicTagVotes": user.PublicTagVotes,
+    };
+    final obj = await post(path, args, body);
+
+    if (obj["success"] == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   //----------------------------------------------------------------------------
   // Create
   //----------------------------------------------------------------------------
@@ -143,8 +173,39 @@ class NewSource {
       throw userNotSignedIn;
     }
 
-    final obj = await post(["posts", "$postId", "comments"], [],
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await post(["posts", "$postId", "comments"], args,
         {"userId": User.current!.ID, "replyId": replyId, "content": content});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return Comment.fromJson(obj["payload"]);
+    }
+  }
+
+  static Future<Comment> createPost(String content) async {
+    if (User.current == null) {
+      throw userNotSignedIn;
+    }
+
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await post(
+        ["posts"],
+        args,
+        {
+          "userId": User.current!.ID,
+          "location": [],
+          "content": content,
+          "tags": []
+        });
     if (obj == null) {
       throw unknownError;
     }
@@ -212,6 +273,7 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "users"], args);
     if (obj == null) {
@@ -237,6 +299,7 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "posts"], args);
     if (obj == null) {
@@ -275,6 +338,7 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "comments"], args);
     if (obj == null) {
@@ -300,6 +364,7 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "tags"], args);
     if (obj == null) {
@@ -326,6 +391,7 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addSecret(args);
 
     var path = ["users", "$uid", "content", "posts"];
     if (kind == UserContKind.viewed) {
@@ -388,7 +454,9 @@ class NewSource {
     } else {
       path = ["users", "$uid", "content", "ignored"];
     }
-    final obj = await get(path, []);
+    var args = <String>[];
+    addSecret(args);
+    final obj = await get(path, args);
     if (obj == null) {
       throw unknownError;
     }
@@ -579,8 +647,10 @@ class NewSource {
     required int userId,
     required int amount,
   }) async {
-    final obj =
-        await post(["posts", "$postId"], [], {"uid": userId, "amount": amount});
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(
+        ["posts", "$postId"], args, {"uid": userId, "amount": amount});
     if (obj == null) {
       throw unknownError;
     }
@@ -598,7 +668,9 @@ class NewSource {
     required int userId,
     required int amount,
   }) async {
-    final obj = await post(["posts", "$postId", "comments", "$commentId"], [],
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(["posts", "$postId", "comments", "$commentId"], args,
         {"uid": userId, "amount": amount});
     if (obj == null) {
       throw unknownError;
@@ -637,7 +709,10 @@ class NewSource {
         break;
     }
 
-    final obj = await post(path, [], {"pid": pid});
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await post(path, args, {"pid": pid});
     if (obj == null) {
       throw unknownError;
     }
@@ -652,7 +727,9 @@ class NewSource {
   static Future<bool> refreshUserContRecommendations(
       int uid, List<int> pids) async {
     final path = ["users", "$uid", "content", "recommendations"];
-    final obj = await post(path, [], {"pid": pids});
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {"pid": pids});
     if (obj["success"] == true) {
       return true;
     } else {
@@ -687,7 +764,11 @@ class NewSource {
       case UserContKind.created:
         return Future(() => false);
     }
-    final obj = await delete(path, []);
+
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await delete(path, args);
     if (obj == null) {
       throw unknownError;
     }
@@ -788,6 +869,13 @@ void addSO(String name, SortOrder? value, List<String> args) {
   if (value != null) {
     args.add(name);
     args.add(sortOrderToString(value));
+  }
+}
+
+void addSecret(List<String> args) {
+  if (User.current?.Secret != null) {
+    args.add("secret");
+    args.add(User.current!.Secret);
   }
 }
 
