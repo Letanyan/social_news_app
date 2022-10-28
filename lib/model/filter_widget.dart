@@ -259,14 +259,12 @@ class _FilterBoxState extends State<FilterBox> {
       ),
     );
 
+    final selectorWidgets =
+        widget.selector?.map((key, value) => MapEntry(key, Text(value))) ??
+            <int, Widget>{0: const Text("Posts"), 1: const Text("Comments")};
     final selector = CupertinoSlidingSegmentedControl<int>(
       // padding: const EdgeInsets.all(15),
-      children: const {
-        0: Text("Tags"),
-        1: Text("Posts"),
-        2: Text("Users"),
-        3: Text("Comments"),
-      },
+      children: selectorWidgets,
       onValueChanged: (int? index) {
         current = index ?? 0;
         updateState();

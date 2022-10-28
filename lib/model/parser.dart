@@ -52,24 +52,26 @@ class ParserMapping {
 
   static ParserMapping h1(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(
-        pattern: RegExp(r"^![^!\n]+$", dotAll: true, multiLine: true),
+        pattern: RegExp(r"^![^\n]+$", dotAll: true, multiLine: true),
         result: f);
   }
 
   static ParserMapping h2(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(
-        pattern: RegExp(r"^!![^(!!)\n]+$", dotAll: true, multiLine: true),
+        pattern: RegExp(r"^!![^\n]+$", dotAll: true, multiLine: true),
         result: f);
   }
 
   static ParserMapping h3(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(
-        pattern: RegExp(r"^!!!.+$", dotAll: true, multiLine: true), result: f);
+        pattern: RegExp(r"^!!![^\n]+$", dotAll: true, multiLine: true),
+        result: f);
   }
 
   static ParserMapping h4(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(
-        pattern: RegExp(r"^!!!!.+$", dotAll: true, multiLine: true), result: f);
+        pattern: RegExp(r"^!!!![^\n]+$", dotAll: true, multiLine: true),
+        result: f);
   }
 }
 

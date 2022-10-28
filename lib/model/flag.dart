@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user.dart';
 
 class FlagDialog extends StatefulWidget {
@@ -82,5 +84,173 @@ class _FlagDialogState extends State<FlagDialog> {
         ),
       ],
     );
+  }
+}
+
+class FlaggedPost {
+  final int id;
+  final Post content;
+  final FlagReason kind;
+  final String reason;
+  final DateTime createdAt;
+  final int count;
+  bool handled;
+
+  FlaggedPost({
+    required this.id,
+    required this.content,
+    required this.kind,
+    required this.reason,
+    required this.createdAt,
+    required this.count,
+  }) : handled = false;
+
+  factory FlaggedPost.fromJson(Map<String, dynamic> json) {
+    return FlaggedPost(
+      id: json["ID"],
+      content: Post.fromJson(json["Content"]),
+      kind: FlagReason.values[json["Kind"]],
+      reason: json["Reason"],
+      createdAt: DateTime.parse(json["CreatedAt"]),
+      count: json["Count"],
+    );
+  }
+
+  void handleFlag(
+      BuildContext context, FlagHandle handle, Function() updateState) {
+    NewSource.handleFlag(id, content.ID, -1, handle).then((value) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(flagHandleKind(handle))));
+      handled = true;
+      updateState();
+      return value;
+    });
+  }
+
+  Widget card(BuildContext context, Function() updateState) {
+    final body = Text(reason);
+
+    final total = Text("$count Reports");
+    final report = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.report, updateState),
+      child: const Text("Report"),
+    );
+    final remove = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.remove, updateState),
+      child: const Text("Remove"),
+    );
+    final ignore = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.ignore, updateState),
+      child: const Text("Ignore"),
+    );
+    final ignoreAll = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.ignoreAll, updateState),
+      child: const Text("Ignore All"),
+    );
+
+    final buttonRow = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        total,
+        report,
+        remove,
+        ignore,
+        ignoreAll,
+      ],
+    );
+
+    final result = Card(
+      color: handled ? Colors.grey : Colors.white,
+      child: Column(
+        children: [
+          Padding(padding: const EdgeInsets.all(8), child: body),
+          const Divider(height: 1),
+          Padding(padding: const EdgeInsets.all(8), child: buttonRow),
+        ],
+      ),
+    );
+
+    return result;
+  }
+}
+
+class FlaggedComment {
+  final int id;
+  final Comment content;
+  final FlagReason kind;
+  final String reason;
+  final DateTime createdAt;
+  final int count;
+  bool handled;
+
+  FlaggedComment({
+    required this.id,
+    required this.content,
+    required this.kind,
+    required this.reason,
+    required this.createdAt,
+    required this.count,
+  }) : handled = false;
+
+  factory FlaggedComment.fromJson(Map<String, dynamic> json) {
+    return FlaggedComment(
+      id: json["ID"],
+      content: Comment.fromJson(json["Content"]),
+      kind: FlagReason.values[json["Kind"]],
+      reason: json["Reason"],
+      createdAt: DateTime.parse(json["CreatedAt"]),
+      count: json["Count"],
+    );
+  }
+
+  void handleFlag(
+      BuildContext context, FlagHandle handle, Function() updateState) {
+    NewSource.handleFlag(id, content.postId, content.id, handle).then((value) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(flagHandleKind(handle))));
+      handled = true;
+      updateState();
+      return value;
+    });
+  }
+
+  Widget card(BuildContext context, Function() updateState) {
+    final body = Text(reason);
+
+    final total = Text("$count Reports");
+    final report = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.report, updateState),
+      child: const Text("Report"),
+    );
+    final remove = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.remove, updateState),
+      child: const Text("Remove"),
+    );
+    final ignore = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.ignore, updateState),
+      child: const Text("Ignore Flag"),
+    );
+    final ignoreAll = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.ignoreAll, updateState),
+      child: const Text("Ignore All"),
+    );
+
+    final buttonRow = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [total, report, remove, ignore, ignoreAll],
+    );
+
+    final result = Card(
+      color: handled ? Colors.grey : Colors.white,
+      child: Column(
+        children: [
+          Padding(padding: const EdgeInsets.all(8), child: body),
+          const Divider(height: 1),
+          Padding(padding: const EdgeInsets.all(8), child: buttonRow),
+        ],
+      ),
+    );
+
+    return result;
   }
 }

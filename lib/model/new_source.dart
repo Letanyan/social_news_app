@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user_pref.dart';
@@ -14,7 +15,7 @@ import 'tag.dart';
 class NewSource {
   static const isDebug = true;
   static const host = isDebug
-      ? "http://localhost:8080/api/v1"
+      ? "http://192.168.0.147:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
   // static const host =
   // "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
@@ -168,7 +169,7 @@ class NewSource {
   // Create
   //----------------------------------------------------------------------------
   static Future<Comment> createComment(
-      int postId, int replyId, String content) async {
+      int postId, int replyId, String content, bool isReview) async {
     if (User.current == null) {
       throw userNotSignedIn;
     }
@@ -176,8 +177,15 @@ class NewSource {
     var args = <String>[];
     addSecret(args);
 
-    final obj = await post(["posts", "$postId", "comments"], args,
-        {"userId": User.current!.ID, "replyId": replyId, "content": content});
+    final obj = await post(
+        ["posts", "$postId", "comments"],
+        args,
+        {
+          "userId": User.current!.ID,
+          "replyId": replyId,
+          "content": content,
+          "isReview": isReview
+        });
     if (obj == null) {
       throw unknownError;
     }
@@ -330,6 +338,7 @@ class NewSource {
     int? limit,
     int? offset,
     String? search,
+    bool? isReview,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -338,6 +347,7 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addI("isReview", isReview == true ? 1 : 0, args);
     addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "comments"], args);
@@ -535,6 +545,43 @@ class NewSource {
     }
   }
 
+  static Future<List<Post>> getSimilarPost(
+    int uid, {
+    int? postId,
+    DateTime? start,
+    DateTime? end,
+    SortOrder? order,
+    int? offset,
+    int? limit,
+  }) async {
+    var args = <String>[];
+    addD("start", start, args);
+    addD("end", end, args);
+    addSO("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+    addI("pid", postId, args);
+
+    final obj = await get(["users", "$uid", "recommend"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      final list = obj["payload"];
+      var result = <Post>[];
+      var uncached = <int>[];
+      for (final item in list) {
+        final p = Post.fromJson(item);
+        result.add(p);
+        uncached.addAll(p.Tags);
+      }
+      await Tag.cacheTags(uncached);
+      return result;
+    }
+  }
+
   //----------------------------------------------------------------------------
   // Get Tags
   //----------------------------------------------------------------------------
@@ -613,6 +660,7 @@ class NewSource {
       DateTime? start,
       DateTime? end,
       int? forUser,
+      bool? isReview,
       String? search}) async {
     var args = <String>[];
     addI("uid", userId, args);
@@ -629,6 +677,7 @@ class NewSource {
     addD("startCreated", startCreated, args);
     addD("endCreated", endCreated, args);
     addI("for", forUser, args);
+    addI("isReview", isReview == true ? 1 : 0, args);
     addS("search", search, args);
 
     final obj = await get(["posts", "comments"], args);
@@ -780,6 +829,28 @@ class NewSource {
     }
   }
 
+  static Future<bool> deletePost(int pid) async {
+    final path = ["trash", "posts", "$pid"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {});
+    if (obj == null) {
+      throw unknownError;
+    }
+    return obj["success"];
+  }
+
+  static Future<bool> deleteComment(int pid, int sid) async {
+    final path = ["trash", "posts", "$pid", "comments", "$sid"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {});
+    if (obj == null) {
+      throw unknownError;
+    }
+    return obj["success"];
+  }
+
   //----------------------------------------------------------------------------
   // Flags
   //----------------------------------------------------------------------------
@@ -807,6 +878,50 @@ class NewSource {
     } else {
       return false;
     }
+  }
+
+  static Future<List<FlaggedPost>> getFlaggedPosts(
+      FlagReason kind, int limit, int offset) async {
+    var path = ["flags", "posts"];
+    var args = <String>[];
+    addI("kind", kind.index, args);
+    addI("limit", limit, args);
+    addI("offset", offset, args);
+
+    final obj = await get(path, args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, FlaggedPost.fromJson);
+  }
+
+  static Future<List<FlaggedComment>> getFlaggedComments(
+      FlagReason kind, int limit, int offset) async {
+    var path = ["flags", "comments"];
+    var args = <String>[];
+    addI("kind", kind.index, args);
+    addI("limit", limit, args);
+    addI("offset", offset, args);
+
+    final obj = await get(path, args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, FlaggedComment.fromJson);
+  }
+
+  static Future<bool> handleFlag(
+      int id, int pid, int sid, FlagHandle action) async {
+    var path = ["trash", "flags", "$id"];
+    final obj = await post(
+        path, [], {"pid": pid, "sid": sid, "action": flagHandleKind(action)});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return obj["success"];
   }
 }
 
@@ -905,6 +1020,13 @@ enum FlagReason {
   other,
 }
 
+enum FlagHandle {
+  ignore,
+  ignoreAll,
+  remove,
+  report,
+}
+
 enum SortOrder {
   score,
   cred,
@@ -966,5 +1088,26 @@ String flagReasonToString(FlagReason fr) {
       return "Spam";
     case FlagReason.other:
       return "Other";
+  }
+}
+
+Map<int, String> flagSet() {
+  var result = <int, String>{};
+  for (final fr in FlagReason.values) {
+    result[fr.index] = flagReasonToString(fr);
+  }
+  return result;
+}
+
+String flagHandleKind(FlagHandle handle) {
+  switch (handle) {
+    case FlagHandle.ignore:
+      return "ignore";
+    case FlagHandle.ignoreAll:
+      return "ignore_all";
+    case FlagHandle.report:
+      return "report";
+    case FlagHandle.remove:
+      return "remove";
   }
 }

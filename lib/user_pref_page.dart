@@ -17,12 +17,14 @@ class UserPrefPage extends StatefulWidget {
   final bool showSearch;
   final int prefKind;
   final Author user;
+  final bool isViewed;
 
   const UserPrefPage(
       {super.key,
       required this.showSearch,
       required this.prefKind,
-      required this.user});
+      required this.user,
+      required this.isViewed});
 
   @override
   State<UserPrefPage> createState() => _UserPrefPageState();
@@ -237,7 +239,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
                 } else if (current == 3) {
                   final comment = (item as UserPrefComment);
                   return comment.comment.card(context, false, 0,
-                      (c) => c.showParentPost(context)(), updateState,
+                      (c) => c.showParentPost(context)(), updateState, null,
                       up: comment.upvotes, down: comment.downvotes);
                 } else {
                   return const SizedBox();

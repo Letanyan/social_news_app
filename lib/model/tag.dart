@@ -6,8 +6,8 @@ import 'package:social_news_app/model/new_source.dart';
 class Tag {
   final int ID;
   final String Name;
-  final double Upvotes;
-  final double Downvotes;
+  final int Upvotes;
+  final int Downvotes;
 
   const Tag({
     required this.ID,

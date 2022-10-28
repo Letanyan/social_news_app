@@ -19,21 +19,24 @@ class PostsPage extends StatefulWidget {
   final DateTime? startCreated;
   final DateTime? endCreated;
   final int? forUser;
+  final int? postId;
 
-  const PostsPage(
-      {super.key,
-      this.userId,
-      this.origin,
-      this.tags,
-      this.popularIn,
-      this.upvotes,
-      this.downvotes,
-      this.order,
-      this.start,
-      this.end,
-      this.startCreated,
-      this.endCreated,
-      this.forUser});
+  const PostsPage({
+    super.key,
+    this.userId,
+    this.origin,
+    this.tags,
+    this.popularIn,
+    this.upvotes,
+    this.downvotes,
+    this.order,
+    this.start,
+    this.end,
+    this.startCreated,
+    this.endCreated,
+    this.forUser,
+    this.postId,
+  });
 
   @override
   State<PostsPage> createState() => _PostsPageState();
@@ -60,22 +63,36 @@ class _PostsPageState extends State<PostsPage> {
   }
 
   Future<List<Post>> loadPosts() {
-    return NewSource.getPosts(
-      userId: widget.userId,
-      origin: widget.origin,
-      tags: widget.tags,
-      popularIn: widget.popularIn,
-      upvotes: widget.upvotes,
-      downvotes: widget.downvotes,
-      order: widget.order,
-      offset: offset,
-      limit: pageSize,
-      start: widget.start,
-      end: widget.end,
-      startCreated: widget.startCreated,
-      endCreated: widget.endCreated,
-      forUser: widget.forUser,
-    );
+    if (widget.postId == null) {
+      return NewSource.getPosts(
+        userId: widget.userId,
+        origin: widget.origin,
+        tags: widget.tags,
+        popularIn: widget.popularIn,
+        upvotes: widget.upvotes,
+        downvotes: widget.downvotes,
+        order: widget.order,
+        offset: offset,
+        limit: pageSize,
+        start: widget.start,
+        end: widget.end,
+        startCreated: widget.startCreated,
+        endCreated: widget.endCreated,
+        forUser: widget.forUser,
+      );
+    } else if (widget.forUser != null) {
+      return NewSource.getSimilarPost(
+        widget.forUser!,
+        start: widget.start,
+        end: widget.end,
+        order: widget.order,
+        offset: offset,
+        limit: pageSize,
+        postId: widget.postId,
+      );
+    } else {
+      return Future(() => []);
+    }
   }
 
   Future<void> _loadMorePosts() async {

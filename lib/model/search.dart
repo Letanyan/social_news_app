@@ -256,7 +256,7 @@ class SearchPageState extends State<SearchPage> {
                 } else if (current == 3) {
                   final comment = item as Comment;
                   return comment.card(context, false, 0,
-                      (c) => c.showParentPost(context)(), updateState);
+                      (c) => c.showParentPost(context)(), updateState, null);
                 } else {
                   return const SizedBox();
                 }

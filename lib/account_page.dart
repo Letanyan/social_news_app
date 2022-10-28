@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:social_news_app/flags_page.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -21,7 +22,8 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
-  void Function() showUserPrefPage(BuildContext context, int kind) {
+  void Function() showUserPrefPage(
+      BuildContext context, int kind, bool isViewed) {
     return () {
       final title = (kind == 0
           ? "Tags"
@@ -29,7 +31,12 @@ class _AccountPageState extends State<AccountPage> {
 
       final body = Scaffold(
         appBar: AppBar(title: Text(title)),
-        body: UserPrefPage(showSearch: true, prefKind: kind, user: widget.user),
+        body: UserPrefPage(
+          showSearch: true,
+          prefKind: kind,
+          user: widget.user,
+          isViewed: isViewed,
+        ),
       );
 
       Navigator.push(
@@ -80,6 +87,22 @@ class _AccountPageState extends State<AccountPage> {
         ),
       );
 
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => page,
+        ),
+      );
+    };
+  }
+
+  void Function() showFlaggedContent(BuildContext context, bool isPosts) {
+    return () {
+      var page = Scaffold(
+        appBar:
+            AppBar(title: Text(isPosts ? "Flagged Posts" : "Flagged Comments")),
+        body: FlagsPage(isPosts: isPosts),
+      );
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -182,20 +205,29 @@ class _AccountPageState extends State<AccountPage> {
 
     final votedPosts = ListTile(
       title: const Text("Posts"),
-      onTap: showUserPrefPage(context, 1),
+      onTap: showUserPrefPage(context, 1, false),
     );
     final votedUsers = ListTile(
       title: const Text("Users"),
-      onTap: showUserPrefPage(context, 2),
+      onTap: showUserPrefPage(context, 2, false),
     );
     final votedTags = ListTile(
-        title: const Text("Tags"), onTap: showUserPrefPage(context, 0));
+        title: const Text("Tags"), onTap: showUserPrefPage(context, 0, false));
     final votedComments = ListTile(
-        title: const Text("Comments"), onTap: showUserPrefPage(context, 3));
+        title: const Text("Comments"),
+        onTap: showUserPrefPage(context, 3, false));
 
     final settings = ListTile(
       title: const Text("Settings"),
       onTap: showSettingsPage(context),
+    );
+    final postFlags = ListTile(
+      title: const Text("Reported Posts"),
+      onTap: showFlaggedContent(context, true),
+    );
+    final commentFlags = ListTile(
+      title: const Text("Reported Comments"),
+      onTap: showFlaggedContent(context, false),
     );
     var settingsSection = <Widget>[];
     if (isOwner) {
@@ -204,6 +236,10 @@ class _AccountPageState extends State<AccountPage> {
           padding: EdgeInsets.all(8), child: Text("Preferences")));
       settingsSection.add(const Divider());
       settingsSection.add(settings);
+      if (User.current!.ID == -1 && NewSource.isDebug) {
+        settingsSection.add(postFlags);
+        settingsSection.add(commentFlags);
+      }
     }
 
     final list = ListView(children: [

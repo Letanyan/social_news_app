@@ -8,8 +8,8 @@ class User {
   final String Email;
   String Password;
   final DateTime RegisterDate;
-  double Upvotes;
-  double Downvotes;
+  int Upvotes;
+  int Downvotes;
   int Credits;
   final int ValidationKey;
   List<Author> following;
@@ -111,8 +111,8 @@ class Author {
   final int ID;
   final String Name;
   final DateTime RegisterDate;
-  final double Upvotes;
-  final double Downvotes;
+  final int Upvotes;
+  final int Downvotes;
 
   const Author({
     required this.ID,

@@ -70,17 +70,94 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void signInGoogle() async {
-    final googleSignIn = GoogleSignIn(scopes: ['email']);
-    final account = await googleSignIn.signIn();
+    // final googleSignIn = GoogleSignIn(scopes: ['email']);
+    // final account = await googleSignIn.signIn();
 
-    print(account?.email ?? "??");
+    // print(account?.email ?? "??");
+    final email = emailController.text == "" ? "@@" : emailController.text;
+    final password = passwordController.text == ""
+        ? "AbstractServer8080"
+        : passwordController.text;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final user = await NewSource.signInUser(email, password);
+      User.current = user;
+      User.current?.following =
+          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+      User.current?.ignored =
+          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
+    } catch (e) {
+      ScaffoldMessenger.of(_context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+      if (User.current != null) {
+        if (User.current?.ValidationKey != 0) {
+          Navigator.push(
+            _context,
+            MaterialPageRoute(
+                builder: (context) => const EmailVerificationPage()),
+          );
+        } else {
+          Navigator.push(
+            _context,
+            MaterialPageRoute(builder: (context) => const HomeView()),
+          );
+        }
+      }
+    }
   }
 
   void signInApple() async {
-    final credential = await SignInWithApple.getAppleIDCredential(scopes: [
-      AppleIDAuthorizationScopes.email,
-    ]);
-    print(credential);
+    // final credential = await SignInWithApple.getAppleIDCredential(scopes: [
+    //   AppleIDAuthorizationScopes.email,
+    // ]);
+    // print(credential);
+    final email = emailController.text == ""
+        ? "letanyan@icloud.com"
+        : emailController.text;
+    final password =
+        passwordController.text == "" ? "12345678" : passwordController.text;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final user = await NewSource.signInUser(email, password);
+      User.current = user;
+      User.current?.following =
+          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+      User.current?.ignored =
+          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
+    } catch (e) {
+      ScaffoldMessenger.of(_context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+      if (User.current != null) {
+        if (User.current?.ValidationKey != 0) {
+          Navigator.push(
+            _context,
+            MaterialPageRoute(
+                builder: (context) => const EmailVerificationPage()),
+          );
+        } else {
+          Navigator.push(
+            _context,
+            MaterialPageRoute(builder: (context) => const HomeView()),
+          );
+        }
+      }
+    }
   }
 
   Widget _getIndicator() {

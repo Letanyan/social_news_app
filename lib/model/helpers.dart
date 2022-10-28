@@ -59,24 +59,27 @@ String formatDateTime(DateTime date) {
   final sameMonth = today.month == date.month;
   final sameDay = today.day == date.day;
 
-  if (sameYear && sameMonth && sameDay) {
-    if (sameHour) {
-      final diff = today.minute - date.minute;
-      if (diff == 1) {
-        return "1 Minute";
+  if (sameYear) {
+    if (sameMonth) {
+      if (sameDay) {
+        if (sameHour) {
+          final diff = today.minute - date.minute;
+          return "${diff}m";
+        } else {
+          final diff = today.hour - date.hour;
+          return "${diff}h";
+        }
       } else {
-        return "$diff Minutes";
+        final diff = today.day - date.day;
+        return "${diff}d";
       }
     } else {
-      final diff = today.hour - date.hour;
-      if (diff == 1) {
-        return "1 Hour";
-      } else {
-        return "$diff Hours";
-      }
+      final diff = today.month - date.month;
+      return "${diff}mon";
     }
   } else {
-    return formatDate(date);
+    final diff = today.year - date.year;
+    return "${diff}y";
   }
 }
 

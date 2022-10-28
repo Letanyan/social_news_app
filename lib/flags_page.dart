@@ -1,37 +1,23 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:social_news_app/account_page.dart';
-import 'package:social_news_app/model/comment.dart';
+import 'package:flutter/src/widgets/container.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/filter_widget.dart';
+import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
-import 'package:social_news_app/model/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
-import 'package:social_news_app/model/post.dart';
-import 'package:social_news_app/model/user.dart';
 
-class UserContPage extends StatefulWidget {
-  final bool showSearch;
-  final ContentKind kind;
-  final UserContKind playlist;
-  final Author user;
-
-  const UserContPage(
-      {super.key,
-      required this.showSearch,
-      required this.kind,
-      required this.playlist,
-      required this.user});
+class FlagsPage extends StatefulWidget {
+  final bool isPosts;
+  const FlagsPage({super.key, required this.isPosts});
 
   @override
-  State<UserContPage> createState() => _UserContPageState();
+  State<FlagsPage> createState() => _FlagsPageState();
 }
 
-class _UserContPageState extends State<UserContPage> {
-  late Future<List<Post>> posts;
-  late Future<List<Comment>> comments;
-  late Future<List<Author>> users;
+class _FlagsPageState extends State<FlagsPage> {
+  late Future<List<FlaggedPost>> posts;
+  late Future<List<FlaggedComment>> comments;
   late TextEditingController controller;
 
   var current = 0;
@@ -47,17 +33,14 @@ class _UserContPageState extends State<UserContPage> {
     super.initState();
 
     controller = TextEditingController();
-    current = widget.kind.index;
+    current = widget.isPosts ? 0 : 1;
 
     posts = Future(() => []);
     comments = Future(() => []);
-    users = Future(() => []);
     if (current == 0) {
-      posts = getNewItems<Post>().then(updateItemsState);
+      posts = getNewItems<FlaggedPost>().then(updateItemsState);
     } else if (current == 1) {
-      comments = getNewItems<Comment>().then(updateItemsState);
-    } else if (current == 2) {
-      users = getNewItems<Author>().then(updateItemsState);
+      comments = getNewItems<FlaggedComment>().then(updateItemsState);
     }
 
     offset = pageSize;
@@ -70,12 +53,10 @@ class _UserContPageState extends State<UserContPage> {
   }
 
   int currentIndex<T>() {
-    if (isTypeEqual<T, Post>()) {
+    if (isTypeEqual<T, FlaggedPost>()) {
       return 0;
-    } else if (isTypeEqual<T, Comment>()) {
+    } else if (isTypeEqual<T, FlaggedComment>()) {
       return 1;
-    } else if (isTypeEqual<T, Author>()) {
-      return 2;
     } else {
       return 100;
     }
@@ -87,33 +68,13 @@ class _UserContPageState extends State<UserContPage> {
     final ed = filterBox?.currentState?.end;
     final loc = filterBox?.currentState?.location;
     final src = filterBox?.currentState?.search;
-    if (isTypeEqual<T, Post>()) {
-      return NewSource.getUserContPost(
-        uid: widget.user.ID,
-        kind: widget.playlist,
-        offset: offset,
-        limit: pageSize,
-        order: SortOrder.createdAt,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Comment>()) {
-      return NewSource.getUserContComments(
-        uid: widget.user.ID,
-        offset: offset,
-        limit: pageSize,
-        order: SortOrder.createdAt,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Author>()) {
-      if (widget.playlist == UserContKind.userFollow) {
-        return NewSource.getUserContUsers(
-            widget.user.ID, UserContKind.userFollow) as Future<List<T>>;
-      } else if (widget.playlist == UserContKind.ignored) {
-        return NewSource.getUserContUsers(widget.user.ID, UserContKind.ignored)
-            as Future<List<T>>;
-      } else {
-        return Future(() => <T>[]);
-      }
+    final rsn = filterBox?.currentState?.current ?? 0;
+    if (isTypeEqual<T, FlaggedPost>()) {
+      return NewSource.getFlaggedPosts(FlagReason.values[rsn], pageSize, offset)
+          as Future<List<T>>;
+    } else if (isTypeEqual<T, FlaggedComment>()) {
+      return NewSource.getFlaggedComments(
+          FlagReason.values[rsn], pageSize, offset) as Future<List<T>>;
     } else {
       return Future(() => <T>[]);
     }
@@ -132,11 +93,9 @@ class _UserContPageState extends State<UserContPage> {
       offset = 0;
       isLoading = true;
       if (current == 0) {
-        posts = getNewItems<Post>().then(updateItemsState);
+        posts = getNewItems<FlaggedPost>().then(updateItemsState);
       } else if (current == 1) {
-        comments = getNewItems<Comment>().then(updateItemsState);
-      } else if (current == 2) {
-        users = getNewItems<Author>().then(updateItemsState);
+        comments = getNewItems<FlaggedComment>().then(updateItemsState);
       }
       offset = pageSize;
     });
@@ -178,14 +137,11 @@ class _UserContPageState extends State<UserContPage> {
                     return const CircularProgressIndicator();
                   } else if (hasMore) {
                     if (current == 0) {
-                      final newItems = getNewItems<Post>();
+                      final newItems = getNewItems<FlaggedPost>();
                       _loadMore(newItems, posts);
                     } else if (current == 1) {
-                      final newItems = getNewItems<Comment>();
+                      final newItems = getNewItems<FlaggedComment>();
                       _loadMore(newItems, comments);
-                    } else if (current == 2) {
-                      final newItems = getNewItems<Author>();
-                      _loadMore(newItems, users);
                     }
                     isLoading = true;
                     return const CircularProgressIndicator();
@@ -195,16 +151,23 @@ class _UserContPageState extends State<UserContPage> {
                 }
                 final item = snapshot.data![index];
                 if (current == 0) {
-                  return (item as Post).card(context, false, updateState);
+                  final flag = item as FlaggedPost;
+                  final content =
+                      flag.content.card(context, false, updateState);
+                  final review = flag.card(context, () => setState(() {}));
+                  return Column(children: [content, review]);
                 } else if (current == 1) {
-                  final comment = (item as Comment);
-                  return comment.card(context, false, 0,
-                      (c) => c.showParentPost(context)(), updateState, null);
-                } else if (current == 2) {
-                  final user = item as Author;
-                  return ListTile(
-                      title: Text(user.Name),
-                      onTap: () => user.showUserPage(context));
+                  final flag = (item as FlaggedComment);
+                  final content = flag.content.card(
+                    context,
+                    false,
+                    0,
+                    (c) => c.showParentPost(context)(),
+                    updateState,
+                    null,
+                  );
+                  final review = flag.card(context, () => setState(() {}));
+                  return Column(children: [content, review]);
                 } else {
                   return const SizedBox();
                 }
@@ -226,7 +189,7 @@ class _UserContPageState extends State<UserContPage> {
   @override
   Widget build(BuildContext context) {
     filterBox = FilterBox(
-      search: true,
+      selector: flagSet(),
       valueChanged: (p0) {
         updateFilter(() {});
       },
@@ -237,8 +200,6 @@ class _UserContPageState extends State<UserContPage> {
       list = buildList(context, posts);
     } else if (current == 1) {
       list = buildList(context, comments);
-    } else if (current == 2) {
-      list = buildList(context, users);
     } else {
       list = const SizedBox();
     }

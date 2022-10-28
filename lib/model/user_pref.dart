@@ -6,8 +6,8 @@ import 'package:social_news_app/model/user.dart';
 
 class UserPrefUser {
   final Author author;
-  final double upvotes;
-  final double downvotes;
+  final int upvotes;
+  final int downvotes;
 
   const UserPrefUser({
     required this.author,
@@ -26,8 +26,8 @@ class UserPrefUser {
 
 class UserPrefPost {
   final Post post;
-  final double upvotes;
-  final double downvotes;
+  final int upvotes;
+  final int downvotes;
 
   const UserPrefPost({
     required this.post,
@@ -46,8 +46,8 @@ class UserPrefPost {
 
 class UserPrefComment {
   final Comment comment;
-  final double upvotes;
-  final double downvotes;
+  final int upvotes;
+  final int downvotes;
 
   const UserPrefComment({
     required this.comment,
@@ -66,8 +66,8 @@ class UserPrefComment {
 
 class UserPrefTag {
   final Tag tag;
-  final double upvotes;
-  final double downvotes;
+  final int upvotes;
+  final int downvotes;
 
   const UserPrefTag({
     required this.tag,

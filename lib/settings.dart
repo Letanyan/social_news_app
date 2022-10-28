@@ -35,10 +35,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void updateState(Function() f) {
     setState(() {
       f();
-      User.current!.PublicCommentVotes = cont[UserPrefKind.comment] ?? false;
-      User.current!.PublicPostVotes = cont[UserPrefKind.post] ?? false;
-      User.current!.PublicUserVotes = cont[UserPrefKind.user] ?? false;
-      User.current!.PublicTagVotes = cont[UserPrefKind.tag] ?? false;
+      User.current!.PublicCommentVotes = pref[UserPrefKind.comment] ?? false;
+      User.current!.PublicPostVotes = pref[UserPrefKind.post] ?? false;
+      User.current!.PublicUserVotes = pref[UserPrefKind.user] ?? false;
+      User.current!.PublicTagVotes = pref[UserPrefKind.tag] ?? false;
 
       User.current!.PublicReadLater = cont[UserContKind.readLater] ?? false;
       User.current!.PublicViews = cont[UserContKind.viewed] ?? false;

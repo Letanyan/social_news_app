@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -18,6 +19,7 @@ class CommentReplyPage extends StatefulWidget {
 
 class _CommentReplyPageState extends State<CommentReplyPage> {
   late TextEditingController controller;
+  bool isReview = false;
 
   @override
   void initState() {
@@ -35,12 +37,12 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
   void replyToComment() {
     // TODO: Show progress indicator
     if (widget.comment != null) {
-      final result = NewSource.createComment(
-              widget.comment!.postId, widget.comment!.id, controller.text)
+      final result = NewSource.createComment(widget.comment!.postId,
+              widget.comment!.id, controller.text, isReview)
           .then((value) => Navigator.pop(context));
     } else if (widget.post != null) {
       final result =
-          NewSource.createComment(widget.post!.ID, 0, controller.text)
+          NewSource.createComment(widget.post!.ID, 0, controller.text, isReview)
               .then((value) => Navigator.pop(context));
     } else {
       final result = NewSource.createPost(controller.text)
@@ -55,10 +57,23 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
   @override
   Widget build(BuildContext context) {
     late Widget preview;
+    var reviewSelector = <Widget>[];
     if (widget.comment != null) {
-      preview = widget.comment!.card(context, false, 0, null, updateState);
+      preview =
+          widget.comment!.card(context, false, 0, null, updateState, null);
     } else if (widget.post != null) {
       preview = widget.post!.card(context, false, updateState);
+      final sel = CupertinoSlidingSegmentedControl(
+        children: const {false: Text("Comment"), true: Text("Review")},
+        groupValue: isReview,
+        onValueChanged: (value) {
+          isReview = value ?? false;
+          updateState();
+        },
+      );
+      reviewSelector.add(const SizedBox(height: 8));
+      reviewSelector.add(Padding(padding: const EdgeInsets.all(8), child: sel));
+      reviewSelector.add(const SizedBox(height: 8));
     } else {
       preview = const SizedBox();
     }
@@ -67,14 +82,20 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         keyboardType: TextInputType.multiline,
         maxLines: null,
         controller: controller,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          hintText: 'Enter a reply',
+        autofocus: true,
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          hintText: isReview ? "Review Post" : "Enter a Reply",
         ));
 
     final body = ListView(
       padding: EdgeInsets.only(bottom: size.height * 0.8),
-      children: [preview, const SizedBox(height: 8), input],
+      children: [
+        ...reviewSelector,
+        Padding(padding: const EdgeInsets.all(8), child: input),
+        const SizedBox(height: 8),
+        preview,
+      ],
     );
 
     late AppBar? bar;
@@ -91,7 +112,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
 
     return Scaffold(
       appBar: bar,
-      body: Padding(padding: const EdgeInsets.all(8), child: body),
+      body: body,
     );
   }
 }
@@ -108,6 +129,7 @@ void Function() previewPost(BuildContext context, String content) {
       Upvotes: 0,
       Downvotes: 0,
       CommentCount: 0,
+      Trashed: false,
     );
 
     final makePost =
