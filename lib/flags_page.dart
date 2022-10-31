@@ -2,14 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:social_news_app/model/filter_widget.dart';
+import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 
 class FlagsPage extends StatefulWidget {
   final bool isPosts;
-  const FlagsPage({super.key, required this.isPosts});
+  bool shouldShowFilter;
+  FlagsPage({super.key, required this.isPosts}) : shouldShowFilter = true;
 
   @override
   State<FlagsPage> createState() => _FlagsPageState();
@@ -120,6 +121,13 @@ class _FlagsPageState extends State<FlagsPage> {
     setState(() {});
   }
 
+  EdgeInsets listViewInsets() {
+    return EdgeInsets.only(
+        top: !widget.shouldShowFilter
+            ? 0
+            : filterBox?.getWidgetSize().height ?? 0);
+  }
+
   Widget buildList<T>(BuildContext context, Future<List<T>> items) {
     return FutureBuilder<List<T>>(
         future: items,
@@ -130,7 +138,7 @@ class _FlagsPageState extends State<FlagsPage> {
             }
             final list = ListView.builder(
               itemCount: count,
-              padding: const EdgeInsets.only(top: 114.0),
+              padding: listViewInsets(),
               itemBuilder: (context, index) {
                 if (index >= count) {
                   if (isLoading) {
@@ -152,8 +160,7 @@ class _FlagsPageState extends State<FlagsPage> {
                 final item = snapshot.data![index];
                 if (current == 0) {
                   final flag = item as FlaggedPost;
-                  final content =
-                      flag.content.card(context, false, updateState);
+                  final content = flag.content.tile(context, updateState);
                   final review = flag.card(context, () => setState(() {}));
                   return Column(children: [content, review]);
                 } else if (current == 1) {

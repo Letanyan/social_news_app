@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/comment.dart';
-import 'package:social_news_app/model/filter_widget.dart';
-import 'package:social_news_app/model/location_picker.dart';
+import 'package:social_news_app/widgets/filter_widget.dart';
+import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
@@ -197,6 +197,11 @@ class SearchPageState extends State<SearchPage> {
     setState(() {});
   }
 
+  EdgeInsets listViewInsets() {
+    return EdgeInsets.only(
+        top: !widget.shouldShowFilter ? 0 : filterBox.getWidgetSize().height);
+  }
+
   Widget buildList<T>(BuildContext context, Future<List<T>> items) {
     return FutureBuilder<List<T>>(
         future: items,
@@ -207,7 +212,7 @@ class SearchPageState extends State<SearchPage> {
             }
             final list = ListView.builder(
               itemCount: count[current] + 1,
-              // padding: const EdgeInsets.only(top: 128.0),
+              padding: listViewInsets(),
               itemBuilder: (context, index) {
                 if (index >= count[current]) {
                   if (isLoading[current]) {
@@ -247,7 +252,7 @@ class SearchPageState extends State<SearchPage> {
                     ),
                   );
                 } else if (current == 1) {
-                  return (item as Post).card(context, false, updateState);
+                  return (item as Post).tile(context, updateState);
                 } else if (current == 2) {
                   final user = item as Author;
                   return ListTile(

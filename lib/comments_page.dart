@@ -184,14 +184,13 @@ class _CommentsPageState extends State<CommentsPage> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-            return ListView(
-                children: [widget.post.card(context, true, updateState)]);
+            return ListView(children: [widget.post.card(context, updateState)]);
           }
           final list = ListView.builder(
             itemCount: (isReview ? reviewCount : count) + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                final card = widget.post.card(context, true, updateState);
+                final card = widget.post.card(context, updateState);
                 final sel = CupertinoSlidingSegmentedControl(
                   children: const {
                     false: Text("Comments"),
@@ -268,7 +267,7 @@ class _CommentsPageState extends State<CommentsPage> {
 
         final list = ListView(
           children: [
-            widget.post.card(context, true, updateState),
+            widget.post.card(context, updateState),
             const CircularProgressIndicator()
           ],
         );

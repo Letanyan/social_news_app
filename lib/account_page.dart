@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/flags_page.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/main.dart';
@@ -11,6 +12,7 @@ import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/settings.dart';
 import 'package:social_news_app/user_cont_page.dart';
 import 'package:social_news_app/user_pref_page.dart';
+import 'package:social_news_app/widgets/purchase_credit_widget.dart';
 
 class AccountPage extends StatefulWidget {
   final Author user;
@@ -23,11 +25,9 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   void Function() showUserPrefPage(
-      BuildContext context, int kind, bool isViewed) {
+      BuildContext context, ContentKind kind, bool isViewed) {
     return () {
-      final title = (kind == 0
-          ? "Tags"
-          : (kind == 1 ? "Posts" : (kind == 2 ? "Users" : "Comments")));
+      final title = contentKindToString(kind);
 
       final body = Scaffold(
         appBar: AppBar(title: Text(title)),
@@ -114,11 +114,17 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Text? credit;
-    final TextButton? action;
+    final Widget? credit;
+    final Widget? action;
     final isOwner = widget.user.ID == User.current?.ID;
     if (isOwner) {
-      credit = Text("${User.current!.Credits}");
+      credit = InkWell(
+        onTap: () {
+          showPlatformDialog(
+              context: context, builder: (context) => const PurchaseCredit());
+        },
+        child: Text("Credits: ${User.current!.Credits}"),
+      );
       action = TextButton(
         onPressed: () {
           User.current = null;
@@ -130,45 +136,7 @@ class _AccountPageState extends State<AccountPage> {
       );
     } else {
       credit = null;
-      final isFollowing = User.current!.following
-              .firstWhere((u) => u.ID == widget.user.ID,
-                  orElse: () => User.current!.toAuthor())
-              .ID !=
-          User.current!.ID;
-      final isIgnored = User.current!.ignored
-              .firstWhere((u) => u.ID == widget.user.ID,
-                  orElse: () => User.current!.toAuthor())
-              .ID !=
-          User.current!.ID;
-      final actionText = isIgnored
-          ? "Don't Ignore"
-          : isFollowing
-              ? "Unfollow"
-              : "Follow";
-      action = TextButton(
-        onPressed: () async {
-          if (User.current == null) {
-            return;
-          }
-          if (isIgnored) {
-            User.current?.ignored.removeWhere((u) => u.ID == widget.user.ID);
-            NewSource.deleteUserCont(
-                User.current!.ID, widget.user.ID, UserContKind.ignored);
-          } else if (isFollowing) {
-            User.current?.following.removeWhere((u) => u.ID == widget.user.ID);
-            NewSource.deleteUserCont(
-                User.current!.ID, widget.user.ID, UserContKind.userFollow);
-          } else {
-            User.current?.following.add(widget.user);
-            NewSource.addUserCont(
-                uid: User.current!.ID,
-                kind: UserContKind.userFollow,
-                pid: widget.user.ID);
-          }
-          setState(() {});
-        },
-        child: Text(actionText),
-      );
+      action = widget.user.followButton(() => setState(() {}));
     }
     final name = ListTile(
       title: Text(widget.user.Name),
@@ -205,17 +173,18 @@ class _AccountPageState extends State<AccountPage> {
 
     final votedPosts = ListTile(
       title: const Text("Posts"),
-      onTap: showUserPrefPage(context, 1, false),
+      onTap: showUserPrefPage(context, ContentKind.post, false),
     );
     final votedUsers = ListTile(
       title: const Text("Users"),
-      onTap: showUserPrefPage(context, 2, false),
+      onTap: showUserPrefPage(context, ContentKind.user, false),
     );
     final votedTags = ListTile(
-        title: const Text("Tags"), onTap: showUserPrefPage(context, 0, false));
+        title: const Text("Tags"),
+        onTap: showUserPrefPage(context, ContentKind.tag, false));
     final votedComments = ListTile(
         title: const Text("Comments"),
-        onTap: showUserPrefPage(context, 3, false));
+        onTap: showUserPrefPage(context, ContentKind.comment, false));
 
     final settings = ListTile(
       title: const Text("Settings"),

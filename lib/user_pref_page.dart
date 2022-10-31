@@ -2,10 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment.dart';
-import 'package:social_news_app/model/filter_widget.dart';
+import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:social_news_app/model/helpers.dart';
-import 'package:social_news_app/model/location_picker.dart';
+import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
@@ -15,16 +16,18 @@ import 'package:social_news_app/posts_page.dart';
 
 class UserPrefPage extends StatefulWidget {
   final bool showSearch;
-  final int prefKind;
+  final ContentKind prefKind;
   final Author user;
   final bool isViewed;
+  bool shouldShowFilter;
 
-  const UserPrefPage(
+  UserPrefPage(
       {super.key,
       required this.showSearch,
       required this.prefKind,
       required this.user,
-      required this.isViewed});
+      required this.isViewed})
+      : shouldShowFilter = true;
 
   @override
   State<UserPrefPage> createState() => _UserPrefPageState();
@@ -36,7 +39,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
   late Future<List<UserPrefUser>> users;
   late Future<List<UserPrefComment>> comments;
 
-  var current = 0;
+  var current = ContentKind.tag;
   var offset = 0;
   var pageSize = 20;
   var count = 0;
@@ -54,13 +57,13 @@ class _UserPrefPageState extends State<UserPrefPage> {
     posts = Future(() => []);
     users = Future(() => []);
     comments = Future(() => []);
-    if (current == 0) {
+    if (current == ContentKind.tag) {
       tags = getNewItems<UserPrefTag>().then(updateItemsState);
-    } else if (current == 1) {
+    } else if (current == ContentKind.post) {
       posts = getNewItems<UserPrefPost>().then(updateItemsState);
-    } else if (current == 2) {
+    } else if (current == ContentKind.user) {
       users = getNewItems<UserPrefUser>().then(updateItemsState);
-    } else if (current == 3) {
+    } else if (current == ContentKind.comment) {
       comments = getNewItems<UserPrefComment>().then(updateItemsState);
     }
 
@@ -86,37 +89,47 @@ class _UserPrefPageState extends State<UserPrefPage> {
     final sd = filterBox?.currentState?.start;
     final ed = filterBox?.currentState?.end;
     final loc = filterBox?.currentState?.location;
+    final srt = filterBox?.currentState?.order;
     final src = filterBox?.currentState?.search;
     if (isTypeEqual<T, UserPrefTag>()) {
       return NewSource.getUserPrefTags(
         uid: widget.user.ID,
+        startVoted: sd,
+        endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: SortOrder.upvotes, // FIXME: sort by vote date?
+        order: srt, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefPost>()) {
       return NewSource.getUserPrefPosts(
         uid: widget.user.ID,
+        location: loc,
+        startVoted: sd,
+        endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: SortOrder.createdAt, // FIXME: sort by vote date?
+        order: srt, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefUser>()) {
       return NewSource.getUserPrefUsers(
         uid: widget.user.ID,
+        startVoted: sd,
+        endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: SortOrder.upvotes, // FIXME: sort by vote date?
+        order: srt, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefComment>()) {
       return NewSource.getUserPrefComments(
         uid: widget.user.ID,
+        startVoted: sd,
+        endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: SortOrder.createdAt, // FIXME: sort by vote date?
+        order: srt, // FIXME: sort by vote date?
         search: src,
       ) as Future<List<T>>;
     } else {
@@ -136,13 +149,13 @@ class _UserPrefPageState extends State<UserPrefPage> {
       count = 0;
       offset = 0;
       isLoading = true;
-      if (current == 0) {
+      if (current == ContentKind.tag) {
         tags = getNewItems<UserPrefTag>().then(updateItemsState);
-      } else if (current == 1) {
+      } else if (current == ContentKind.post) {
         posts = getNewItems<UserPrefPost>().then(updateItemsState);
-      } else if (current == 2) {
+      } else if (current == ContentKind.user) {
         users = getNewItems<UserPrefUser>().then(updateItemsState);
-      } else if (current == 3) {
+      } else if (current == ContentKind.comment) {
         comments = getNewItems<UserPrefComment>().then(updateItemsState);
       }
       offset = pageSize;
@@ -176,6 +189,13 @@ class _UserPrefPageState extends State<UserPrefPage> {
     setState(() {});
   }
 
+  EdgeInsets listViewInsets() {
+    return EdgeInsets.only(
+        top: !widget.shouldShowFilter
+            ? 0
+            : filterBox?.getWidgetSize().height ?? 0);
+  }
+
   Widget buildList<T>(BuildContext context, Future<List<T>> items) {
     return FutureBuilder<List<T>>(
         future: items,
@@ -186,22 +206,22 @@ class _UserPrefPageState extends State<UserPrefPage> {
             }
             final list = ListView.builder(
               itemCount: count,
-              padding: const EdgeInsets.only(top: 114.0),
+              padding: listViewInsets(),
               itemBuilder: (context, index) {
                 if (index >= count) {
                   if (isLoading) {
                     return const CircularProgressIndicator();
                   } else if (hasMore) {
-                    if (current == 0) {
+                    if (current == ContentKind.tag) {
                       final newItems = getNewItems<UserPrefTag>();
                       _loadMore(newItems, tags);
-                    } else if (current == 1) {
+                    } else if (current == ContentKind.post) {
                       final newItems = getNewItems<UserPrefPost>();
                       _loadMore(newItems, posts);
-                    } else if (current == 2) {
+                    } else if (current == ContentKind.user) {
                       final newItems = getNewItems<UserPrefUser>();
                       _loadMore(newItems, users);
-                    } else if (current == 3) {
+                    } else if (current == ContentKind.comment) {
                       final newItems = getNewItems<UserPrefComment>();
                       _loadMore(newItems, comments);
                     }
@@ -212,31 +232,19 @@ class _UserPrefPageState extends State<UserPrefPage> {
                   }
                 }
                 final item = snapshot.data![index];
-                if (current == 0) {
-                  final tag = (item as UserPrefTag);
-                  final page = Scaffold(
-                    appBar: AppBar(title: Text(tag.tag.Name)),
-                    body: PostsPage(tags: [tag.tag.ID]),
-                  );
-                  return ListTile(
-                    title: Text(tag.tag.Name),
-                    trailing: Text("${tag.upvotes} - ${tag.downvotes}"),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => page),
-                    ),
-                  );
-                } else if (current == 1) {
+                if (current == ContentKind.tag) {
+                  final tag = item as UserPrefTag;
+                  return tag.tag.card(context, updateState,
+                      up: tag.upvotes, down: tag.downvotes);
+                } else if (current == ContentKind.post) {
                   final post = item as UserPrefPost;
-                  return post.post.card(context, false, updateState,
+                  return post.post.tile(context, updateState,
                       up: post.upvotes, down: post.downvotes);
-                } else if (current == 2) {
+                } else if (current == ContentKind.user) {
                   final user = item as UserPrefUser;
-                  return ListTile(
-                      title: Text(user.author.Name),
-                      trailing: Text("${user.upvotes} - ${user.downvotes}"),
-                      onTap: () => user.author.showUserPage(context));
-                } else if (current == 3) {
+                  return user.author.card(context, updateState,
+                      up: user.upvotes, down: user.downvotes);
+                } else if (current == ContentKind.comment) {
                   final comment = (item as UserPrefComment);
                   return comment.comment.card(context, false, 0,
                       (c) => c.showParentPost(context)(), updateState, null,
@@ -263,29 +271,32 @@ class _UserPrefPageState extends State<UserPrefPage> {
   Widget build(BuildContext context) {
     filterBox = FilterBox(
       search: true,
+      date: true,
+      location: widget.prefKind == ContentKind.post,
+      sorting: SortOrder.values,
       valueChanged: (p0) {
         updateFilter(() {});
       },
     );
+    var stack = <Widget>[];
+    if (filterBox != null) {
+      stack.add(filterBox!);
+    }
     late final Widget list;
 
-    if (current == 0) {
+    if (current == ContentKind.tag) {
       list = buildList(context, tags);
-    } else if (current == 1) {
+    } else if (current == ContentKind.post) {
       list = buildList(context, posts);
-    } else if (current == 2) {
+    } else if (current == ContentKind.user) {
       list = buildList(context, users);
-    } else if (current == 3) {
+    } else if (current == ContentKind.comment) {
       list = buildList(context, comments);
     } else {
       list = const SizedBox();
     }
 
-    var stack = <Widget>[list];
-    if (filterBox != null) {
-      stack.add(filterBox!);
-    }
-
+    stack.insert(0, list);
     return Stack(children: stack);
   }
 }

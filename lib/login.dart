@@ -25,10 +25,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
+  var originController = TextEditingController();
   var isLoading = false;
   late BuildContext _context;
 
   void signIn() async {
+    if (originController.text.isNotEmpty) {
+      NewSource.host = originController.text;
+    }
     final email =
         emailController.text == "" ? "ribet@yahoo.com" : emailController.text;
     final password =
@@ -191,6 +195,10 @@ class _LoginPageState extends State<LoginPage> {
       obscureText: true,
       decoration: const InputDecoration(labelText: "Password"),
     );
+    var origin = TextField(
+      controller: originController,
+      decoration: const InputDecoration(labelText: "Host"),
+    );
 
     var signInWithApple = TextButton(
         onPressed: signInApple, child: const Text("Sign In With Apple"));
@@ -216,7 +224,9 @@ class _LoginPageState extends State<LoginPage> {
         Center(child: forgot),
         const SizedBox(height: 8),
         Center(child: signInWithGoole),
-        Center(child: signInWithApple)
+        Center(child: signInWithApple),
+        const SizedBox(height: 8),
+        Center(child: origin),
       ],
     );
 

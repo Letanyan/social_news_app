@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Tag {
   final int ID;
@@ -96,5 +97,32 @@ class Tag {
     }
 
     return newTags;
+  }
+
+  void showTagPage(BuildContext context) {
+    final page = Scaffold(
+      appBar: AppBar(title: Text(Name)),
+      body: PostsPage(tags: [ID]),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  }
+
+  Widget card(BuildContext context, Function() updateState,
+      {int? up, int? down}) {
+    final title = Text(Name);
+    final upChip = buildUpvoteChip(context, Upvotes);
+    final downChip = buildDownvoteChip(context, Downvotes);
+    final votes = FittedBox(
+        fit: BoxFit.contain, child: Row(children: [upChip, downChip]));
+
+    return ListTile(
+      title: title,
+      trailing: Padding(padding: const EdgeInsets.all(8), child: votes),
+      onTap: () => showTagPage(context),
+    );
   }
 }

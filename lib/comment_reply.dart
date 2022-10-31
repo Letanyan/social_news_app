@@ -62,7 +62,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       preview =
           widget.comment!.card(context, false, 0, null, updateState, null);
     } else if (widget.post != null) {
-      preview = widget.post!.card(context, false, updateState);
+      preview = widget.post!.card(context, updateState);
       final sel = CupertinoSlidingSegmentedControl(
         children: const {false: Text("Comment"), true: Text("Review")},
         groupValue: isReview,
@@ -140,7 +140,7 @@ void Function() previewPost(BuildContext context, String content) {
         title: const Text("Preview"),
         actions: [makePost],
       ),
-      body: ListView(children: [previewPost.card(context, false, () {})]),
+      body: ListView(children: [previewPost.card(context, () {})]),
     );
 
     Navigator.push(context, MaterialPageRoute(builder: (context) => page));

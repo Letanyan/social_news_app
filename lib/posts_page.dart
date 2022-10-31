@@ -139,7 +139,8 @@ class _PostsPageState extends State<PostsPage> {
                   }
                 }
                 final item = snapshot.data![index];
-                return item.card(context, false, updateState);
+                return item.tile(context, updateState);
+                // return item.card(context, false, updateState);
               },
             );
             return RefreshIndicator(

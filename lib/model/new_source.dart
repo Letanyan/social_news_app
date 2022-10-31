@@ -14,7 +14,7 @@ import 'tag.dart';
 
 class NewSource {
   static const isDebug = true;
-  static const host = isDebug
+  static var host = isDebug
       ? "http://192.168.0.147:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
   // static const host =
@@ -267,6 +267,8 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
+    DateTime? startVoted,
+    DateTime? endVoted,
     SortOrder? order,
     int? limit,
     int? offset,
@@ -281,6 +283,8 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addD("start", startVoted, args);
+    addD("end", endVoted, args);
     addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "users"], args);
@@ -295,6 +299,9 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
+    List<String>? location,
+    DateTime? startVoted,
+    DateTime? endVoted,
     SortOrder? order,
     int? limit,
     int? offset,
@@ -307,6 +314,9 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addL("location", location, args);
+    addD("start", startVoted, args);
+    addD("end", endVoted, args);
     addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "posts"], args);
@@ -334,6 +344,8 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
+    DateTime? startVoted,
+    DateTime? endVoted,
     SortOrder? order,
     int? limit,
     int? offset,
@@ -348,6 +360,8 @@ class NewSource {
     addI("limit", limit, args);
     addS("search", search, args);
     addI("isReview", isReview == true ? 1 : 0, args);
+    addD("start", startVoted, args);
+    addD("end", endVoted, args);
     addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "comments"], args);
@@ -362,6 +376,8 @@ class NewSource {
     int? uid,
     int? upvotes,
     int? downvotes,
+    DateTime? startVoted,
+    DateTime? endVoted,
     SortOrder? order,
     int? limit,
     int? offset,
@@ -374,6 +390,8 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addD("start", startVoted, args);
+    addD("end", endVoted, args);
     addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "tags"], args);
@@ -389,6 +407,9 @@ class NewSource {
     required UserContKind kind,
     int? upvotes,
     int? downvotes,
+    List<String>? location,
+    DateTime? startCreated,
+    DateTime? endCreated,
     SortOrder? order,
     required int limit,
     required int offset,
@@ -401,6 +422,9 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addD("start", startCreated, args);
+    addD("end", endCreated, args);
+    addL("location", location, args);
     addSecret(args);
 
     var path = ["users", "$uid", "content", "posts"];
@@ -435,6 +459,8 @@ class NewSource {
     required int uid,
     int? upvotes,
     int? downvotes,
+    DateTime? startCreated,
+    DateTime? endCreated,
     SortOrder? order,
     required int limit,
     required int offset,
@@ -447,6 +473,9 @@ class NewSource {
     addI("offset", offset, args);
     addI("limit", limit, args);
     addS("search", search, args);
+    addD("start", startCreated, args);
+    addD("end", endCreated, args);
+    // FIXME: Allow search for isReview
 
     final obj = await get(["users", "$uid", "content", "comments"], args);
     if (obj == null) {
@@ -457,7 +486,11 @@ class NewSource {
   }
 
   static Future<List<Author>> getUserContUsers(
-      int uid, UserContKind kind) async {
+    int uid,
+    UserContKind kind, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     late List<String> path;
     if (kind == UserContKind.userFollow) {
       path = ["users", "$uid", "content", "user-follows"];
@@ -465,6 +498,8 @@ class NewSource {
       path = ["users", "$uid", "content", "ignored"];
     }
     var args = <String>[];
+    addD("start", startDate, args);
+    addD("end", endDate, args);
     addSecret(args);
     final obj = await get(path, args);
     if (obj == null) {
@@ -783,6 +818,19 @@ class NewSource {
       return true;
     } else {
       return false;
+    }
+  }
+
+  static Future<int?> purchaseCredit(int uid, int amount) async {
+    final path = ["credits", "$uid"];
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await post(path, args, {"amount": amount});
+    if (obj["success"] == true) {
+      return obj["payload"];
+    } else {
+      return null;
     }
   }
 

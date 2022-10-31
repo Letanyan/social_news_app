@@ -1,17 +1,20 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:social_news_app/account_page.dart';
-import 'package:social_news_app/model/comment_reply.dart';
+import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/iap.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
-import 'package:social_news_app/theme.dart';
+import 'package:social_news_app/model/theme.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -32,6 +35,8 @@ class _HomeViewState extends State<HomeView>
 
   int tabIndex = 0;
 
+  late StreamSubscription<List<PurchaseDetails>> subscription;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +53,24 @@ class _HomeViewState extends State<HomeView>
     hasLoadedScreen[0] = true;
     loadedIndices = [0];
     loadedScreens = [screens.first];
+
+    IAPConnection.instance = TestIAPConnection();
+    // IAPConnection.instance = InAppPurchase.instance;
+    final purchaseUpdated = IAPConnection.instance.purchaseStream;
+    subscription = purchaseUpdated.listen((purchaseDetailsList) {
+      handlePurchases(purchaseDetailsList);
+      print(purchaseDetailsList);
+    }, onDone: () {
+      subscription.cancel();
+    }, onError: (error) {
+      print(error);
+    });
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
   }
 
   String _viewName(int index) {
@@ -118,8 +141,8 @@ class _HomeViewState extends State<HomeView>
 
   Widget _buildTabItem(int index, ValueChanged<int> onPressed) {
     var color = tabIndex == index
-        ? ThemeData(primarySwatch: Colors.brown).primaryColor
-        : ThemeData(primarySwatch: Colors.brown).backgroundColor;
+        ? ThemeData(primarySwatch: Colors.pink).primaryColor
+        : ThemeData(primarySwatch: Colors.pink).backgroundColor;
     return Expanded(
       child: SizedBox(
         height: 60,
@@ -181,7 +204,7 @@ class _HomeViewState extends State<HomeView>
       // theme: MyTheme.current,
       // darkTheme: MyTheme.dark,
       // themeMode: ThemeMode.system,
-      theme: ThemeData(primarySwatch: Colors.brown),
+      theme: ThemeData(primarySwatch: Colors.pink, brightness: Brightness.dark),
       debugShowCheckedModeBanner: false,
       scrollBehavior: MyCustomScrollBehavior(),
       home: Scaffold(

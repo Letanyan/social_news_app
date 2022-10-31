@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/account_page.dart';
+import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/widgets/vote_widget.dart';
 
 class User {
   final int ID;
@@ -151,6 +153,66 @@ class Author {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
+    );
+  }
+
+  Widget followButton(Function() updateState) {
+    final isFollowing = User.current!.following
+            .firstWhere((u) => u.ID == ID,
+                orElse: () => User.current!.toAuthor())
+            .ID !=
+        User.current!.ID;
+    final isIgnored = User.current!.ignored
+            .firstWhere((u) => u.ID == ID,
+                orElse: () => User.current!.toAuthor())
+            .ID !=
+        User.current!.ID;
+    final actionText = isIgnored
+        ? "Don't Ignore"
+        : isFollowing
+            ? "Unfollow"
+            : "Follow";
+    final action = TextButton(
+      onPressed: () async {
+        if (User.current == null) {
+          return;
+        }
+        if (isIgnored) {
+          User.current?.ignored.removeWhere((u) => u.ID == ID);
+          NewSource.deleteUserCont(User.current!.ID, ID, UserContKind.ignored);
+        } else if (isFollowing) {
+          User.current?.following.removeWhere((u) => u.ID == ID);
+          NewSource.deleteUserCont(
+              User.current!.ID, ID, UserContKind.userFollow);
+        } else {
+          User.current?.following.add(this);
+          NewSource.addUserCont(
+              uid: User.current!.ID, kind: UserContKind.userFollow, pid: ID);
+        }
+        updateState();
+      },
+      style: const ButtonStyle(alignment: Alignment.centerLeft),
+      child: Text(actionText),
+    );
+
+    return action;
+  }
+
+  Widget card(BuildContext context, Function() updateState,
+      {int? up, int? down}) {
+    final title = Text(Name);
+    final upChip = buildUpvoteChip(context, Upvotes);
+    final downChip = buildDownvoteChip(context, Downvotes);
+    final follow =
+        FittedBox(fit: BoxFit.contain, child: followButton(updateState));
+    final votes = FittedBox(
+        fit: BoxFit.contain, child: Row(children: [upChip, downChip]));
+
+    return ListTile(
+      title: title,
+      trailing: Padding(padding: const EdgeInsets.all(8), child: votes),
+      subtitle: followButton(updateState),
+      onTap: () => showUserPage(context),
     );
   }
 }

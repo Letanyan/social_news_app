@@ -20,6 +20,9 @@ bool targetPlatformIsDesktop() {
 }
 
 Future<void> launchURL(String url) async {
+  if (url == "") {
+    return;
+  }
   if (!await launchUrlString(url, mode: LaunchMode.externalApplication)) {
     throw err("Could not launch website");
   }

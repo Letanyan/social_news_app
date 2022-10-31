@@ -4,8 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/model/helpers.dart';
-import 'package:social_news_app/model/location_picker.dart';
+import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 
 class FilterBoxState {
@@ -34,6 +35,7 @@ class FilterBox extends StatefulWidget {
   final bool search;
   FilterBoxState? currentState;
   void Function(FilterBoxState)? valueChanged;
+  final GlobalKey filterKey = GlobalKey();
   FilterBox({
     super.key,
     this.selector,
@@ -44,6 +46,11 @@ class FilterBox extends StatefulWidget {
     this.valueChanged,
     this.currentState,
   });
+
+  Size getWidgetSize() {
+    final size = filterKey.currentContext?.findRenderObject() as RenderBox?;
+    return size?.size ?? const Size(0, 0);
+  }
 
   @override
   State<FilterBox> createState() => _FilterBoxState();
@@ -57,6 +64,7 @@ class _FilterBoxState extends State<FilterBox> {
   var endDate = <DateTime>[];
   var searchString = <String>[];
   var controller = TextEditingController();
+  final GlobalKey filterKey = GlobalKey();
 
   @override
   void initState() {
@@ -128,57 +136,58 @@ class _FilterBoxState extends State<FilterBox> {
     }
   }
 
+  void Function() updateDate(bool isStartDate) {
+    return () async {
+      final date = await showDatePicker(
+          context: context,
+          initialDate: isStartDate ? startDate[current] : endDate[current],
+          firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
+          lastDate: DateTime.now());
+      if (date == null) {
+        return;
+      }
+      if (isStartDate) {
+        startDate[current] = date;
+      } else {
+        endDate[current] = date;
+      }
+      updateState();
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final startTile = ListTile(
-      title: Text("From: ${formatDate(startDate[current])}"),
-      onTap: () async {
-        final date = await showDatePicker(
-            context: context,
-            initialDate: startDate[current],
-            firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-            lastDate: DateTime.now());
-        if (date == null) {
-          return;
-        }
-        startDate[current] = date;
-        updateState();
-      },
-    );
-    final endTile = ListTile(
-        title: Text("To: ${formatDate(endDate[current])}"),
-        onTap: () async {
-          final date = await showDatePicker(
-              context: context,
-              initialDate: endDate[current],
-              firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-              lastDate: DateTime.now());
-          if (date == null) {
-            return;
-          }
-          endDate[current] = date;
-          updateState();
-        });
-    final closeDate = ElevatedButton(
-      onPressed: () => Navigator.pop(context),
-      child: const Text("Close"),
-    );
     final dateButton = ActionChip(
       label: Text(
           "${formatDate(startDate[current])} - ${formatDate(endDate[current])}"),
       avatar: const Icon(Icons.calendar_month_rounded),
       onPressed: () {
-        showBottomSheet(
+        showPlatformDialog(
           context: context,
           builder: (context) {
-            return Container(
-              height: 200,
-              child: Column(children: [
-                startTile,
-                endTile,
-                closeDate,
-              ]),
-            );
+            return StatefulBuilder(builder: (context, setState) {
+              final startTile = ListTile(
+                title: Text("From: ${formatDate(startDate[current])}"),
+                onTap: updateDate(true),
+              );
+              final endTile = ListTile(
+                title: Text("To: ${formatDate(endDate[current])}"),
+                onTap: updateDate(false),
+              );
+              final closeDate = ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Close"),
+              );
+              return AlertDialog(
+                title: const Text("Select Date Range"),
+                content: SingleChildScrollView(
+                  child: Column(
+                    children: [startTile, endTile],
+                  ),
+                ),
+                actions: [closeDate],
+              );
+            });
           },
         );
       },
@@ -259,12 +268,19 @@ class _FilterBoxState extends State<FilterBox> {
       ),
     );
 
-    final selectorWidgets =
-        widget.selector?.map((key, value) => MapEntry(key, Text(value))) ??
-            <int, Widget>{0: const Text("Posts"), 1: const Text("Comments")};
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textStyle =
+        TextStyle(color: isDark ? Colors.white : Colors.grey[800]);
+    final selectorWidgets = widget.selector?.map(
+            (key, value) => MapEntry(key, Text(value, style: textStyle))) ??
+        <int, Widget>{
+          0: Text("Posts", style: textStyle),
+          1: Text("Comments", style: textStyle)
+        };
     final selector = CupertinoSlidingSegmentedControl<int>(
       // padding: const EdgeInsets.all(15),
       children: selectorWidgets,
+      thumbColor: Colors.pink,
       onValueChanged: (int? index) {
         current = index ?? 0;
         updateState();
@@ -276,8 +292,17 @@ class _FilterBoxState extends State<FilterBox> {
       keyboardType: TextInputType.text,
       maxLines: 1,
       controller: controller,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
+      style: textStyle,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16))),
+        enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: isDark
+                    ? Colors.grey[400] ?? Colors.white
+                    : Colors.grey[600] ?? Colors.black),
+            borderRadius: BorderRadius.all(Radius.circular(16))),
+        hintStyle: textStyle,
         hintText: 'Search',
       ),
       onSubmitted: (value) async {
@@ -289,34 +314,46 @@ class _FilterBoxState extends State<FilterBox> {
 
     var filterItems = <Widget>[];
 
+    var size = 0;
     if (widget.selector != null) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(selector);
+      size += 48;
     }
     if (widget.search) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(searchBox);
+      size += 48;
     }
     if (operatorItems.isNotEmpty) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(operatorRow);
+      size += 48;
     }
-    filterItems.add(const SizedBox(height: 8));
 
     final body = Column(
       mainAxisSize: MainAxisSize.min,
       children: filterItems,
     );
+    const rounding = BorderRadius.all(Radius.circular(16));
     final cont = Container(
-      color: Colors.white.withAlpha(192),
+      decoration: BoxDecoration(
+          color: Colors.grey[isDark ? 800 : 200]?.withAlpha(192),
+          borderRadius: rounding),
       child: Padding(padding: const EdgeInsets.all(8), child: body),
     );
 
     final filter = BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+      filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
       child: cont,
     );
 
-    return ClipRect(child: filter);
+    final rect = ClipRRect(
+        key: widget.filterKey,
+        clipBehavior: Clip.antiAlias,
+        borderRadius: rounding,
+        child: filter);
+
+    return Padding(padding: EdgeInsets.all(8), child: rect);
   }
 }

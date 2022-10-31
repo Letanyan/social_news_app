@@ -2,12 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
-import 'package:social_news_app/model/comment_reply.dart';
+import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
+import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Comment {
   final int id;
@@ -70,6 +71,36 @@ class Comment {
     };
   }
 
+  void Function(BuildContext, int) updateVote(VoidCallback updateState) {
+    return (BuildContext context, int amount) {
+      if (User.current == null) {
+        return;
+      }
+      if (amount > 0) {
+        upvotes += amount;
+      } else {
+        downvotes += -amount;
+      }
+      updateState();
+      try {
+        NewSource.voteForComment(
+                postId: postId,
+                commentId: id,
+                userId: User.current!.ID,
+                amount: amount)
+            .then((value) {
+          User.current!.Credits = value;
+        }).onError((error, stackTrace) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(error.toString())));
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    };
+  }
+
   Widget card(
       BuildContext context,
       bool showReply,
@@ -83,102 +114,50 @@ class Comment {
     if (trashed) {
       return const SizedBox();
     }
-    final text = Text(content);
+    final text = Padding(
+      padding: const EdgeInsets.all(8),
+      child: Align(alignment: Alignment.centerLeft, child: Text(content)),
+    );
     final creator = InkWell(
       onTap: () => author.showUserPage(context),
       child: Text(author.Name),
     );
     final date = Text(formatDateTime(createdAt));
     final meta = Padding(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Row(children: [
-        date,
-        Expanded(child: Align(alignment: Alignment.centerRight, child: creator))
+        creator,
+        Expanded(child: Align(alignment: Alignment.centerRight, child: date))
       ]),
     );
     final reply = ActionChip(
-      onPressed: () {
-        showReplyField!();
-        print("23456789--------------");
-      },
+      onPressed: () => showReplyField,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(8),
-          bottomLeft: Radius.circular(8),
+          topLeft: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
         ),
       ),
       avatar:
-          const Icon(Icons.add_comment_rounded, color: Colors.brown, size: 18),
+          const Icon(Icons.add_comment_rounded, color: Colors.pink, size: 18),
       label: const Text("Reply"),
     );
     final replyCountChip = ActionChip(
       onPressed: onTap == null ? null : () => onTap(this),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(8),
-          bottomRight: Radius.circular(8),
+          topRight: Radius.circular(16),
+          bottomRight: Radius.circular(16),
         ),
       ),
-      avatar: const Icon(Icons.comment, color: Colors.brown, size: 18),
+      avatar: const Icon(Icons.comment, color: Colors.pink, size: 18),
       label:
           Text(replyCount == 1 ? "$replyCount Reply" : "$replyCount Replies"),
     );
-    final upvoteButton = ActionChip(
-      onPressed: () async {
-        if (User.current == null) {
-          return;
-        }
-        upvotes += 1;
-        updateState();
-        try {
-          final rem = await NewSource.voteForComment(
-              postId: postId,
-              commentId: id,
-              userId: User.current!.ID,
-              amount: 1);
-          User.current!.Credits = rem;
-        } catch (e) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(e.toString())));
-        }
-      },
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(8),
-          bottomLeft: Radius.circular(8),
-        ),
-      ),
-      avatar: const Icon(Icons.speaker, color: Colors.brown, size: 18),
-      label: Text("$upvotes"),
-    );
-    final downvoteButton = ActionChip(
-      onPressed: () async {
-        if (User.current == null) {
-          return;
-        }
-        downvotes += 1;
-        updateState();
-        try {
-          final rem = await NewSource.voteForComment(
-              postId: postId,
-              commentId: id,
-              userId: User.current!.ID,
-              amount: -1);
-          User.current!.Credits = rem;
-        } catch (e) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(e.toString())));
-        }
-      },
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(8),
-          bottomRight: Radius.circular(8),
-        ),
-      ),
-      avatar: const Icon(Icons.back_hand, color: Colors.brown, size: 18),
-      label: Text("$downvotes"),
-    );
+    final upvoteButton =
+        buildUpvoteButton(context, upvotes, updateVote(updateState));
+    final downvoteButton =
+        buildDownvoteButton(context, downvotes, updateVote(updateState));
 
     var buttonRowItems = <Widget>[
       upvoteButton,
@@ -195,26 +174,8 @@ class Comment {
     var items = <Widget>[text, meta];
     var reviewItems = <Widget>[];
     if (up != null && down != null) {
-      final upChip = Chip(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(8),
-            bottomLeft: Radius.circular(8),
-          ),
-        ),
-        avatar: const Icon(Icons.speaker, color: Colors.brown, size: 18),
-        label: Text("$up"),
-      );
-      final downChip = Chip(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(8),
-            bottomRight: Radius.circular(8),
-          ),
-        ),
-        avatar: const Icon(Icons.back_hand, color: Colors.brown, size: 18),
-        label: Text("$down"),
-      );
+      final upChip = buildUpvoteChip(context, upvotes);
+      final downChip = buildDownvoteChip(context, downvotes);
       reviewItems.add(upChip);
       reviewItems.add(const SizedBox(width: 1));
       reviewItems.add(downChip);
@@ -274,9 +235,7 @@ class Comment {
 
     final body = Column(children: items);
 
-    final intensity = 0xFF - offset.toInt();
-    final shade = Color.fromARGB(0xFF, intensity, intensity, intensity);
-    final card = Card(color: shade, child: InkWell(onTap: null, child: body));
+    final card = Card(child: InkWell(onTap: null, child: body));
 
     return Row(children: [SizedBox(width: offset), Expanded(child: card)]);
   }
