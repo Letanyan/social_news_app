@@ -5,6 +5,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 
 class EmailVerificationPage extends StatefulWidget {
@@ -20,15 +21,21 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     if (User.current == null) {
       Navigator.pop(context);
     }
-
-    final message = Parser.basic.parse(
+    final isDark = MyTheme.isDark;
+    final defaultStyle = TextStyle(
+      color: isDark ? Colors.white : Colors.black,
+      fontFamily: "Helvetica",
+      fontWeight: FontWeight.normal,
+    );
+    final message = Parser.basic(defaultStyle).parse(
         "Please click the verification link in the email sent to you "
-        "([[${User.current!.Email}]]). If you did not receive "
+        "(**${User.current!.Email}**). If you did not receive "
         "an email you can resend the link by pressing the "
-        "[[Resend Verification Link]] button below.\n\n"
+        "**Resend Verification Link** button below. Ensure that the email is "
+        "not in the Junk folder.\n\n"
         "Without having a verified account you will not have functionality "
         "which allows you to participate in the New Source community.",
-        context);
+        {});
 
     final resend = ElevatedButton(
       onPressed: () async {
@@ -49,7 +56,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
     final body = ListView(children: [
       RichText(text: message),
-      const SizedBox(height: 8),
+      const SizedBox(height: 32),
       ignore,
       const SizedBox(height: 32),
       resend,
@@ -60,7 +67,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         title: const Text("Email Verification"),
         automaticallyImplyLeading: false,
       ),
-      body: body,
+      body: Padding(padding: EdgeInsets.all(16), child: body),
     );
   }
 }

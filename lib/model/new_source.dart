@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/news_agent.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user_pref.dart';
 
@@ -57,7 +58,6 @@ class NewSource {
     dynamic responseJson;
     try {
       final query = buildURL(path, args);
-      print(query);
       final response =
           await http.post(Uri.parse(query), body: json.encode(body));
       responseJson = json.decode(response.body);
@@ -126,6 +126,24 @@ class NewSource {
     }
   }
 
+  static Future<bool> signOut() async {
+    final path = ["auth", "callbacks", "sign-out"];
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await post(path, args, {"userId": User.current!.ID});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      User.current = null;
+      return true;
+    }
+  }
+
   static Future<int> sendVerificationLink(
       int uid, String email, int key) async {
     final obj = await post(["auth", "verification", "users", "$uid"], [],
@@ -141,12 +159,13 @@ class NewSource {
     }
   }
 
-  static Future<bool> updateUserPermissions(User user) async {
+  static Future<bool> updateUserDetails(User user) async {
     var args = <String>[];
     addSecret(args);
 
-    final path = ["permissions", "${user.ID}"];
+    final path = ["users", "${user.ID}", "details"];
     final body = {
+      "name": user.Name,
       "PublicViews": user.PublicViews,
       "PublicReadLater": user.PublicReadLater,
       "PublicFollowing": user.PublicFollowing,
@@ -157,11 +176,14 @@ class NewSource {
       "PublicTagVotes": user.PublicTagVotes,
     };
     final obj = await post(path, args, body);
+    if (obj == null) {
+      throw unknownError;
+    }
 
-    if (obj["success"] == true) {
-      return true;
-    } else {
+    if (obj["success"] == false) {
       return false;
+    } else {
+      return true;
     }
   }
 
@@ -232,6 +254,23 @@ class NewSource {
   //----------------------------------------------------------------------------
   // Get Users
   //----------------------------------------------------------------------------
+  static Future<User> getUser(int uid) async {
+    var args = <String>[];
+    addSecret(args);
+    final path = ["users", "$uid"];
+
+    final obj = await get(path, args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return User.fromJson(obj["payload"]);
+    }
+  }
+
   static Future<List<Author>> getUsers(
       {List<String>? popularIn,
       int? upvotes,
@@ -767,6 +806,23 @@ class NewSource {
     }
   }
 
+  static Future<bool> watchPost(int uid, int pid, int amount) async {
+    var args = <String>[];
+    addSecret(args);
+    final obj =
+        await post(["users", "$uid", "watch", "$pid"], args, {"time": amount});
+    print("watch $pid");
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return true;
+    }
+  }
+
   static Future<bool> addUserCont({
     required int uid,
     required UserContKind kind,
@@ -971,6 +1027,100 @@ class NewSource {
 
     return obj["success"];
   }
+
+  //----------------------------------------------------------------------------
+  // News Agent
+  //----------------------------------------------------------------------------
+  static Future<List<NewsAgent>> getAgents() async {
+    final path = ["agents"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await get(path, args);
+    if (obj == null) {
+      throw unknownError;
+    }
+    return handlePayload(obj, NewsAgent.fromJson);
+  }
+
+  static Future<bool> updateAgents() async {
+    final path = ["all-agents"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {});
+    if (obj == null) {
+      throw unknownError;
+    }
+    return true;
+  }
+
+  static Future<bool> updateAgent(int aid) async {
+    final path = ["agents", "$aid"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {});
+    if (obj == null) {
+      throw unknownError;
+    }
+    return true;
+  }
+
+  static Future<bool> deleteAgent(int aid) async {
+    final path = ["trash", "agents", "$aid"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {});
+    if (obj == null) {
+      throw unknownError;
+    }
+    return true;
+  }
+
+  static Future<NewsAgent> editAgent(
+      int aid, String name, String origin) async {
+    final path = ["update", "agents", "$aid"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {"name": name, "origin": origin});
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      throw unknownError;
+    } else {
+      return NewsAgent.fromJson(obj["payload"]);
+    }
+  }
+
+  static Future<NewsAgent> createAgent(String name, String origin) async {
+    final path = ["agents"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {"name": name, "origin": origin});
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      throw unknownError;
+    } else {
+      return NewsAgent.fromJson(obj["payload"]);
+    }
+  }
+
+  static Future<NewsAgent> editSubAgent(int aid, String sub,
+      {required bool add}) async {
+    final path = ["agents", "$aid", "sub"];
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {"sub": (add ? "+" : "-") + sub});
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      throw unknownError;
+    } else {
+      return NewsAgent.fromJson(obj["payload"]);
+    }
+  }
 }
 
 class NSError implements Exception {
@@ -1082,6 +1232,33 @@ enum SortOrder {
   downvotes,
   controversial,
   createdAt,
+  updatedAt,
+  updatedOn,
+  addedOn,
+  rank,
+}
+
+enum UserVoteKind {
+  post,
+  review,
+  comment,
+}
+
+List<SortOrder> sortOrdersExcluding(List<SortOrder> exclude) {
+  var result = SortOrder.values;
+  result.removeWhere((element) => exclude.contains(element));
+  return result;
+}
+
+List<SortOrder> sortOrdersIncluding(List<SortOrder> include) {
+  return [
+    SortOrder.score,
+    SortOrder.cred,
+    SortOrder.controversial,
+    SortOrder.upvotes,
+    SortOrder.downvotes,
+    ...include,
+  ];
 }
 
 String sortOrderToString(SortOrder so) {
@@ -1098,6 +1275,14 @@ String sortOrderToString(SortOrder so) {
       return "controversial";
     case SortOrder.createdAt:
       return "createdat";
+    case SortOrder.updatedAt:
+      return "updatedat";
+    case SortOrder.updatedOn:
+      return "updatedon";
+    case SortOrder.addedOn:
+      return "addedon";
+    case SortOrder.rank:
+      return "rank";
   }
 }
 
@@ -1115,6 +1300,14 @@ String sortOrderPresentation(SortOrder so) {
       return "Controversial";
     case SortOrder.createdAt:
       return "New";
+    case SortOrder.updatedAt:
+      return "Recent";
+    case SortOrder.updatedOn:
+      return "Recent";
+    case SortOrder.addedOn:
+      return "Recent";
+    case SortOrder.rank:
+      return "Relevance";
   }
 }
 
@@ -1157,5 +1350,16 @@ String flagHandleKind(FlagHandle handle) {
       return "report";
     case FlagHandle.remove:
       return "remove";
+  }
+}
+
+String userVoteKindToString(UserVoteKind uvk) {
+  switch (uvk) {
+    case UserVoteKind.post:
+      return "Post";
+    case UserVoteKind.review:
+      return "Review";
+    case UserVoteKind.comment:
+      return "Comment";
   }
 }

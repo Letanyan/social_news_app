@@ -240,8 +240,10 @@ class FlaggedComment {
       children: [total, report, remove, ignore, ignoreAll],
     );
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Colors.grey[isDark ? 800 : 200]?.withAlpha(192);
     final result = Card(
-      color: handled ? Colors.grey : Colors.white,
+      color: handled ? Colors.green : baseColor,
       child: Column(
         children: [
           Padding(padding: const EdgeInsets.all(8), child: body),

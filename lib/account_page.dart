@@ -4,11 +4,13 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/flags_page.dart';
+import 'package:social_news_app/home.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/news_agent_page.dart';
 import 'package:social_news_app/settings.dart';
 import 'package:social_news_app/user_cont_page.dart';
 import 'package:social_news_app/user_pref_page.dart';
@@ -16,27 +18,36 @@ import 'package:social_news_app/widgets/purchase_credit_widget.dart';
 
 class AccountPage extends StatefulWidget {
   final Author user;
+  final String title;
+  final HomeViewState? homeView;
 
-  const AccountPage({super.key, required this.user});
+  const AccountPage(
+      {super.key, this.homeView, required this.user, required this.title});
 
   @override
   State<AccountPage> createState() => _AccountPageState();
 }
 
 class _AccountPageState extends State<AccountPage> {
+  late User? currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    currentUser = User.current;
+  }
+
   void Function() showUserPrefPage(
       BuildContext context, ContentKind kind, bool isViewed) {
     return () {
       final title = contentKindToString(kind);
 
-      final body = Scaffold(
-        appBar: AppBar(title: Text(title)),
-        body: UserPrefPage(
-          showSearch: true,
-          prefKind: kind,
-          user: widget.user,
-          isViewed: isViewed,
-        ),
+      final body = UserPrefPage(
+        title: title,
+        showSearch: true,
+        prefKind: kind,
+        user: widget.user,
+        isViewed: isViewed,
       );
 
       Navigator.push(
@@ -53,14 +64,12 @@ class _AccountPageState extends State<AccountPage> {
     return () {
       final String title = contentKindToString(kind);
 
-      final body = Scaffold(
-        appBar: AppBar(title: Text(title)),
-        body: UserContPage(
-          showSearch: true,
-          kind: kind,
-          playlist: playlist,
-          user: widget.user,
-        ),
+      final body = UserContPage(
+        title: title,
+        showSearch: true,
+        kind: kind,
+        playlist: playlist,
+        user: widget.user,
       );
 
       Navigator.push(
@@ -77,13 +86,13 @@ class _AccountPageState extends State<AccountPage> {
       var page = WillPopScope(
         onWillPop: () async {
           if (User.current != null) {
-            NewSource.updateUserPermissions(User.current!);
+            NewSource.updateUserDetails(User.current!);
           }
           return true;
         },
         child: Scaffold(
-          appBar: AppBar(title: const Text("Settings")),
-          body: const SettingsPage(),
+          appBar: AppBar(title: const Text("Account")),
+          body: SettingsPage(homeView: widget.homeView),
         ),
       );
 
@@ -98,11 +107,19 @@ class _AccountPageState extends State<AccountPage> {
 
   void Function() showFlaggedContent(BuildContext context, bool isPosts) {
     return () {
-      var page = Scaffold(
-        appBar:
-            AppBar(title: Text(isPosts ? "Flagged Posts" : "Flagged Comments")),
-        body: FlagsPage(isPosts: isPosts),
+      var page = FlagsPage(isPosts: isPosts);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => page,
+        ),
       );
+    };
+  }
+
+  void Function() showAgents(BuildContext context) {
+    return () {
+      const page = NewsAgentPage();
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -123,14 +140,15 @@ class _AccountPageState extends State<AccountPage> {
           showPlatformDialog(
               context: context, builder: (context) => const PurchaseCredit());
         },
-        child: Text("Credits: ${User.current!.Credits}"),
+        child: Text("Credits: ${User.current!.creditAmount()}"),
       );
       action = TextButton(
         onPressed: () {
-          User.current = null;
+          User.removeUser();
+          NewSource.signOut();
           Navigator.pop(context);
           Navigator.push(
-              context, MaterialPageRoute(builder: (c) => const MyApp()));
+              context, MaterialPageRoute(builder: (c) => const MainApp()));
         },
         child: const Text("Logout"),
       );
@@ -198,36 +216,43 @@ class _AccountPageState extends State<AccountPage> {
       title: const Text("Reported Comments"),
       onTap: showFlaggedContent(context, false),
     );
+    final agents = ListTile(
+      title: const Text("Agents"),
+      onTap: showAgents(context),
+    );
     var settingsSection = <Widget>[];
-    if (isOwner) {
-      settingsSection.add(const Divider());
-      settingsSection.add(const Padding(
-          padding: EdgeInsets.all(8), child: Text("Preferences")));
-      settingsSection.add(const Divider());
-      settingsSection.add(settings);
-      if (User.current!.ID == -1 && NewSource.isDebug) {
-        settingsSection.add(postFlags);
-        settingsSection.add(commentFlags);
+    if (NewSource.isDebug) {
+      if (isOwner) {
+        settingsSection.add(const Divider(thickness: 1));
+        settingsSection.add(const Padding(
+            padding: EdgeInsets.all(8), child: Text("Preferences")));
+        settingsSection.add(const Divider(thickness: 1));
+        settingsSection.add(settings);
+        if (User.current?.ID == -1 && NewSource.isDebug) {
+          settingsSection.add(postFlags);
+          settingsSection.add(commentFlags);
+          settingsSection.add(agents);
+        }
       }
     }
 
     final list = ListView(children: [
       name,
-      const Divider(),
+      const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Created Content")),
-      const Divider(),
+      const Divider(thickness: 1),
       userPosts,
       userComments,
-      const Divider(),
+      const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Collections")),
-      const Divider(),
+      const Divider(thickness: 1),
       viewed,
       readLater,
       following,
       ignored,
-      const Divider(),
+      const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Voted For")),
-      const Divider(),
+      const Divider(thickness: 1),
       votedPosts,
       votedUsers,
       votedTags,
@@ -236,6 +261,7 @@ class _AccountPageState extends State<AccountPage> {
     ]);
 
     return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
       body: list,
     );
   }

@@ -7,6 +7,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
@@ -27,7 +28,70 @@ class _LoginPageState extends State<LoginPage> {
   var passwordController = TextEditingController();
   var originController = TextEditingController();
   var isLoading = false;
-  late BuildContext _context;
+
+  @override
+  void initState() {
+    super.initState();
+    checkStoredUser();
+  }
+
+  Future<void> checkStoredUser() async {
+    User savedUser = await User.fromStore();
+    if (savedUser.ID != 0 && savedUser.Secret.isNotEmpty) {
+      User.current = savedUser;
+      openApp();
+      try {
+        final user = await NewSource.getUser(savedUser.ID);
+        user.Secret = savedUser.Secret;
+        User.current = user;
+        User.current?.following =
+            await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+        User.current?.ignored =
+            await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
+
+  void openApp() {
+    setState(() {
+      isLoading = false;
+    });
+    if (User.current != null) {
+      if (User.current?.ValidationKey != 0) {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const EmailVerificationPage()),
+        );
+      } else {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeView()),
+        );
+      }
+    }
+  }
+
+  void signInTemplate(String email, String password) async {
+    try {
+      final user = await NewSource.signInUser(email, password);
+      User.current = user;
+      User.current?.following =
+          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+      User.current?.ignored =
+          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
+      user.storeUser();
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      openApp();
+    }
+  }
 
   void signIn() async {
     if (originController.text.isNotEmpty) {
@@ -42,35 +106,7 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    try {
-      final user = await NewSource.signInUser(email, password);
-      User.current = user;
-      User.current?.following =
-          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
-      User.current?.ignored =
-          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
-    } catch (e) {
-      ScaffoldMessenger.of(_context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-      if (User.current != null) {
-        if (User.current?.ValidationKey != 0) {
-          Navigator.push(
-            _context,
-            MaterialPageRoute(
-                builder: (context) => const EmailVerificationPage()),
-          );
-        } else {
-          Navigator.push(
-            _context,
-            MaterialPageRoute(builder: (context) => const HomeView()),
-          );
-        }
-      }
-    }
+    signInTemplate(email, password);
   }
 
   void signInGoogle() async {
@@ -87,35 +123,7 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    try {
-      final user = await NewSource.signInUser(email, password);
-      User.current = user;
-      User.current?.following =
-          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
-      User.current?.ignored =
-          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
-    } catch (e) {
-      ScaffoldMessenger.of(_context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-      if (User.current != null) {
-        if (User.current?.ValidationKey != 0) {
-          Navigator.push(
-            _context,
-            MaterialPageRoute(
-                builder: (context) => const EmailVerificationPage()),
-          );
-        } else {
-          Navigator.push(
-            _context,
-            MaterialPageRoute(builder: (context) => const HomeView()),
-          );
-        }
-      }
-    }
+    signInTemplate(email, password);
   }
 
   void signInApple() async {
@@ -133,35 +141,7 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    try {
-      final user = await NewSource.signInUser(email, password);
-      User.current = user;
-      User.current?.following =
-          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
-      User.current?.ignored =
-          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
-    } catch (e) {
-      ScaffoldMessenger.of(_context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-      if (User.current != null) {
-        if (User.current?.ValidationKey != 0) {
-          Navigator.push(
-            _context,
-            MaterialPageRoute(
-                builder: (context) => const EmailVerificationPage()),
-          );
-        } else {
-          Navigator.push(
-            _context,
-            MaterialPageRoute(builder: (context) => const HomeView()),
-          );
-        }
-      }
-    }
+    signInTemplate(email, password);
   }
 
   Widget _getIndicator() {
@@ -183,7 +163,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    _context = context;
     final s = MediaQuery.of(context).size;
 
     var email = TextField(

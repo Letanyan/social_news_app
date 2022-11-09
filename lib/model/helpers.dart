@@ -39,8 +39,10 @@ String formatDate(DateTime date) {
     if (sameMonth) {
       if (sameDay) {
         return "Today";
+      } else if ((today.day - date.day).abs() == 1) {
+        return "Yesterday";
       } else if ((today.day - date.day).abs() < 7) {
-        return DateFormat.EEEE().format(date);
+        return "Last ${DateFormat.EEEE().format(date)}";
       } else {
         return DateFormat.MMMEd().format(date);
       }
@@ -55,34 +57,35 @@ String formatDate(DateTime date) {
 String formatDateTime(DateTime date) {
   final today = DateTime.now();
   date = date.toLocal();
-  final sameHour = today.hour == date.hour;
-  final sameMinute = today.minute == date.minute;
 
-  final sameYear = today.year == date.year;
-  final sameMonth = today.month == date.month;
-  final sameDay = today.day == date.day;
+  final sameYear = today.day - date.day < 365;
+  final sameMonth = today.day - date.day < 30;
+  final sameDay = (today.millisecondsSinceEpoch - date.millisecondsSinceEpoch) <
+      1000 * 60 * 60 * 24;
+  final sameHour =
+      (today.millisecondsSinceEpoch - date.millisecondsSinceEpoch) <
+          1000 * 60 * 60;
+  final sameMinute =
+      (today.millisecondsSinceEpoch - date.millisecondsSinceEpoch) < 1000 * 60;
+
+  final diff = today.difference(date);
 
   if (sameYear) {
     if (sameMonth) {
       if (sameDay) {
         if (sameHour) {
-          final diff = today.minute - date.minute;
-          return "${diff}m";
+          return "${diff.inMinutes}m";
         } else {
-          final diff = today.hour - date.hour;
-          return "${diff}h";
+          return "${diff.inHours}h";
         }
       } else {
-        final diff = today.day - date.day;
-        return "${diff}d";
+        return "${diff.inDays}d";
       }
     } else {
-      final diff = today.month - date.month;
-      return "${diff}mon";
+      return "${diff.inDays / 30}mon";
     }
   } else {
-    final diff = today.year - date.year;
-    return "${diff}y";
+    return "${diff.inDays / 365}y";
   }
 }
 
@@ -95,4 +98,50 @@ class MyCustomScrollBehavior extends MaterialScrollBehavior {
         PointerDeviceKind.touch,
         PointerDeviceKind.mouse,
       };
+}
+
+TextStyle merge(TextStyle base, TextStyle other) {
+  if (other == null) {
+    return base;
+  }
+
+  String? mergedDebugLabel;
+  assert(() {
+    if (other.debugLabel != null || base.debugLabel != null) {
+      mergedDebugLabel =
+          '(${base.debugLabel ?? "_kDefaultDebugLabel"}).merge(${other.debugLabel ?? "_kDefaultDebugLabel"})';
+    }
+    return true;
+  }());
+
+  return base.copyWith(
+    color: other.color,
+    backgroundColor: other.backgroundColor,
+    fontSize: other.fontSize,
+    fontWeight: other.fontWeight,
+    fontStyle: other.fontStyle,
+    letterSpacing: other.letterSpacing,
+    wordSpacing: other.wordSpacing,
+    textBaseline: other.textBaseline,
+    height: other.height,
+    leadingDistribution: other.leadingDistribution,
+    locale: other.locale,
+    foreground: other.foreground,
+    background: other.background,
+    shadows: other.shadows,
+    fontFeatures: (base.fontFeatures ?? []) + (other.fontFeatures ?? []),
+    fontVariations: (base.fontVariations ?? []) + (other.fontVariations ?? []),
+    decoration: TextDecoration.combine([
+      base.decoration ?? TextDecoration.none,
+      other.decoration ?? TextDecoration.none,
+    ]),
+    decorationColor: other.decorationColor,
+    decorationStyle: other.decorationStyle,
+    decorationThickness: other.decorationThickness,
+    debugLabel: mergedDebugLabel,
+    fontFamily: other.fontFamily,
+    fontFamilyFallback: other.fontFamilyFallback,
+    // package: other.package,
+    overflow: other.overflow,
+  );
 }

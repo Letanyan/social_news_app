@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
@@ -6,6 +8,7 @@ import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -21,6 +24,7 @@ class Comment {
   int downvotes;
   final int replyCount;
   bool trashed;
+  bool isReview;
 
   Comment({
     required this.id,
@@ -33,6 +37,7 @@ class Comment {
     required this.downvotes,
     required this.replyCount,
     required this.trashed,
+    required this.isReview,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -49,6 +54,7 @@ class Comment {
       downvotes: json["Downvotes"],
       replyCount: json["ReplyCount"],
       trashed: json["Trashed"],
+      isReview: json["IsReview"],
     );
   }
 
@@ -104,10 +110,11 @@ class Comment {
   Widget card(
       BuildContext context,
       bool showReply,
-      double offset,
+      int offset,
       void Function(Comment)? onTap,
       VoidCallback updateState,
       Function()? showReplyField,
+      bool highlightedReplies,
       {int? postAuthor,
       int? up,
       int? down}) {
@@ -120,9 +127,15 @@ class Comment {
     );
     final creator = InkWell(
       onTap: () => author.showUserPage(context),
-      child: Text(author.Name),
+      child: Text(
+        author.Name,
+        style: const TextStyle(color: Colors.grey),
+      ),
     );
-    final date = Text(formatDateTime(createdAt));
+    final date = Text(
+      formatDateTime(createdAt),
+      style: const TextStyle(color: Colors.grey),
+    );
     final meta = Padding(
       padding: const EdgeInsets.all(8),
       child: Row(children: [
@@ -130,56 +143,58 @@ class Comment {
         Expanded(child: Align(alignment: Alignment.centerRight, child: date))
       ]),
     );
-    final reply = ActionChip(
-      onPressed: () => showReplyField,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          bottomLeft: Radius.circular(16),
-        ),
-      ),
-      avatar:
-          const Icon(Icons.add_comment_rounded, color: Colors.pink, size: 18),
-      label: const Text("Reply"),
+    final reply = InkWell(
+      onTap: () {
+        if (showReplyField != null) {
+          showReplyField();
+        }
+      },
+      child: const Icon(size: 16, Icons.add_comment_rounded),
     );
-    final replyCountChip = ActionChip(
-      onPressed: onTap == null ? null : () => onTap(this),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
+    final replyCountChip = InkWell(
+      onTap: onTap == null || replyCount == 0 ? null : () => onTap(this),
+      child: Text(
+        replyCount == 1 ? " $replyCount Reply" : " $replyCount Replies",
+        style: TextStyle(
+            color: highlightedReplies ? MyTheme.primary : Colors.white),
       ),
-      avatar: const Icon(Icons.comment, color: Colors.pink, size: 18),
-      label:
-          Text(replyCount == 1 ? "$replyCount Reply" : "$replyCount Replies"),
     );
-    final upvoteButton =
-        buildUpvoteButton(context, upvotes, updateVote(updateState));
-    final downvoteButton =
-        buildDownvoteButton(context, downvotes, updateVote(updateState));
+    final kind = isReview ? UserVoteKind.review : UserVoteKind.comment;
+    final upvoteButton = InkWell(
+      onTap: showVoteDialog(context, true, kind, updateVote(updateState)),
+      child: Row(children: [
+        const Icon(
+          size: 16,
+          Icons.speaker,
+        ),
+        Text(" $upvotes"),
+      ]),
+    );
+    final downvoteButton = InkWell(
+      onTap: showVoteDialog(context, false, kind, updateVote(updateState)),
+      child: Row(children: [
+        const Icon(
+          size: 16,
+          Icons.back_hand,
+        ),
+        Text(" $downvotes"),
+      ]),
+    );
 
     var buttonRowItems = <Widget>[
+      const SizedBox(width: 8),
       upvoteButton,
-      const SizedBox(width: 1),
+      const SizedBox(width: 8),
       downvoteButton
     ];
     if (showReply) {
-      buttonRowItems.add(const SizedBox(width: 8));
+      buttonRowItems.add(const SizedBox(width: 16));
       buttonRowItems.add(reply);
       buttonRowItems.add(const SizedBox(width: 1));
       buttonRowItems.add(replyCountChip);
     }
 
-    var items = <Widget>[text, meta];
-    var reviewItems = <Widget>[];
-    if (up != null && down != null) {
-      final upChip = buildUpvoteChip(context, upvotes);
-      final downChip = buildDownvoteChip(context, downvotes);
-      reviewItems.add(upChip);
-      reviewItems.add(const SizedBox(width: 1));
-      reviewItems.add(downChip);
-    }
+    var items = <Widget>[const Divider(), text, meta];
 
     final removeComment = PopupMenuItem(
       onTap: () {
@@ -216,27 +231,32 @@ class Comment {
     buttonRowItems.add(Expanded(
         child: Align(alignment: Alignment.centerRight, child: moreButton)));
 
-    items.add(const Divider());
     items.add(Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(2),
         child: Row(children: buttonRowItems)));
-    if (reviewItems.isNotEmpty) {
-      items.add(const Divider());
-      items.add(
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: reviewItems,
-          ),
-        ),
-      );
-    }
+    items.add(const SizedBox(height: 8));
 
     final body = Column(children: items);
 
-    final card = Card(child: InkWell(onTap: null, child: body));
+    final card = Material(
+      child: InkWell(
+        onTap: showReplyField != null ? null : showParentPost(context),
+        child: body,
+      ),
+    );
 
-    return Row(children: [SizedBox(width: offset), Expanded(child: card)]);
+    var indents = <Widget>[];
+    for (var i = 0; i < offset; i++) {
+      indents.add(
+        const Padding(
+          padding: EdgeInsets.all(4),
+          child: Icon(Icons.circle, size: 8),
+        ),
+      );
+    }
+    return Row(children: [
+      Row(children: indents),
+      Expanded(child: card),
+    ]);
   }
 }

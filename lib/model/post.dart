@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
@@ -9,6 +12,7 @@ import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/tag.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -66,7 +70,7 @@ class Post {
           )
         ],
       ),
-      body: CommentsPage(post: this),
+      body: CommentsPage(post: this, scrollComments: true),
     );
     return () {
       if (User.current != null) {
@@ -81,11 +85,11 @@ class Post {
   }
 
   void openSimilar(BuildContext context) {
-    final postsPage = Scaffold(
-      appBar: AppBar(title: const Text("Similar")),
-      body: PostsPage(
-          forUser: User.current!.ID, postId: ID, order: SortOrder.score),
-    );
+    final postsPage = PostsPage(
+        title: "Similar",
+        forUser: User.current!.ID,
+        postId: ID,
+        order: SortOrder.score);
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => postsPage),
@@ -143,8 +147,7 @@ class Post {
           bottomLeft: Radius.circular(16),
         ),
       ),
-      avatar:
-          const Icon(Icons.add_comment_rounded, color: Colors.pink, size: 18),
+      avatar: Icon(Icons.add_comment_rounded, color: MyTheme.primary, size: 18),
       label: const Text("Reply"),
     );
   }
@@ -158,7 +161,7 @@ class Post {
           bottomRight: Radius.circular(16),
         ),
       ),
-      avatar: const Icon(Icons.comment, color: Colors.pink, size: 18),
+      avatar: Icon(Icons.comment, color: MyTheme.primary, size: 18),
       label: Text(
           CommentCount == 1 ? "$CommentCount Reply" : "$CommentCount Replies"),
     );
@@ -179,47 +182,107 @@ class Post {
     );
   }
 
+  Future<void> readLater() async {
+    if (User.current == null) {
+      return;
+    }
+    await NewSource.addUserCont(
+      uid: User.current!.ID,
+      kind: UserContKind.readLater,
+      pid: ID,
+    );
+  }
+
   PopupMenuItem buildReadLater(BuildContext context) {
     return PopupMenuItem(
-      onTap: () async {
-        if (User.current == null) {
-          return;
-        }
-        await NewSource.addUserCont(
-          uid: User.current!.ID,
-          kind: UserContKind.readLater,
-          pid: ID,
-        );
-      },
+      onTap: readLater,
       child: const Text("Read Later"),
+    );
+  }
+
+  Widget buildReadLaterSlide(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => readLater(),
+        child: Material(
+          color: Colors.blue,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.watch_later_outlined),
+              Text(textAlign: TextAlign.center, "Read Later")
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> ignoreUser() async {
+    if (User.current == null) {
+      return;
+    }
+    await NewSource.addUserCont(
+      uid: User.current!.ID,
+      kind: UserContKind.ignored,
+      pid: Creator.ID,
     );
   }
 
   PopupMenuItem buildIgnoreUser(BuildContext context) {
     return PopupMenuItem(
-      onTap: () async {
-        if (User.current == null) {
-          return;
-        }
-        await NewSource.addUserCont(
-          uid: User.current!.ID,
-          kind: UserContKind.ignored,
-          pid: Creator.ID,
-        );
-      },
+      onTap: ignoreUser,
       child: const Text("Ignore User"),
+    );
+  }
+
+  Widget buildIgnoreUserSlide(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => ignoreUser(),
+        child: Material(
+          color: Colors.orange,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.block),
+              Text(textAlign: TextAlign.center, "Ignore User")
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void report(BuildContext context) {
+    showPlatformDialog(
+      context: context,
+      builder: (context) => FlagDialog(pid: ID, sid: -1),
     );
   }
 
   PopupMenuItem buildReport(BuildContext context) {
     return PopupMenuItem(
-      onTap: () {
-        showPlatformDialog(
-          context: context,
-          builder: (context) => FlagDialog(pid: ID, sid: -1),
-        );
-      },
+      onTap: () => report(context),
       child: const Text("Report"),
+    );
+  }
+
+  Widget buildReportSlide(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => report(context),
+        child: Material(
+          color: Colors.red,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.flag),
+              Text(textAlign: TextAlign.center, "Report")
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -228,7 +291,13 @@ class Post {
     if (Trashed) {
       return const SizedBox();
     }
-    final parser = Parser.basic;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultStyle = TextStyle(
+      color: isDark ? Colors.white : Colors.black,
+      fontFamily: "Helvetica",
+      fontWeight: FontWeight.normal,
+    );
+    final parser = Parser.basic(defaultStyle);
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
 
     final firstUrl = urlParser.pattern.firstMatch(Content);
@@ -259,16 +328,20 @@ class Post {
 
     final reply = buildReply(context);
     final replyCount = buildReplyCount(context);
-    final upvoteButton =
-        buildUpvoteButton(context, Upvotes, updateVote(updateState));
-    final downvoteButton =
-        buildDownvoteButton(context, Downvotes, updateVote(updateState));
+    final upvoteButton = buildUpvoteButton(
+        context, Upvotes, UserVoteKind.post, updateVote(updateState));
+    final downvoteButton = buildDownvoteButton(
+        context, Downvotes, UserVoteKind.post, updateVote(updateState));
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
     if (Creator.ID == User.current?.ID) {
       removePostList.add(removePost);
     }
     final moreButton = PopupMenuButton(
+      child: const Chip(
+        avatar: Icon(Icons.arrow_drop_down),
+        label: Text("More"),
+      ),
       itemBuilder: (context) => [
         ...removePostList,
         buildReadLater(context),
@@ -288,23 +361,26 @@ class Post {
     final showSimilar = TextButton(
         onPressed: () => openSimilar(context), child: const Text("Similar"));
 
-    final buttonRow = Padding(
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        children: [
-          upvoteButton,
-          const SizedBox(width: 1),
-          downvoteButton,
-          const SizedBox(width: 8),
-          reply,
-          const SizedBox(width: 1),
-          replyCount,
-          const SizedBox(width: 8),
-          // showSimilar,
-          Expanded(
-              child:
-                  Align(alignment: Alignment.centerRight, child: moreButton)),
-        ],
+    final buttonRow = Container(
+      width: query.width,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(width: 8),
+            upvoteButton,
+            const SizedBox(width: 1),
+            downvoteButton,
+            const SizedBox(width: 8),
+            reply,
+            const SizedBox(width: 1),
+            replyCount,
+            const SizedBox(width: 8),
+            // showSimilar,
+            moreButton,
+          ],
+        ),
       ),
     );
 
@@ -340,12 +416,11 @@ class Post {
       children: items,
     );
 
-    final card = Card(
+    final card = Material(
       child: post,
     );
 
-    return Padding(
-        padding: const EdgeInsets.only(left: 8, right: 8, top: 4), child: card);
+    return card;
   }
 
   Widget tile(BuildContext context, VoidCallback updateState,
@@ -388,7 +463,30 @@ class Post {
         final img = ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           clipBehavior: Clip.antiAlias,
-          child: Image.network(url, width: imageWidth, fit: BoxFit.fill),
+          child: Image.network(
+            url,
+            width: imageWidth,
+            fit: BoxFit.fill,
+            // loadingBuilder: (context, child, loadingProgress) {
+            //   final loaded = loadingProgress?.cumulativeBytesLoaded ?? 0;
+            //   final expect = loadingProgress?.expectedTotalBytes ?? 0;
+            //   if (loaded >= expect) {
+            //     return child;
+            //   } else {
+            //     return Container(
+            //         color: Colors.white
+            //             .withAlpha((255 - loaded / expect * 255).toInt()),
+            //         width: imageWidth);
+            //   }
+            // },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Colors.black,
+                width: imageWidth,
+                // height: 1,
+              );
+            },
+          ),
         );
         image = Padding(padding: const EdgeInsets.all(4), child: img);
         break;
@@ -408,7 +506,10 @@ class Post {
         image ?? const SizedBox(),
         Expanded(
             child: Column(
-          children: [Padding(padding: EdgeInsets.all(8), child: title), meta],
+          children: [
+            Padding(padding: const EdgeInsets.all(8), child: title),
+            meta
+          ],
         )),
       ],
     );
@@ -420,28 +521,10 @@ class Post {
     if (Creator.ID == User.current?.ID) {
       removePostList.add(removePost);
     }
-    final moreButton = PopupMenuButton(
-      itemBuilder: (context) => [
-        ...removePostList,
-        buildReadLater(context),
-        buildIgnoreUser(context),
-        buildReport(context),
-      ],
-    );
-    final actions = Row(children: [
-      reply,
-      replyCount,
-      Expanded(
-        child: Align(
-          alignment: Alignment.centerRight,
-          child: moreButton,
-        ),
-      ),
-    ]);
-    final upvoteButton =
-        buildUpvoteButton(context, Upvotes, updateVote(updateState));
-    final downvoteButton =
-        buildDownvoteButton(context, Downvotes, updateVote(updateState));
+    final upvoteButton = buildUpvoteButton(
+        context, Upvotes, UserVoteKind.post, updateVote(updateState));
+    final downvoteButton = buildDownvoteButton(
+        context, Downvotes, UserVoteKind.post, updateVote(updateState));
     final voteBox = SizedBox(
       width: 172,
       child: Padding(
@@ -452,18 +535,19 @@ class Post {
         ),
       ),
     );
-    final buttonRow = Row(
-      children: [
-        voteBox,
-        reply,
-        replyCount,
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: moreButton,
-          ),
-        )
-      ],
+    final buttonRow = Container(
+      width: MediaQuery.of(context).size.width,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            voteBox,
+            reply,
+            replyCount,
+          ],
+        ),
+      ),
     );
 
     late Widget personal;
@@ -480,13 +564,26 @@ class Post {
       personal = const SizedBox();
     }
 
-    return Card(
+    final tile = Material(
       child: InkWell(
         onTap: openComments(context),
         child: Column(
           children: [content, buttonRow, personal],
         ),
       ),
+    );
+
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        closeThreshold: 0.1,
+        children: [
+          buildReportSlide(context),
+          buildIgnoreUserSlide(context),
+          buildReadLaterSlide(context),
+        ],
+      ),
+      child: tile,
     );
   }
 }

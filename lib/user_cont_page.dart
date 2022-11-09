@@ -16,15 +16,15 @@ class UserContPage extends StatefulWidget {
   final ContentKind kind;
   final UserContKind playlist;
   final Author user;
-  bool shouldShowFilter;
+  String title;
 
   UserContPage(
       {super.key,
+      required this.title,
       required this.showSearch,
       required this.kind,
       required this.playlist,
-      required this.user})
-      : shouldShowFilter = true;
+      required this.user});
 
   @override
   State<UserContPage> createState() => _UserContPageState();
@@ -42,7 +42,8 @@ class _UserContPageState extends State<UserContPage> {
   var count = 0;
   var hasMore = true;
   var isLoading = false;
-  FilterBox? filterBox;
+  late final FilterBox filterBox;
+  bool showingFilter = true;
 
   @override
   void initState() {
@@ -50,6 +51,16 @@ class _UserContPageState extends State<UserContPage> {
 
     controller = TextEditingController();
     current = widget.kind;
+    filterBox = FilterBox(
+      search: "",
+      sorting: sortOrdersIncluding([SortOrder.addedOn]),
+      startDate: DateTime.utc(1970),
+      endDate: DateTime.now(),
+      location: "",
+      valueChanged: (p0) {
+        updateFilter(() {});
+      },
+    );
 
     posts = Future(() => []);
     comments = Future(() => []);
@@ -85,11 +96,11 @@ class _UserContPageState extends State<UserContPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = filterBox?.currentState?.start;
-    final ed = filterBox?.currentState?.end;
-    final loc = filterBox?.currentState?.location;
-    final srt = filterBox?.currentState?.order;
-    final src = filterBox?.currentState?.search;
+    final sd = filterBox.currentState?.start;
+    final ed = filterBox.currentState?.end;
+    final loc = filterBox.currentState?.location;
+    final srt = filterBox.currentState?.order;
+    final src = filterBox.currentState?.search;
     if (isTypeEqual<T, Post>()) {
       return NewSource.getUserContPost(
         uid: widget.user.ID,
@@ -179,9 +190,9 @@ class _UserContPageState extends State<UserContPage> {
 
   EdgeInsets listViewInsets() {
     return EdgeInsets.only(
-        top: !widget.shouldShowFilter
-            ? 0
-            : filterBox?.getWidgetSize().height ?? 0);
+      top: !showingFilter ? 0 : filterBox.getWidgetSize().height,
+      bottom: 48,
+    );
   }
 
   Widget buildList<T>(BuildContext context, Future<List<T>> items) {
@@ -221,8 +232,14 @@ class _UserContPageState extends State<UserContPage> {
                   return (item as Post).tile(context, updateState);
                 } else if (current == ContentKind.comment) {
                   final comment = (item as Comment);
-                  return comment.card(context, false, 0,
-                      (c) => c.showParentPost(context)(), updateState, null);
+                  return comment.card(
+                      context,
+                      false,
+                      0,
+                      (c) => c.showParentPost(context)(),
+                      updateState,
+                      null,
+                      false);
                 } else if (current == ContentKind.user) {
                   final user = item as Author;
                   return user.card(context, updateState);
@@ -246,15 +263,6 @@ class _UserContPageState extends State<UserContPage> {
 
   @override
   Widget build(BuildContext context) {
-    filterBox = FilterBox(
-      search: true,
-      sorting: SortOrder.values,
-      date: true,
-      location: true,
-      valueChanged: (p0) {
-        updateFilter(() {});
-      },
-    );
     late final Widget list;
 
     if (current == ContentKind.post) {
@@ -268,10 +276,28 @@ class _UserContPageState extends State<UserContPage> {
     }
 
     var stack = <Widget>[list];
-    if (filterBox != null) {
-      stack.add(filterBox!);
-    }
+    stack.add(Visibility(
+      visible: showingFilter,
+      maintainState: true,
+      child: filterBox,
+    ));
 
-    return Stack(children: stack);
+    final page = Stack(children: stack);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showingFilter = !showingFilter;
+              updateState();
+            },
+            icon: const Icon(Icons.filter_alt_rounded),
+          )
+        ],
+      ),
+      body: page,
+    );
   }
 }

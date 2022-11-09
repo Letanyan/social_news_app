@@ -36,8 +36,8 @@ Future<List<PurchasableCredit>> loadPurchases() async {
     print("Unavailable");
     return [];
   }
-  final response = await IAPConnection.instance
-      .queryProductDetails(PurchasableCredit.ids.keys.toSet());
+  final response =
+      await iap.queryProductDetails(PurchasableCredit.ids.keys.toSet());
   if (response.notFoundIDs.isNotEmpty) {
     print(response.notFoundIDs);
     return [];
@@ -62,6 +62,7 @@ void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
     final amount = PurchasableCredit.ids[purchase.productID];
     if (amount != null && purchase.status == PurchaseStatus.purchased) {
       if (User.current != null) {
+        // FIXME: verify on server
         final newAmount =
             await NewSource.purchaseCredit(User.current!.ID, amount);
         if (newAmount != null) {

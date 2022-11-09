@@ -9,8 +9,7 @@ import 'package:social_news_app/model/new_source.dart';
 
 class FlagsPage extends StatefulWidget {
   final bool isPosts;
-  bool shouldShowFilter;
-  FlagsPage({super.key, required this.isPosts}) : shouldShowFilter = true;
+  const FlagsPage({super.key, required this.isPosts});
 
   @override
   State<FlagsPage> createState() => _FlagsPageState();
@@ -27,7 +26,8 @@ class _FlagsPageState extends State<FlagsPage> {
   var count = 0;
   var hasMore = true;
   var isLoading = false;
-  FilterBox? filterBox;
+  late final FilterBox filterBox;
+  bool showingFilter = true;
 
   @override
   void initState() {
@@ -35,6 +35,12 @@ class _FlagsPageState extends State<FlagsPage> {
 
     controller = TextEditingController();
     current = widget.isPosts ? 0 : 1;
+    filterBox = FilterBox(
+      selector: flagSet(),
+      valueChanged: (p0) {
+        updateFilter(() {});
+      },
+    );
 
     posts = Future(() => []);
     comments = Future(() => []);
@@ -65,11 +71,11 @@ class _FlagsPageState extends State<FlagsPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = filterBox?.currentState?.start;
-    final ed = filterBox?.currentState?.end;
-    final loc = filterBox?.currentState?.location;
-    final src = filterBox?.currentState?.search;
-    final rsn = filterBox?.currentState?.current ?? 0;
+    final sd = filterBox.currentState?.start;
+    final ed = filterBox.currentState?.end;
+    final loc = filterBox.currentState?.location;
+    final src = filterBox.currentState?.search;
+    final rsn = filterBox.currentState?.current ?? 0;
     if (isTypeEqual<T, FlaggedPost>()) {
       return NewSource.getFlaggedPosts(FlagReason.values[rsn], pageSize, offset)
           as Future<List<T>>;
@@ -123,9 +129,9 @@ class _FlagsPageState extends State<FlagsPage> {
 
   EdgeInsets listViewInsets() {
     return EdgeInsets.only(
-        top: !widget.shouldShowFilter
-            ? 0
-            : filterBox?.getWidgetSize().height ?? 0);
+      top: !showingFilter ? 0 : filterBox.getWidgetSize().height,
+      bottom: 48,
+    );
   }
 
   Widget buildList<T>(BuildContext context, Future<List<T>> items) {
@@ -172,6 +178,7 @@ class _FlagsPageState extends State<FlagsPage> {
                     (c) => c.showParentPost(context)(),
                     updateState,
                     null,
+                    false,
                   );
                   final review = flag.card(context, () => setState(() {}));
                   return Column(children: [content, review]);
@@ -195,12 +202,6 @@ class _FlagsPageState extends State<FlagsPage> {
 
   @override
   Widget build(BuildContext context) {
-    filterBox = FilterBox(
-      selector: flagSet(),
-      valueChanged: (p0) {
-        updateFilter(() {});
-      },
-    );
     late final Widget list;
 
     if (current == 0) {
@@ -212,10 +213,27 @@ class _FlagsPageState extends State<FlagsPage> {
     }
 
     var stack = <Widget>[list];
-    if (filterBox != null) {
-      stack.add(filterBox!);
-    }
+    stack.add(Visibility(
+      visible: showingFilter,
+      maintainState: true,
+      child: filterBox,
+    ));
+    final page = Stack(children: stack);
 
-    return Stack(children: stack);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.isPosts ? "Flagged Posts" : "Flagged Comments"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showingFilter = !showingFilter;
+              updateState();
+            },
+            icon: const Icon(Icons.filter_alt_rounded),
+          )
+        ],
+      ),
+      body: page,
+    );
   }
 }

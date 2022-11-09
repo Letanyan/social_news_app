@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -26,6 +27,62 @@ class User {
   bool PublicCommentVotes;
   bool PublicUserVotes;
   bool PublicTagVotes;
+
+  String creditAmount() {
+    return Credits < 0 ? "..." : "$Credits";
+  }
+
+  void storeUser() async {
+    final pref = await SharedPreferences.getInstance();
+    pref.setInt("user:id", ID);
+    pref.setString("user:name", Name);
+    pref.setString("user:email", Email);
+    pref.setInt("user:register", RegisterDate.millisecondsSinceEpoch);
+    pref.setInt("user:validation", ValidationKey);
+    pref.setString("user:secret", Secret);
+  }
+
+  static void removeUser() async {
+    final pref = await SharedPreferences.getInstance();
+    pref.remove("user:id");
+    pref.remove("user:name");
+    pref.remove("user:email");
+    pref.remove("user:register");
+    pref.remove("user:validation");
+    pref.remove("user:secret");
+  }
+
+  static Future<User> fromStore() async {
+    final pref = await SharedPreferences.getInstance();
+    final id = pref.getInt("user:id") ?? 0;
+    final name = pref.getString("user:name") ?? "";
+    final email = pref.getString("user:email") ?? "";
+    final register =
+        DateTime.fromMillisecondsSinceEpoch(pref.getInt("user:register") ?? 0);
+    final validation = pref.getInt("user:validation") ?? 0;
+    final secret = pref.getString("user:secret") ?? "";
+    var result = User(
+      ID: id,
+      Name: name,
+      Email: email,
+      Password: "",
+      RegisterDate: register,
+      Upvotes: 0,
+      Downvotes: 0,
+      Credits: -1,
+      ValidationKey: validation,
+      PublicViews: false,
+      PublicReadLater: false,
+      PublicFollowing: false,
+      PublicIgnored: false,
+      PublicPostVotes: false,
+      PublicCommentVotes: false,
+      PublicUserVotes: false,
+      PublicTagVotes: false,
+    );
+    result.Secret = secret;
+    return result;
+  }
 
   User({
     required this.ID,
@@ -107,6 +164,16 @@ class User {
       Downvotes: Downvotes,
     );
   }
+
+  static String validateLength(String name, String value, int min, int max) {
+    if (value.length > max) {
+      return "$name must be at most $max characters long";
+    }
+    if (value.length < min) {
+      return "$name must be at least $min characters long";
+    }
+    return "";
+  }
 }
 
 class Author {
@@ -145,10 +212,7 @@ class Author {
   }
 
   void showUserPage(BuildContext context) {
-    final page = Scaffold(
-      appBar: AppBar(title: Text(Name)),
-      body: AccountPage(user: this),
-    );
+    final page = AccountPage(user: this, title: Name);
 
     Navigator.push(
       context,
@@ -157,16 +221,16 @@ class Author {
   }
 
   Widget followButton(Function() updateState) {
-    final isFollowing = User.current!.following
+    final isFollowing = User.current?.following
             .firstWhere((u) => u.ID == ID,
-                orElse: () => User.current!.toAuthor())
+                orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
             .ID !=
-        User.current!.ID;
-    final isIgnored = User.current!.ignored
+        User.current?.ID;
+    final isIgnored = User.current?.ignored
             .firstWhere((u) => u.ID == ID,
-                orElse: () => User.current!.toAuthor())
+                orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
             .ID !=
-        User.current!.ID;
+        User.current?.ID;
     final actionText = isIgnored
         ? "Don't Ignore"
         : isFollowing

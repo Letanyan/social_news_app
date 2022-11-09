@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/model/geo.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 
@@ -29,10 +31,11 @@ class FilterBoxState {
 
 class FilterBox extends StatefulWidget {
   final Map<int, String>? selector;
-  final List<SortOrder>? sorting;
-  final bool date;
-  final bool location;
-  final bool search;
+  List<SortOrder>? sorting;
+  DateTime? startDate;
+  DateTime? endDate;
+  String? location;
+  String? search;
   FilterBoxState? currentState;
   void Function(FilterBoxState)? valueChanged;
   final GlobalKey filterKey = GlobalKey();
@@ -40,9 +43,10 @@ class FilterBox extends StatefulWidget {
     super.key,
     this.selector,
     this.sorting,
-    this.date = false,
-    this.location = false,
-    this.search = false,
+    this.startDate,
+    this.endDate,
+    this.location,
+    this.search,
     this.valueChanged,
     this.currentState,
   });
@@ -70,19 +74,25 @@ class _FilterBoxState extends State<FilterBox> {
   void initState() {
     super.initState();
 
+    final defaultStart =
+        widget.startDate ?? DateTime.now().add(const Duration(days: -7));
+    final defaultEnd = widget.endDate ?? DateTime.now();
+    final defaultLocation = widget.location ?? "";
+    final defaultSearch = widget.search ?? "";
+
     if (widget.selector == null) {
       sortOrder = [SortOrder.upvotes];
-      location = [""];
-      searchString = [""];
-      startDate = [DateTime.now().add(const Duration(days: -7))];
-      endDate = [DateTime.now()];
+      location = [defaultLocation];
+      searchString = [defaultSearch];
+      startDate = [defaultStart];
+      endDate = [defaultEnd];
     } else {
       for (final key in widget.selector!.keys) {
         sortOrder.add(SortOrder.upvotes);
-        location.add("");
-        searchString.add("");
-        startDate.add(DateTime.now().add(const Duration(days: -7)));
-        endDate.add(DateTime.now());
+        location.add(defaultLocation);
+        searchString.add(defaultSearch);
+        startDate.add(defaultStart);
+        endDate.add(defaultEnd);
       }
     }
     widget.currentState = FilterBoxState(
@@ -132,11 +142,21 @@ class _FilterBoxState extends State<FilterBox> {
       return "Everywhere";
     } else {
       final args = location[current].split(",");
-      return args.join(", ");
+      var result = "";
+      if (args.isNotEmpty) {
+        result += Geo.current.country(args[0]);
+      }
+      if (args.length > 1) {
+        result += ", ${Geo.current.region(args[0], args[1])}";
+      }
+      return result;
     }
   }
 
-  void Function() updateDate(bool isStartDate) {
+  void Function() updateDate(
+    bool isStartDate,
+    void Function(void Function()) setState,
+  ) {
     return () async {
       final date = await showDatePicker(
           context: context,
@@ -152,6 +172,7 @@ class _FilterBoxState extends State<FilterBox> {
         endDate[current] = date;
       }
       updateState();
+      setState(() {});
     };
   }
 
@@ -168,11 +189,11 @@ class _FilterBoxState extends State<FilterBox> {
             return StatefulBuilder(builder: (context, setState) {
               final startTile = ListTile(
                 title: Text("From: ${formatDate(startDate[current])}"),
-                onTap: updateDate(true),
+                onTap: updateDate(true, setState),
               );
               final endTile = ListTile(
                 title: Text("To: ${formatDate(endDate[current])}"),
-                onTap: updateDate(false),
+                onTap: updateDate(false, setState),
               );
               final closeDate = ElevatedButton(
                 onPressed: () => Navigator.pop(context),
@@ -197,10 +218,20 @@ class _FilterBoxState extends State<FilterBox> {
       label: Text(getLocationPresentation()),
       avatar: const Icon(Icons.map_rounded),
       onPressed: () async {
+        String country = "";
+        String region = "";
+        final args = location[current].split(",");
+        if (args.isNotEmpty) {
+          country = args[0];
+        }
+        if (args.length > 1) {
+          region = args[1];
+        }
         var loc = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const LocationPickerPage(),
+              builder: (context) =>
+                  LocationCountryPickerPage(country: country, region: region),
             ));
         if (loc == null) {
           return;
@@ -221,24 +252,25 @@ class _FilterBoxState extends State<FilterBox> {
         ),
       );
     }
-    final closeSort = ElevatedButton(
-      onPressed: () => Navigator.pop(context),
-      child: const Text("Close"),
-    );
     final sortDropDown = ActionChip(
       label: Text(sortOrderPresentation(sortOrder[current])),
       avatar: const Icon(Icons.sort_rounded),
       onPressed: () {
-        showBottomSheet(
+        showPlatformDialog(
           context: context,
-          backgroundColor: Colors.white,
           builder: (context) {
-            return Container(
-              height: 200,
-              child: Column(children: [
-                Expanded(child: ListView(children: dropMenuItems)),
-                Padding(padding: EdgeInsets.all(8), child: closeSort),
-              ]),
+            final closeSort = ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            );
+            return AlertDialog(
+              title: const Text("Sort By"),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: dropMenuItems,
+                ),
+              ),
+              actions: [closeSort],
             );
           },
         );
@@ -250,13 +282,13 @@ class _FilterBoxState extends State<FilterBox> {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(sortDropDown);
     }
-    if (widget.date) {
+    if (widget.startDate != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(dateButton);
       // operatorItems.add(startChip);
       // operatorItems.add(endChip);
     }
-    if (widget.location) {
+    if (widget.location != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(area);
     }
@@ -268,7 +300,7 @@ class _FilterBoxState extends State<FilterBox> {
       ),
     );
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = MyTheme.isDark;
     final textStyle =
         TextStyle(color: isDark ? Colors.white : Colors.grey[800]);
     final selectorWidgets = widget.selector?.map(
@@ -280,7 +312,7 @@ class _FilterBoxState extends State<FilterBox> {
     final selector = CupertinoSlidingSegmentedControl<int>(
       // padding: const EdgeInsets.all(15),
       children: selectorWidgets,
-      thumbColor: Colors.pink,
+      thumbColor: MyTheme.primary,
       onValueChanged: (int? index) {
         current = index ?? 0;
         updateState();
@@ -320,7 +352,7 @@ class _FilterBoxState extends State<FilterBox> {
       filterItems.add(selector);
       size += 48;
     }
-    if (widget.search) {
+    if (widget.search != null) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(searchBox);
       size += 48;
@@ -338,8 +370,10 @@ class _FilterBoxState extends State<FilterBox> {
     const rounding = BorderRadius.all(Radius.circular(16));
     final cont = Container(
       decoration: BoxDecoration(
-          color: Colors.grey[isDark ? 800 : 200]?.withAlpha(192),
-          borderRadius: rounding),
+        color: Colors.grey[isDark ? 800 : 200]?.withAlpha(192),
+        borderRadius: rounding,
+        border: Border.all(color: Colors.grey),
+      ),
       child: Padding(padding: const EdgeInsets.all(8), child: body),
     );
 
@@ -349,10 +383,11 @@ class _FilterBoxState extends State<FilterBox> {
     );
 
     final rect = ClipRRect(
-        key: widget.filterKey,
-        clipBehavior: Clip.antiAlias,
-        borderRadius: rounding,
-        child: filter);
+      key: widget.filterKey,
+      clipBehavior: Clip.antiAlias,
+      borderRadius: rounding,
+      child: filter,
+    );
 
     return Padding(padding: EdgeInsets.all(8), child: rect);
   }

@@ -20,9 +20,11 @@ class PostsPage extends StatefulWidget {
   final DateTime? endCreated;
   final int? forUser;
   final int? postId;
+  final String title;
 
   const PostsPage({
     super.key,
+    required this.title,
     this.userId,
     this.origin,
     this.tags,
@@ -116,56 +118,62 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Post>>(
-        future: posts,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-              return const SizedBox();
-            }
-            final list = ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: count + 1,
-              itemBuilder: (context, index) {
-                if (index >= count) {
-                  if (isLoading) {
-                    return const CircularProgressIndicator();
-                  } else if (hasMore) {
-                    _loadMorePosts();
-                    isLoading = true;
-                    return const CircularProgressIndicator();
-                  } else {
-                    return const SizedBox();
-                  }
-                }
-                final item = snapshot.data![index];
-                return item.tile(context, updateState);
-                // return item.card(context, false, updateState);
-              },
-            );
-            return RefreshIndicator(
-              onRefresh: () async {
-                if (User.current != null && widget.forUser != null) {
-                  var list = <int>[];
-                  for (final p in await posts) {
-                    list.add(p.ID);
-                  }
-                  NewSource.refreshUserContRecommendations(
-                      User.current!.ID, list);
-                }
-                offset = 0;
-                count = 0;
-                isLoading = true;
-                await _loadMorePosts();
-                hasMore = true;
-                return;
-              },
-              child: list,
-            );
-          } else if (snapshot.hasError) {
-            return Text("${snapshot.error}");
+    final page = FutureBuilder<List<Post>>(
+      future: posts,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (snapshot.data == null || snapshot.data?.isEmpty == true) {
+            return const SizedBox();
           }
-          return CircularProgressIndicator();
-        });
+          final list = ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: count + 1,
+            itemBuilder: (context, index) {
+              if (index >= count) {
+                if (isLoading) {
+                  return const CircularProgressIndicator();
+                } else if (hasMore) {
+                  _loadMorePosts();
+                  isLoading = true;
+                  return const CircularProgressIndicator();
+                } else {
+                  return const SizedBox();
+                }
+              }
+              final item = snapshot.data![index];
+              return item.tile(context, updateState);
+              // return item.card(context, false, updateState);
+            },
+          );
+          return RefreshIndicator(
+            onRefresh: () async {
+              if (User.current != null && widget.forUser != null) {
+                var list = <int>[];
+                for (final p in await posts) {
+                  list.add(p.ID);
+                }
+                NewSource.refreshUserContRecommendations(
+                    User.current!.ID, list);
+              }
+              offset = 0;
+              count = 0;
+              isLoading = true;
+              await _loadMorePosts();
+              hasMore = true;
+              return;
+            },
+            child: list,
+          );
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+        return CircularProgressIndicator();
+      },
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
+      body: page,
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -20,19 +21,11 @@ class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeView> createState() => HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView>
+class HomeViewState extends State<HomeView>
     with SingleTickerProviderStateMixin {
-  List<Widget> screens = [];
-  List<Widget> loadedScreens = [];
-  Map<int, bool> hasLoadedScreen = {};
-  List<int> loadedIndices = [];
-
-  final GlobalKey<SearchPageState> trendingPageKey = GlobalKey();
-  final GlobalKey<SearchPageState> searchPageKey = GlobalKey();
-
   int tabIndex = 0;
 
   late StreamSubscription<List<PurchaseDetails>> subscription;
@@ -40,22 +33,10 @@ class _HomeViewState extends State<HomeView>
   @override
   void initState() {
     super.initState();
-    screens = [
-      PostsPage(order: SortOrder.score, forUser: User.current!.ID),
-      SearchPage(key: trendingPageKey, hasSearch: false),
-      CommentReplyPage(),
-      SearchPage(key: searchPageKey, hasSearch: true),
-      AccountPage(user: User.current?.toAuthor() ?? Author.fromInt(-1)),
-    ];
-    for (int i = 0; i < screens.length; i++) {
-      hasLoadedScreen[i] = false;
-    }
-    hasLoadedScreen[0] = true;
-    loadedIndices = [0];
-    loadedScreens = [screens.first];
 
-    IAPConnection.instance = TestIAPConnection();
-    // IAPConnection.instance = InAppPurchase.instance;
+    // IAPConnection.instance = TestIAPConnection();
+    IAPConnection.instance =
+        !kIsWeb ? InAppPurchase.instance : TestIAPConnection();
     final purchaseUpdated = IAPConnection.instance.purchaseStream;
     subscription = purchaseUpdated.listen((purchaseDetailsList) {
       handlePurchases(purchaseDetailsList);
@@ -73,155 +54,66 @@ class _HomeViewState extends State<HomeView>
     super.dispose();
   }
 
-  String _viewName(int index) {
-    switch (index) {
-      case 0:
-        return "For You";
-      case 1:
-        return "Trending";
-      case 2:
-        return "Create";
-      case 3:
-        return "Search";
-      case 4:
-        return "Profile";
-      default:
-        return "";
-    }
-  }
-
-  IconData _viewIconData(int index) {
-    final isSelected = index == this.tabIndex;
-    switch (index) {
-      case 0:
-        return isSelected ? Icons.favorite : Icons.favorite_border;
-      case 1:
-        return isSelected ? Icons.auto_graph : Icons.auto_graph_outlined;
-      case 2:
-        return isSelected
-            ? Icons.add_circle_rounded
-            : Icons.add_circle_outline_rounded;
-      case 3:
-        return isSelected ? Icons.search : Icons.search_outlined;
-      case 4:
-        return isSelected
-            ? Icons.account_circle_rounded
-            : Icons.account_circle_outlined;
-      default:
-        return Icons.circle;
-    }
-  }
-
-  void _selectedTab(int index) {
-    if (hasLoadedScreen[index] == false) {
-      loadedIndices.add(index);
-      hasLoadedScreen[index] = true;
-      loadedIndices.sort();
-      loadedScreens = loadedIndices.map((e) => screens[e]).toList();
-    }
-
-    setState(() {
-      tabIndex = index;
-    });
-  }
-
-  Widget _buildTabBar() {
-    var items = List.generate(5, (index) => _buildTabItem(index, _selectedTab));
-
-    var bar = BottomAppBar(
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: items,
-      ),
-    );
-
-    return bar;
-  }
-
-  Widget _buildTabItem(int index, ValueChanged<int> onPressed) {
-    var color = tabIndex == index
-        ? ThemeData(primarySwatch: Colors.pink).primaryColor
-        : ThemeData(primarySwatch: Colors.pink).backgroundColor;
-    return Expanded(
-      child: SizedBox(
-        height: 60,
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            onTap: () => onPressed(index),
-            child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(_viewIconData(index), color: color, size: 24),
-                  Text(_viewName(index),
-                      style: TextStyle(color: color, fontSize: 12)),
-                ]),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    List<Widget> actions = [];
-    if (tabIndex == 1) {
-      final action = IconButton(
-        onPressed: () {
-          final page = (screens[1] as SearchPage);
-          page.shouldShowFilter = !page.shouldShowFilter;
-          trendingPageKey.currentState?.setState(() {});
-        },
-        icon: const Icon(Icons.filter_alt_rounded),
-      );
-      actions.add(action);
-    } else if (tabIndex == 2) {
-      final action = IconButton(
-        onPressed: () {
-          final page = (screens[2] as CommentReplyPage);
-          final controller = page.controller;
-          final text = controller?.text ?? "";
-          previewPost(context, text)();
-        },
-        icon: const Icon(Icons.remove_red_eye_rounded),
-      );
-      actions.add(action);
-    } else if (tabIndex == 3) {
-      final action = IconButton(
-        onPressed: () {
-          final page = (screens[3] as SearchPage);
-          page.shouldShowFilter = !page.shouldShowFilter;
-          searchPageKey.currentState?.setState(() {});
-        },
-        icon: const Icon(Icons.filter_alt_rounded),
-      );
-      actions.add(action);
-    }
+    final page = CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        activeColor: MyTheme.primary,
+        // backgroundColor: Color.fromARGB(128, 0, 0, 0),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border_rounded),
+            activeIcon: Icon(Icons.favorite_rounded),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.stacked_line_chart_rounded),
+            activeIcon: Icon(Icons.stacked_line_chart_rounded),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline_rounded),
+            activeIcon: Icon(Icons.add_circle_rounded),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle_outlined),
+            activeIcon: Icon(Icons.account_circle_rounded),
+          ),
+        ],
+      ),
+      tabBuilder: (context, index) {
+        switch (index) {
+          case 0:
+            return PostsPage(
+                title: "For You",
+                order: SortOrder.score,
+                forUser: User.current?.ID);
+
+          case 1:
+            return SearchPage(title: "Trending", isTrending: true);
+          case 2:
+            return CommentReplyPage();
+          case 3:
+            return SearchPage(title: "Search", isTrending: false);
+          case 4:
+            return AccountPage(
+                homeView: this,
+                user: User.current?.toAuthor() ?? Author.fromInt(-1),
+                title: "Settings");
+        }
+        return const SizedBox();
+      },
+    );
 
     return MaterialApp(
-      // theme: MyTheme.current,
-      // darkTheme: MyTheme.dark,
-      // themeMode: ThemeMode.system,
-      theme: ThemeData(primarySwatch: Colors.pink, brightness: Brightness.dark),
       debugShowCheckedModeBanner: false,
-      scrollBehavior: MyCustomScrollBehavior(),
-      home: Scaffold(
-        appBar: AppBar(
-          // backgroundColor: MyTheme.current.backgroundColor,
-          title: Text(
-            _viewName(tabIndex),
-            // style: TextStyle(color: MyTheme.current.primaryColor),
-          ),
-          actions: actions,
-        ),
-        body: IndexedStack(
-          index: loadedIndices.indexOf(tabIndex),
-          children: loadedScreens,
-        ),
-        bottomNavigationBar: _buildTabBar(),
+      theme: ThemeData(
+        primarySwatch: MyTheme.primary,
+        brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,
       ),
+      home: page,
     );
   }
 }

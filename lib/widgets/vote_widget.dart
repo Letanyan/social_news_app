@@ -5,16 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/widgets/purchase_credit_widget.dart';
 
 class VoteWidget extends StatefulWidget {
   final bool isPromote;
-  final bool isPost;
+  final UserVoteKind kind;
   final void Function(BuildContext, int) confirmVote;
   const VoteWidget(
       {super.key,
       required this.isPromote,
-      required this.isPost,
+      required this.kind,
       required this.confirmVote});
 
   @override
@@ -41,7 +44,7 @@ class _VoteWidgetState extends State<VoteWidget> {
 
   void startVoteUpdate(bool isIncrease) {
     voteTimer = Timer.periodic(const Duration(milliseconds: 333), (timer) {
-      updateAmount(isIncrease ? 1 : -1);
+      updateAmount(isIncrease ? 5 : -5);
     });
   }
 
@@ -56,7 +59,7 @@ class _VoteWidgetState extends State<VoteWidget> {
   Widget build(BuildContext context) {
     final action = widget.isPromote ? "Promote" : "Demote";
     final actionDescription = widget.isPromote ? "Promotion" : "Demotion";
-    final content = widget.isPost ? "Post" : "Review";
+    final content = userVoteKindToString(widget.kind);
     if (User.current == null || User.current?.ValidationKey != 0) {
       return AlertDialog(
         title: Text("Sign in to $action $content"),
@@ -70,7 +73,7 @@ class _VoteWidgetState extends State<VoteWidget> {
     }
 
     final title = Text("$action $content");
-    final subtitle = Text("Credits Available: ${User.current!.Credits}");
+    final subtitle = Text("Credits Available: ${User.current!.creditAmount()}");
     final heading = ListTile(title: title, subtitle: subtitle);
 
     final amountDesciption = Text("$actionDescription Amount");
@@ -124,50 +127,66 @@ class _VoteWidgetState extends State<VoteWidget> {
   }
 }
 
-Widget buildDownvoteButton(BuildContext context, int downvotes,
-    void Function(BuildContext, int) confirmVote) {
+void Function() showVoteDialog(
+  BuildContext context,
+  bool isUpvote,
+  UserVoteKind kind,
+  void Function(BuildContext, int) confirmVote,
+) {
+  return () {
+    showPlatformDialog(
+      context: context,
+      builder: (context) {
+        late final page;
+        if ((User.current?.Credits ?? 0) <= 0) {
+          page = const PurchaseCredit();
+        } else {
+          page = VoteWidget(
+            isPromote: isUpvote,
+            kind: kind,
+            confirmVote: confirmVote,
+          );
+        }
+        return page;
+      },
+    );
+  };
+}
+
+Widget buildDownvoteButton(
+  BuildContext context,
+  int downvotes,
+  UserVoteKind kind,
+  void Function(BuildContext, int) confirmVote,
+) {
   return ActionChip(
-    onPressed: () async {
-      showPlatformDialog(
-        context: context,
-        builder: (context) => VoteWidget(
-          isPromote: false,
-          isPost: true,
-          confirmVote: confirmVote,
-        ),
-      );
-    },
+    onPressed: showVoteDialog(context, false, kind, confirmVote),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
         topRight: Radius.circular(16),
         bottomRight: Radius.circular(16),
       ),
     ),
-    avatar: const Icon(Icons.back_hand, color: Colors.pink, size: 18),
+    avatar: Icon(Icons.back_hand, color: MyTheme.primary, size: 18),
     label: Text("$downvotes"),
   );
 }
 
-Widget buildUpvoteButton(BuildContext context, int upvotes,
-    void Function(BuildContext, int) confirmVote) {
+Widget buildUpvoteButton(
+  BuildContext context,
+  int upvotes,
+  UserVoteKind kind,
+  void Function(BuildContext, int) confirmVote,
+) {
   return ActionChip(
-    onPressed: () {
-      showPlatformDialog(
-        context: context,
-        builder: (context) => VoteWidget(
-          isPromote: true,
-          isPost: true,
-          confirmVote: confirmVote,
-        ),
-      );
-    },
+    onPressed: showVoteDialog(context, true, kind, confirmVote),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(16),
         bottomLeft: Radius.circular(16),
       ),
     ),
-    avatar: const Icon(Icons.speaker, color: Colors.pink, size: 18),
+    avatar: Icon(Icons.speaker, color: MyTheme.primary, size: 18),
     label: Text("$upvotes"),
   );
 }
@@ -181,7 +200,7 @@ Widget buildDownvoteChip(BuildContext context, int downvotes) {
       ),
     ),
     visualDensity: VisualDensity.compact,
-    avatar: const Icon(Icons.back_hand, color: Colors.pink, size: 12),
+    avatar: Icon(Icons.back_hand, color: MyTheme.primary, size: 12),
     labelStyle: const TextStyle(fontSize: 12),
     label: Text("$downvotes"),
   );
@@ -196,7 +215,7 @@ Widget buildUpvoteChip(BuildContext context, int upvotes) {
       ),
     ),
     visualDensity: VisualDensity.compact,
-    avatar: const Icon(Icons.speaker, color: Colors.pink, size: 12),
+    avatar: Icon(Icons.speaker, color: MyTheme.primary, size: 12),
     labelStyle: const TextStyle(fontSize: 12),
     label: Text("$upvotes"),
   );

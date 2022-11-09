@@ -15,10 +15,10 @@ import 'package:social_news_app/posts_page.dart';
 import 'helpers.dart';
 
 class SearchPage extends StatefulWidget {
-  final bool hasSearch;
-  bool shouldShowFilter;
+  final bool isTrending;
+  String title;
 
-  SearchPage({super.key, required this.hasSearch}) : shouldShowFilter = true;
+  SearchPage({super.key, required this.isTrending, required this.title});
 
   @override
   State<SearchPage> createState() => SearchPageState();
@@ -37,6 +37,7 @@ class SearchPageState extends State<SearchPage> {
   var hasMore = [true, true, true, true];
   var isLoading = [true, true, true, true];
   late final FilterBox filterBox;
+  var showingFilter = true;
 
   @override
   void initState() {
@@ -52,25 +53,43 @@ class SearchPageState extends State<SearchPage> {
       2: "Users",
       3: "Comments"
     };
-    final search = widget.hasSearch;
-    const sortOrder = SortOrder.values;
-    final date = !widget.hasSearch;
-    final location = !widget.hasSearch;
+    final search = widget.isTrending ? null : "";
+    var sortOrder = sortOrdersIncluding([SortOrder.rank]);
+    final location = widget.isTrending ? "" : null;
+    final startDate = widget.isTrending
+        ? DateTime.now().add(const Duration(days: -7))
+        : DateTime.utc(1970);
+    final endDate = DateTime.now();
 
     filterBox = FilterBox(
       selector: selector,
       sorting: sortOrder,
       search: search,
-      date: date,
+      startDate: startDate,
+      endDate: endDate,
       location: location,
       valueChanged: (FilterBoxState fb) {
+        if (fb.current == 1 && !widget.isTrending) {
+          filterBox.location = filterBox.location ?? "";
+        }
+        if (fb.current == 1 || fb.current == 3) {
+          filterBox.sorting = sortOrdersIncluding([
+            SortOrder.rank,
+            SortOrder.createdAt,
+          ]);
+        } else if (fb.current == 0 || fb.current == 2) {
+          if (!widget.isTrending) {
+            filterBox.location = null;
+          }
+          filterBox.sorting = sortOrdersIncluding([SortOrder.rank]);
+        }
         updateFilter(() {
           current = fb.current;
         });
       },
     );
 
-    if (widget.hasSearch) {
+    if (!widget.isTrending) {
       tags = Future(() => []);
     } else {
       updateFilter(() {
@@ -95,9 +114,12 @@ class SearchPageState extends State<SearchPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = widget.hasSearch ? null : filterBox.currentState?.start;
-    final ed = widget.hasSearch ? null : filterBox.currentState?.end;
-    final loc = filterBox.currentState?.location;
+    final sd = widget.isTrending ? filterBox.currentState?.start : null;
+    final ed = widget.isTrending ? filterBox.currentState?.end : null;
+    final ssd = !widget.isTrending ? filterBox.currentState?.start : null;
+    final sed = !widget.isTrending ? filterBox.currentState?.end : null;
+    final loc = !widget.isTrending ? null : filterBox.currentState?.location;
+    final are = !widget.isTrending ? filterBox.currentState?.location : null;
     final src = filterBox.currentState?.search;
     final so = filterBox.currentState?.order;
     if (isTypeEqual<T, Tag>()) {
@@ -117,6 +139,9 @@ class SearchPageState extends State<SearchPage> {
         order: so,
         start: sd,
         end: ed,
+        origin: are,
+        startCreated: ssd,
+        endCreated: sed,
         popularIn: loc,
         search: src,
       ) as Future<List<T>>;
@@ -137,6 +162,8 @@ class SearchPageState extends State<SearchPage> {
         order: so,
         start: sd,
         end: ed,
+        startCreated: ssd,
+        endCreated: sed,
         popularIn: loc,
         search: src,
       ) as Future<List<T>>;
@@ -157,6 +184,7 @@ class SearchPageState extends State<SearchPage> {
       count[current] = 0;
       offset[current] = 0;
       isLoading[current] = true;
+      hasMore[current] = true;
       if (current == 0) {
         tags = getNewItems<Tag>().then(updateItemsState);
       } else if (current == 1) {
@@ -199,7 +227,9 @@ class SearchPageState extends State<SearchPage> {
 
   EdgeInsets listViewInsets() {
     return EdgeInsets.only(
-        top: !widget.shouldShowFilter ? 0 : filterBox.getWidgetSize().height);
+      top: !showingFilter ? 0 : filterBox.getWidgetSize().height,
+      bottom: 48,
+    );
   }
 
   Widget buildList<T>(BuildContext context, Future<List<T>> items) {
@@ -215,6 +245,7 @@ class SearchPageState extends State<SearchPage> {
               padding: listViewInsets(),
               itemBuilder: (context, index) {
                 if (index >= count[current]) {
+                  print(hasMore);
                   if (isLoading[current]) {
                     return const CircularProgressIndicator();
                   } else if (hasMore[current]) {
@@ -240,10 +271,7 @@ class SearchPageState extends State<SearchPage> {
                 final item = snapshot.data![index];
                 if (current == 0) {
                   final tag = item as Tag;
-                  final page = Scaffold(
-                    appBar: AppBar(title: Text(tag.Name)),
-                    body: PostsPage(tags: [tag.ID]),
-                  );
+                  final page = PostsPage(title: tag.Name, tags: [tag.ID]);
                   return ListTile(
                     title: Text(tag.Name),
                     onTap: () => Navigator.push(
@@ -260,8 +288,14 @@ class SearchPageState extends State<SearchPage> {
                       onTap: () => user.showUserPage(context));
                 } else if (current == 3) {
                   final comment = item as Comment;
-                  return comment.card(context, false, 0,
-                      (c) => c.showParentPost(context)(), updateState, null);
+                  return comment.card(
+                      context,
+                      false,
+                      0,
+                      (c) => c.showParentPost(context)(),
+                      updateState,
+                      null,
+                      false);
                 } else {
                   return const SizedBox();
                 }
@@ -297,14 +331,28 @@ class SearchPageState extends State<SearchPage> {
     }
 
     var stack = <Widget>[list];
-    if (filterBox != null) {
-      stack.add(Visibility(
-        visible: widget.shouldShowFilter,
-        maintainState: true,
-        child: filterBox,
-      ));
-    }
+    stack.add(Visibility(
+      visible: showingFilter,
+      maintainState: true,
+      child: filterBox,
+    ));
 
-    return Stack(children: stack);
+    final page = Stack(children: stack);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showingFilter = !showingFilter;
+              updateState();
+            },
+            icon: const Icon(Icons.filter_alt_rounded),
+          )
+        ],
+      ),
+      body: page,
+    );
   }
 }

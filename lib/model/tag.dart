@@ -31,12 +31,7 @@ class Tag {
   }
 
   Widget chip(BuildContext context) {
-    final fullPostPage = Scaffold(
-      appBar: AppBar(title: Text(Name)),
-      body: PostsPage(
-        tags: [ID],
-      ),
-    );
+    final fullPostPage = PostsPage(title: Name, tags: [ID]);
 
     return ActionChip(
       label: Text(Name),
@@ -100,10 +95,7 @@ class Tag {
   }
 
   void showTagPage(BuildContext context) {
-    final page = Scaffold(
-      appBar: AppBar(title: Text(Name)),
-      body: PostsPage(tags: [ID]),
-    );
+    final page = PostsPage(title: Name, tags: [ID]);
 
     Navigator.push(
       context,
