@@ -1,13 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:math';
 
-import 'package:english_words/english_words.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -301,7 +296,7 @@ class _CommentsPageState extends State<CommentsPage> {
       ),
     );
     final send = Padding(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: TextButton(
         onPressed: () => replyToComment(),
         child: const Text("Reply"),

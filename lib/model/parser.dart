@@ -1,10 +1,7 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
-import 'package:social_news_app/model/theme.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 abstract class RegexPatterns {
   static final email =
@@ -229,7 +226,7 @@ class Parser {
               );
               return WidgetSpan(
                 child: Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   child: Center(child: clip),
                 ),
               );
@@ -334,7 +331,7 @@ class Parser {
             final text = TextSpan(
               text: " ",
               children: [
-                TextSpan(text: "● "),
+                const TextSpan(text: "● "),
                 TextSpan(text: content),
               ],
             );

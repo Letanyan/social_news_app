@@ -1,7 +1,4 @@
-import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -325,7 +322,7 @@ class Post {
     final creator = buildCreator(context);
     final date = buildDate(context);
     final meta = Padding(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Row(children: [
         creator,
         Expanded(child: Align(alignment: Alignment.centerRight, child: date))
@@ -370,7 +367,7 @@ class Post {
     final showSimilar = TextButton(
         onPressed: () => openSimilar(context), child: const Text("Similar"));
 
-    final buttonRow = Container(
+    final buttonRow = SizedBox(
       width: query.width,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -449,7 +446,7 @@ class Post {
         style: const TextStyle(fontSize: 18),
       );
     } else if (lines.isNotEmpty) {
-      if (urls != null && urls.isNotEmpty && urls.first.start == 0) {
+      if (urls.isNotEmpty && urls.first.start == 0) {
         title = Text(
           lines[1],
           style: const TextStyle(fontSize: 18),
@@ -536,14 +533,14 @@ class Post {
     final voteBox = SizedBox(
       width: 172,
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [upvoteButton, downvoteButton],
         ),
       ),
     );
-    final buttonRow = Container(
+    final buttonRow = SizedBox(
       width: MediaQuery.of(context).size.width,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -563,7 +560,7 @@ class Post {
       final upChip = buildUpvoteChip(context, up);
       final downChip = buildDownvoteChip(context, down);
       personal = Padding(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [upChip, downChip],

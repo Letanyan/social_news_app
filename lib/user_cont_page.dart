@@ -1,12 +1,9 @@
-import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:social_news_app/model/helpers.dart';
-import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user.dart';

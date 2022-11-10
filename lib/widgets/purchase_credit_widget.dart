@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/iap.dart';
 
 class PurchaseCredit extends StatefulWidget {
@@ -52,7 +50,7 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
               .toList();
 
           return AlertDialog(
-            title: Text("Purchase Credits"),
+            title: const Text("Purchase Credits"),
             content: SingleChildScrollView(
               child: Column(children: items),
             ),

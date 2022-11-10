@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comment_reply.dart';
-import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/iap.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/posts_page.dart';

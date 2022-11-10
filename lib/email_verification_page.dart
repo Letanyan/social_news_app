@@ -1,7 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
@@ -67,7 +64,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         title: const Text("Email Verification"),
         automaticallyImplyLeading: false,
       ),
-      body: Padding(padding: EdgeInsets.all(16), child: body),
+      body: Padding(padding: const EdgeInsets.all(16), child: body),
     );
   }
 }

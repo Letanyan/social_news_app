@@ -1,12 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/model/geo.dart';
-import 'package:social_news_app/model/news_agent.dart';
 import 'package:social_news_app/model/theme.dart';
 
 void main() async {

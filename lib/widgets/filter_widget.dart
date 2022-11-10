@@ -2,8 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/model/geo.dart';
 import 'package:social_news_app/model/helpers.dart';
@@ -301,7 +299,7 @@ class _FilterBoxState extends State<FilterBox> {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(area);
     }
-    final operatorRow = Container(
+    final operatorRow = SizedBox(
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -342,7 +340,7 @@ class _FilterBoxState extends State<FilterBox> {
                 color: isDark
                     ? Colors.grey[400] ?? Colors.white
                     : Colors.grey[600] ?? Colors.black),
-            borderRadius: BorderRadius.all(Radius.circular(16))),
+            borderRadius: const BorderRadius.all(Radius.circular(16))),
         hintStyle: textStyle,
         hintText: 'Search',
       ),
@@ -398,6 +396,6 @@ class _FilterBoxState extends State<FilterBox> {
       child: filter,
     );
 
-    return Padding(padding: EdgeInsets.all(8), child: rect);
+    return Padding(padding: const EdgeInsets.all(8), child: rect);
   }
 }

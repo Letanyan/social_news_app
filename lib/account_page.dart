@@ -1,14 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/flags_page.dart';
 import 'package:social_news_app/home.dart';
-import 'package:social_news_app/login.dart';
 import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/new_source.dart';
-import 'package:social_news_app/model/search.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/news_agent_page.dart';
 import 'package:social_news_app/settings.dart';

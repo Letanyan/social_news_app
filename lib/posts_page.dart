@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
-import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';
 
 class PostsPage extends StatefulWidget {
@@ -167,7 +164,7 @@ class _PostsPageState extends State<PostsPage> {
         } else if (snapshot.hasError) {
           return Text("${snapshot.error}");
         }
-        return CircularProgressIndicator();
+        return const CircularProgressIndicator();
       },
     );
 

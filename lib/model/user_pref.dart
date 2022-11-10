@@ -1,5 +1,4 @@
 import 'package:social_news_app/model/comment.dart';
-import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';

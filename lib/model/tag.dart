@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -63,7 +62,7 @@ class Tag {
     if (xs.isEmpty) {
       holder = const SizedBox();
     } else {
-      holder = Container(
+      holder = SizedBox(
         height: 48,
         child:
             ListView(scrollDirection: Axis.horizontal, children: xs.toList()),

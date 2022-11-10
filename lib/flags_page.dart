@@ -1,7 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';

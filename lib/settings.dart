@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/home.dart';
-import 'package:social_news_app/main.dart';
-import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
@@ -126,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const Padding(padding: EdgeInsets.all(8), child: Text("Account Details")),
       const Divider(thickness: 1),
       Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
           children: [
             const Text("Display Name: "),
@@ -144,7 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
       const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Theme")),
       const Divider(thickness: 1),
-      Container(
+      SizedBox(
         height: 32,
         child: ListView(
           scrollDirection: Axis.horizontal,

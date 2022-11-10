@@ -1,12 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
-import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/news_agent.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user_pref.dart';

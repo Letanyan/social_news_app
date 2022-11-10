@@ -1,16 +1,12 @@
-import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
-import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
-import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Comment {

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/account_page.dart';
@@ -202,7 +201,7 @@ class Author {
 
   factory Author.fromInt(int json) {
     return Author(
-      ID: json as int,
+      ID: json,
       Name: "",
       RegisterDate: DateTime.fromMicrosecondsSinceEpoch(0),
       Upvotes: 0,

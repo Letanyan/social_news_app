@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -53,7 +51,7 @@ class _FlagDialogState extends State<FlagDialog> {
       TextField(
         controller: controller,
         maxLines: null,
-        decoration: InputDecoration(labelText: "Rational"),
+        decoration: const InputDecoration(labelText: "Rational"),
       ),
     );
 

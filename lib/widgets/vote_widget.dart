@@ -1,9 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -137,7 +134,7 @@ void Function() showVoteDialog(
     showPlatformDialog(
       context: context,
       builder: (context) {
-        late final page;
+        late final StatefulWidget page;
         if ((User.current?.Credits ?? 0) <= 0) {
           page = const PurchaseCredit();
         } else {

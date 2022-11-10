@@ -1,14 +1,6 @@
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:http/http.dart' as http;
 
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -185,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: signInGoogle, child: const Text("Sign In With Google"));
     var signInWithEmail =
         TextButton(onPressed: signIn, child: const Text("Sign In"));
-    var signUp = TextButton(onPressed: gotoSignUpPage, child: Text("Sign Up"));
+    var signUp = TextButton(onPressed: gotoSignUpPage, child: const Text("Sign Up"));
     var forgot = TextButton(
         onPressed: signIn,
         child: const Text("Forgot Password",
