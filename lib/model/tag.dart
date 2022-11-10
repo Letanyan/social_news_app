@@ -9,12 +9,18 @@ class Tag {
   final String Name;
   final int Upvotes;
   final int Downvotes;
+  final double Score;
+  final double Cred;
+  final double Rank;
 
   const Tag({
     required this.ID,
     required this.Name,
     required this.Upvotes,
     required this.Downvotes,
+    required this.Score,
+    required this.Cred,
+    required this.Rank,
   });
 
   factory Tag.fromJson(Map<String, dynamic> json) {
@@ -23,6 +29,9 @@ class Tag {
       Name: json["Name"],
       Upvotes: json["Upvotes"],
       Downvotes: json["Downvotes"],
+      Score: json["Score"],
+      Cred: json["Cred"],
+      Rank: json["Rank"],
     );
   }
 

@@ -33,7 +33,7 @@ class _IndentedComment {
 }
 
 class _CommentsPageState extends State<CommentsPage> {
-  late Future<SplayTreeMap<int, List<Comment>>> comments;
+  late Future<Map<int, List<Comment>>> comments;
   late Future<List<Comment>> allComments;
   late Future<List<_IndentedComment>> visibleComments;
   late Future<List<_IndentedComment>> reviews;
@@ -44,6 +44,7 @@ class _CommentsPageState extends State<CommentsPage> {
   int count = 0;
   int reviewCount = 0;
   bool isReview = false;
+  SortOrder sortOrder = SortOrder.upvotes;
 
   final controller = TextEditingController();
   Comment? replyingTo;
@@ -92,10 +93,15 @@ class _CommentsPageState extends State<CommentsPage> {
       order: SortOrder.createdAt,
       isReview: false,
     );
-    comments = Future(() => SplayTreeMap<int, List<Comment>>());
+
+    // sortComments uses the keys from comments to decide which comments to
+    // show. So we include the 0 key here so the top level comments are shown
+    // after sorting.
+    comments = Future(() => <int, List<Comment>>{0: []});
+
     visibleComments = Future(() => <_IndentedComment>[]);
     reviews = Future(() => []);
-    showComments(0);
+    sortComments();
   }
 
   Future<void> loadReviews() async {
@@ -110,7 +116,7 @@ class _CommentsPageState extends State<CommentsPage> {
         () => raw.map((e) => _IndentedComment(e, 0)).toList(growable: false));
   }
 
-  Future<void> flattenComments(SplayTreeMap<int, List<Comment>> result) async {
+  Future<void> flattenComments(Map<int, List<Comment>> result) async {
     var path = <int>[0];
     var pathCount = <int>[0];
     var indents = <_IndentedComment>[];
@@ -152,7 +158,6 @@ class _CommentsPageState extends State<CommentsPage> {
         list.add(c);
       }
     }
-    list.sort((a, b) => a.id.compareTo(b.id));
     var result = await comments;
     result[replyId] = list;
     count += list.length;
@@ -176,6 +181,87 @@ class _CommentsPageState extends State<CommentsPage> {
       visibleReplyIds.add(replyId);
       await showComments(replyId);
     }
+  }
+
+  Future<void> sortComments() async {
+    var keys = await comments;
+    var source = await allComments;
+
+    source.sort((a, b) {
+      switch (sortOrder) {
+        case SortOrder.addedOn:
+          return a.createdAt.compareTo(b.createdAt);
+        case SortOrder.score:
+          return -a.Score.compareTo(b.Score);
+        case SortOrder.cred:
+          return -a.Cred.compareTo(b.Cred);
+        case SortOrder.upvotes:
+          return -a.upvotes.compareTo(b.upvotes);
+        case SortOrder.downvotes:
+          return -a.downvotes.compareTo(b.downvotes);
+        case SortOrder.controversial:
+          return -controversial(a.Cred).compareTo(controversial(b.Cred));
+        case SortOrder.createdAt:
+          return a.createdAt.compareTo(b.createdAt);
+        case SortOrder.updatedAt:
+          return a.createdAt.compareTo(b.createdAt);
+        case SortOrder.updatedOn:
+          return a.createdAt.compareTo(b.createdAt);
+        case SortOrder.rank:
+          return a.Rank.compareTo(b.Rank);
+      }
+    });
+    allComments = Future(() => source);
+
+    var result = <int, List<Comment>>{};
+    count = 0;
+    for (final c in await allComments) {
+      if (keys.keys.contains(c.replyId)) {
+        if (result.containsKey(c.replyId)) {
+          result[c.replyId]?.add(c);
+        } else {
+          result[c.replyId] = [c];
+        }
+        count += 1;
+      }
+    }
+
+    await flattenComments(result);
+  }
+
+  Future<void> sortReview() async {
+    var result = await reviews;
+    result.sort(
+      (x, y) {
+        final a = x.comment;
+        final b = y.comment;
+        switch (sortOrder) {
+          case SortOrder.addedOn:
+            return a.createdAt.compareTo(b.createdAt);
+          case SortOrder.score:
+            return -a.Score.compareTo(b.Score);
+          case SortOrder.cred:
+            return -a.Cred.compareTo(b.Cred);
+          case SortOrder.upvotes:
+            return -a.upvotes.compareTo(b.upvotes);
+          case SortOrder.downvotes:
+            return -a.downvotes.compareTo(b.downvotes);
+          case SortOrder.controversial:
+            return -controversial(a.Cred).compareTo(controversial(b.Cred));
+          case SortOrder.createdAt:
+            return a.createdAt.compareTo(b.createdAt);
+          case SortOrder.updatedAt:
+            return a.createdAt.compareTo(b.createdAt);
+          case SortOrder.updatedOn:
+            return a.createdAt.compareTo(b.createdAt);
+          case SortOrder.rank:
+            return a.Rank.compareTo(b.Rank);
+        }
+      },
+    );
+
+    reviews = Future(() => result);
+    setState(() {});
   }
 
   void updateState() {
@@ -246,10 +332,44 @@ class _CommentsPageState extends State<CommentsPage> {
         updateState();
       },
     );
+    final sort = PopupMenuButton(
+      itemBuilder: (context) {
+        final sortItems = <SortOrder>[
+          SortOrder.score,
+          SortOrder.createdAt,
+          SortOrder.upvotes,
+          SortOrder.downvotes,
+          SortOrder.cred,
+          SortOrder.controversial,
+        ];
+        return sortItems.map((e) {
+          return PopupMenuItem(
+            child: Text(sortOrderPresentation(e)),
+            onTap: () {
+              sortOrder = e;
+              sortComments();
+            },
+          );
+        }).toList();
+      },
+      child: Chip(
+        avatar: const Icon(Icons.sort_rounded),
+        label: Text(sortOrderPresentation(sortOrder)),
+      ),
+    );
     final previewItems = <Widget>[
       card,
       const SizedBox(height: 8),
-      sel,
+      Stack(children: [
+        Center(child: sel),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: sort,
+          ),
+        ),
+      ]),
       const SizedBox(height: 4),
     ];
 

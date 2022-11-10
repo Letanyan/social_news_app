@@ -266,6 +266,9 @@ void Function() previewPost(BuildContext context, String content) {
       Downvotes: 0,
       CommentCount: 0,
       Trashed: false,
+      Score: 0,
+      Cred: 0,
+      Rank: 0,
     );
 
     // FIXME: make post

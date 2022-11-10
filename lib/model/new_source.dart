@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -1362,4 +1363,15 @@ String userVoteKindToString(UserVoteKind uvk) {
     case UserVoteKind.comment:
       return "Comment";
   }
+}
+
+double controversial(double cred) {
+  var diff = cred - 0.5;
+  if (diff < 0) {
+    diff = -diff;
+  }
+  if (diff == 0) {
+    return 9e90;
+  }
+  return 1 / diff;
 }

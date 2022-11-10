@@ -25,6 +25,9 @@ class Comment {
   final int replyCount;
   bool trashed;
   bool isReview;
+  double Score;
+  double Cred;
+  double Rank;
 
   Comment({
     required this.id,
@@ -38,6 +41,9 @@ class Comment {
     required this.replyCount,
     required this.trashed,
     required this.isReview,
+    required this.Score,
+    required this.Cred,
+    required this.Rank,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -55,6 +61,9 @@ class Comment {
       replyCount: json["ReplyCount"],
       trashed: json["Trashed"],
       isReview: json["IsReview"],
+      Score: json["Score"],
+      Cred: json["Cred"],
+      Rank: json["Rank"],
     );
   }
 
@@ -194,7 +203,7 @@ class Comment {
       buttonRowItems.add(replyCountChip);
     }
 
-    var items = <Widget>[const Divider(), text, meta];
+    var items = <Widget>[text, meta];
 
     final removeComment = PopupMenuItem(
       onTap: () {
@@ -234,6 +243,33 @@ class Comment {
     items.add(Padding(
         padding: const EdgeInsets.all(2),
         child: Row(children: buttonRowItems)));
+
+    if (up != null && down != null) {
+      final upChip = Row(children: [
+        const Icon(
+          size: 12,
+          Icons.speaker,
+        ),
+        Text(" $up"),
+      ]);
+      final downChip = Row(children: [
+        const Icon(
+          size: 12,
+          Icons.back_hand,
+        ),
+        Text(" $down"),
+      ]);
+
+      items.add(Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          upChip,
+          const SizedBox(width: 8),
+          downChip,
+          const SizedBox(width: 8),
+        ],
+      ));
+    }
     items.add(const SizedBox(height: 8));
 
     final body = Column(children: items);
@@ -249,8 +285,8 @@ class Comment {
     for (var i = 0; i < offset; i++) {
       indents.add(
         const Padding(
-          padding: EdgeInsets.all(4),
-          child: Icon(Icons.circle, size: 8),
+          padding: EdgeInsets.all(2),
+          child: Icon(Icons.circle, size: 4),
         ),
       );
     }

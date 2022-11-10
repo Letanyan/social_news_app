@@ -162,6 +162,9 @@ class User {
       RegisterDate: RegisterDate,
       Upvotes: Upvotes,
       Downvotes: Downvotes,
+      Score: 0,
+      Cred: 0,
+      Rank: 0,
     );
   }
 
@@ -182,6 +185,9 @@ class Author {
   final DateTime RegisterDate;
   final int Upvotes;
   final int Downvotes;
+  final double Score;
+  final double Cred;
+  final double Rank;
 
   const Author({
     required this.ID,
@@ -189,6 +195,9 @@ class Author {
     required this.RegisterDate,
     required this.Upvotes,
     required this.Downvotes,
+    required this.Score,
+    required this.Cred,
+    required this.Rank,
   });
 
   factory Author.fromInt(int json) {
@@ -198,6 +207,9 @@ class Author {
       RegisterDate: DateTime.fromMicrosecondsSinceEpoch(0),
       Upvotes: 0,
       Downvotes: 0,
+      Score: 0,
+      Cred: 0,
+      Rank: 0,
     );
   }
 
@@ -208,6 +220,9 @@ class Author {
       RegisterDate: DateTime.parse(json["RegisterDate"]),
       Upvotes: json["Upvotes"],
       Downvotes: json["Downvotes"],
+      Score: json["Score"],
+      Cred: json["Cred"],
+      Rank: json["Rank"],
     );
   }
 

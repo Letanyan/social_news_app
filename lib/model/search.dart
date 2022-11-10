@@ -89,13 +89,9 @@ class SearchPageState extends State<SearchPage> {
       },
     );
 
-    if (!widget.isTrending) {
-      tags = Future(() => []);
-    } else {
-      updateFilter(() {
-        current = 0;
-      });
-    }
+    updateFilter(() {
+      current = 0;
+    });
   }
 
   int currentIndex<T>() {

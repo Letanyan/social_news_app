@@ -28,6 +28,9 @@ class Post {
   int Downvotes;
   final int CommentCount;
   bool Trashed;
+  double Score;
+  double Cred;
+  double Rank;
 
   String? sourceUrl;
 
@@ -42,6 +45,9 @@ class Post {
     required this.Downvotes,
     required this.CommentCount,
     required this.Trashed,
+    required this.Score,
+    required this.Cred,
+    required this.Rank,
   }) : sourceUrl = null;
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -56,6 +62,9 @@ class Post {
       Downvotes: json["Downvotes"],
       CommentCount: json["CommentCount"],
       Trashed: json["Trashed"],
+      Score: json["Score"],
+      Cred: json["Cred"],
+      Rank: json["Rank"],
     );
   }
 
@@ -467,23 +476,22 @@ class Post {
             url,
             width: imageWidth,
             fit: BoxFit.fill,
-            // loadingBuilder: (context, child, loadingProgress) {
-            //   final loaded = loadingProgress?.cumulativeBytesLoaded ?? 0;
-            //   final expect = loadingProgress?.expectedTotalBytes ?? 0;
-            //   if (loaded >= expect) {
-            //     return child;
-            //   } else {
-            //     return Container(
-            //         color: Colors.white
-            //             .withAlpha((255 - loaded / expect * 255).toInt()),
-            //         width: imageWidth);
-            //   }
-            // },
+            loadingBuilder: (context, child, loadingProgress) {
+              final loaded = loadingProgress?.cumulativeBytesLoaded ?? 0;
+              final expect = loadingProgress?.expectedTotalBytes ?? 0;
+              if (loaded >= expect) {
+                return child;
+              } else {
+                return const SizedBox(
+                  width: imageWidth,
+                  child: Icon(Icons.image_rounded),
+                );
+              }
+            },
             errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.black,
+              return const SizedBox(
                 width: imageWidth,
-                // height: 1,
+                child: Icon(Icons.broken_image_rounded),
               );
             },
           ),

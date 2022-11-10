@@ -176,6 +176,25 @@ class _FilterBoxState extends State<FilterBox> {
     };
   }
 
+  List<Widget> buildSortByTiles(void Function(void Function()) setState) {
+    List<Widget> dropMenuItems = [];
+    for (final so in widget.sorting ?? []) {
+      dropMenuItems.add(
+        ListTile(
+          trailing:
+              sortOrder[current] == so ? const Icon(Icons.check_rounded) : null,
+          title: Text(sortOrderPresentation(so)),
+          onTap: () {
+            sortOrder[current] = so;
+            updateState();
+            setState(() {});
+          },
+        ),
+      );
+    }
+    return dropMenuItems;
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateButton = ActionChip(
@@ -240,18 +259,6 @@ class _FilterBoxState extends State<FilterBox> {
         updateState();
       },
     );
-    List<Widget> dropMenuItems = [];
-    for (final so in widget.sorting ?? []) {
-      dropMenuItems.add(
-        ListTile(
-          title: Text(sortOrderPresentation(so)),
-          onTap: () {
-            sortOrder[current] = so;
-            updateState();
-          },
-        ),
-      );
-    }
     final sortDropDown = ActionChip(
       label: Text(sortOrderPresentation(sortOrder[current])),
       avatar: const Icon(Icons.sort_rounded),
@@ -259,19 +266,21 @@ class _FilterBoxState extends State<FilterBox> {
         showPlatformDialog(
           context: context,
           builder: (context) {
-            final closeSort = ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
-            );
-            return AlertDialog(
-              title: const Text("Sort By"),
-              content: SingleChildScrollView(
-                child: Column(
-                  children: dropMenuItems,
+            return StatefulBuilder(builder: (context, setState) {
+              final closeSort = ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Close"),
+              );
+              return AlertDialog(
+                title: const Text("Sort By"),
+                content: SingleChildScrollView(
+                  child: Column(
+                    children: buildSortByTiles(setState),
+                  ),
                 ),
-              ),
-              actions: [closeSort],
-            );
+                actions: [closeSort],
+              );
+            });
           },
         );
       },
