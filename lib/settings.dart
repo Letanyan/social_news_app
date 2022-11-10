@@ -24,17 +24,17 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
 
     if (User.current != null) {
-      cont[UserContKind.viewed] = User.current!.PublicViews;
-      cont[UserContKind.readLater] = User.current!.PublicReadLater;
-      cont[UserContKind.ignored] = User.current!.PublicIgnored;
-      cont[UserContKind.userFollow] = User.current!.PublicFollowing;
+      cont[UserContKind.viewed] = User.current!.publicViews;
+      cont[UserContKind.readLater] = User.current!.publicReadLater;
+      cont[UserContKind.ignored] = User.current!.publicIgnored;
+      cont[UserContKind.userFollow] = User.current!.publicFollowing;
 
-      pref[UserPrefKind.post] = User.current!.PublicPostVotes;
-      pref[UserPrefKind.comment] = User.current!.PublicCommentVotes;
-      pref[UserPrefKind.user] = User.current!.PublicUserVotes;
-      pref[UserPrefKind.tag] = User.current!.PublicTagVotes;
+      pref[UserPrefKind.post] = User.current!.publicPostVotes;
+      pref[UserPrefKind.comment] = User.current!.publicCommentVotes;
+      pref[UserPrefKind.user] = User.current!.publicUserVotes;
+      pref[UserPrefKind.tag] = User.current!.publicTagVotes;
     }
-    controller.text = User.current?.Name ?? "";
+    controller.text = User.current?.name ?? "";
   }
 
   void updateState(Function() f) {
@@ -43,17 +43,17 @@ class _SettingsPageState extends State<SettingsPage> {
 
       String un = User.validateLength("username", controller.text, 3, 15);
       if (un.isEmpty) {
-        User.current!.Name = controller.text;
+        User.current!.name = controller.text;
       }
-      User.current!.PublicCommentVotes = pref[UserPrefKind.comment] ?? false;
-      User.current!.PublicPostVotes = pref[UserPrefKind.post] ?? false;
-      User.current!.PublicUserVotes = pref[UserPrefKind.user] ?? false;
-      User.current!.PublicTagVotes = pref[UserPrefKind.tag] ?? false;
+      User.current!.publicCommentVotes = pref[UserPrefKind.comment] ?? false;
+      User.current!.publicPostVotes = pref[UserPrefKind.post] ?? false;
+      User.current!.publicUserVotes = pref[UserPrefKind.user] ?? false;
+      User.current!.publicTagVotes = pref[UserPrefKind.tag] ?? false;
 
-      User.current!.PublicReadLater = cont[UserContKind.readLater] ?? false;
-      User.current!.PublicViews = cont[UserContKind.viewed] ?? false;
-      User.current!.PublicIgnored = cont[UserContKind.ignored] ?? false;
-      User.current!.PublicFollowing = cont[UserContKind.userFollow] ?? false;
+      User.current!.publicReadLater = cont[UserContKind.readLater] ?? false;
+      User.current!.publicViews = cont[UserContKind.viewed] ?? false;
+      User.current!.publicIgnored = cont[UserContKind.ignored] ?? false;
+      User.current!.publicFollowing = cont[UserContKind.userFollow] ?? false;
     });
   }
 
@@ -106,9 +106,6 @@ class _SettingsPageState extends State<SettingsPage> {
           MyTheme.mode = mode ?? ThemeMode.system;
           widget.homeView?.setState(() {});
         });
-        final ins = await SharedPreferences.getInstance();
-        print(ins);
-        print(ins.getInt("theme:mode"));
         SharedPreferences.getInstance()
             .then((value) => value.setInt("theme:mode", index));
       },

@@ -5,40 +5,40 @@ import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class User {
-  final int ID;
-  String Name;
-  final String Email;
-  String Password;
-  final DateTime RegisterDate;
-  int Upvotes;
-  int Downvotes;
-  int Credits;
-  final int ValidationKey;
+  final int id;
+  String name;
+  final String email;
+  String password;
+  final DateTime registerDate;
+  int upvotes;
+  int downvotes;
+  int credits;
+  final int validationKey;
   List<Author> following;
   List<Author> ignored;
-  String Secret;
+  String secret;
 
-  bool PublicViews;
-  bool PublicReadLater;
-  bool PublicFollowing;
-  bool PublicIgnored;
-  bool PublicPostVotes;
-  bool PublicCommentVotes;
-  bool PublicUserVotes;
-  bool PublicTagVotes;
+  bool publicViews;
+  bool publicReadLater;
+  bool publicFollowing;
+  bool publicIgnored;
+  bool publicPostVotes;
+  bool publicCommentVotes;
+  bool publicUserVotes;
+  bool publicTagVotes;
 
   String creditAmount() {
-    return Credits < 0 ? "..." : "$Credits";
+    return credits < 0 ? "..." : "$credits";
   }
 
   void storeUser() async {
     final pref = await SharedPreferences.getInstance();
-    pref.setInt("user:id", ID);
-    pref.setString("user:name", Name);
-    pref.setString("user:email", Email);
-    pref.setInt("user:register", RegisterDate.millisecondsSinceEpoch);
-    pref.setInt("user:validation", ValidationKey);
-    pref.setString("user:secret", Secret);
+    pref.setInt("user:id", id);
+    pref.setString("user:name", name);
+    pref.setString("user:email", email);
+    pref.setInt("user:register", registerDate.millisecondsSinceEpoch);
+    pref.setInt("user:validation", validationKey);
+    pref.setString("user:secret", secret);
   }
 
   static void removeUser() async {
@@ -61,94 +61,94 @@ class User {
     final validation = pref.getInt("user:validation") ?? 0;
     final secret = pref.getString("user:secret") ?? "";
     var result = User(
-      ID: id,
-      Name: name,
-      Email: email,
-      Password: "",
-      RegisterDate: register,
-      Upvotes: 0,
-      Downvotes: 0,
-      Credits: -1,
-      ValidationKey: validation,
-      PublicViews: false,
-      PublicReadLater: false,
-      PublicFollowing: false,
-      PublicIgnored: false,
-      PublicPostVotes: false,
-      PublicCommentVotes: false,
-      PublicUserVotes: false,
-      PublicTagVotes: false,
+      id: id,
+      name: name,
+      email: email,
+      password: "",
+      registerDate: register,
+      upvotes: 0,
+      downvotes: 0,
+      credits: -1,
+      validationKey: validation,
+      publicViews: false,
+      publicReadLater: false,
+      publicFollowing: false,
+      publicIgnored: false,
+      publicPostVotes: false,
+      publicCommentVotes: false,
+      publicUserVotes: false,
+      publicTagVotes: false,
     );
-    result.Secret = secret;
+    result.secret = secret;
     return result;
   }
 
   User({
-    required this.ID,
-    required this.Name,
-    required this.Email,
-    required this.Password,
-    required this.RegisterDate,
-    required this.Upvotes,
-    required this.Downvotes,
-    required this.Credits,
-    required this.ValidationKey,
-    required this.PublicViews,
-    required this.PublicReadLater,
-    required this.PublicFollowing,
-    required this.PublicIgnored,
-    required this.PublicPostVotes,
-    required this.PublicCommentVotes,
-    required this.PublicUserVotes,
-    required this.PublicTagVotes,
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.registerDate,
+    required this.upvotes,
+    required this.downvotes,
+    required this.credits,
+    required this.validationKey,
+    required this.publicViews,
+    required this.publicReadLater,
+    required this.publicFollowing,
+    required this.publicIgnored,
+    required this.publicPostVotes,
+    required this.publicCommentVotes,
+    required this.publicUserVotes,
+    required this.publicTagVotes,
   })  : following = [],
         ignored = [],
-        Secret = "";
+        secret = "";
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      ID: json["ID"],
-      Name: json["Name"],
-      Email: json["Email"],
-      Password: json["Password"],
-      RegisterDate: DateTime.parse(json["RegisterDate"]),
-      Upvotes: json["Upvotes"],
-      Downvotes: json["Downvotes"],
-      Credits: json["Credits"],
-      ValidationKey: json["ValidationKey"],
-      PublicViews: json["PublicViews"],
-      PublicReadLater: json["PublicReadLater"],
-      PublicFollowing: json["PublicFollowing"],
-      PublicIgnored: json["PublicIgnored"],
-      PublicPostVotes: json["PublicPostVotes"],
-      PublicCommentVotes: json["PublicCommentVotes"],
-      PublicUserVotes: json["PublicUserVotes"],
-      PublicTagVotes: json["PublicTagVotes"],
+      id: json["ID"],
+      name: json["Name"],
+      email: json["Email"],
+      password: json["Password"],
+      registerDate: DateTime.parse(json["RegisterDate"]),
+      upvotes: json["Upvotes"],
+      downvotes: json["Downvotes"],
+      credits: json["Credits"],
+      validationKey: json["ValidationKey"],
+      publicViews: json["PublicViews"],
+      publicReadLater: json["PublicReadLater"],
+      publicFollowing: json["PublicFollowing"],
+      publicIgnored: json["PublicIgnored"],
+      publicPostVotes: json["PublicPostVotes"],
+      publicCommentVotes: json["PublicCommentVotes"],
+      publicUserVotes: json["PublicUserVotes"],
+      publicTagVotes: json["PublicTagVotes"],
     );
   }
 
   factory User.fromSecretJson(Map<String, dynamic> json) {
     final obj = json["user"];
     var user = User(
-      ID: obj["ID"],
-      Name: obj["Name"],
-      Email: obj["Email"],
-      Password: obj["Password"],
-      RegisterDate: DateTime.parse(obj["RegisterDate"]),
-      Upvotes: obj["Upvotes"],
-      Downvotes: obj["Downvotes"],
-      Credits: obj["Credits"],
-      ValidationKey: obj["ValidationKey"],
-      PublicViews: obj["PublicViews"],
-      PublicReadLater: obj["PublicReadLater"],
-      PublicFollowing: obj["PublicFollowing"],
-      PublicIgnored: obj["PublicIgnored"],
-      PublicPostVotes: obj["PublicPostVotes"],
-      PublicCommentVotes: obj["PublicCommentVotes"],
-      PublicUserVotes: obj["PublicUserVotes"],
-      PublicTagVotes: obj["PublicTagVotes"],
+      id: obj["ID"],
+      name: obj["Name"],
+      email: obj["Email"],
+      password: obj["Password"],
+      registerDate: DateTime.parse(obj["RegisterDate"]),
+      upvotes: obj["Upvotes"],
+      downvotes: obj["Downvotes"],
+      credits: obj["Credits"],
+      validationKey: obj["ValidationKey"],
+      publicViews: obj["PublicViews"],
+      publicReadLater: obj["PublicReadLater"],
+      publicFollowing: obj["PublicFollowing"],
+      publicIgnored: obj["PublicIgnored"],
+      publicPostVotes: obj["PublicPostVotes"],
+      publicCommentVotes: obj["PublicCommentVotes"],
+      publicUserVotes: obj["PublicUserVotes"],
+      publicTagVotes: obj["PublicTagVotes"],
     );
-    user.Secret = json["token"];
+    user.secret = json["token"];
     return user;
   }
 
@@ -156,14 +156,14 @@ class User {
 
   Author toAuthor() {
     return Author(
-      ID: ID,
-      Name: Name,
-      RegisterDate: RegisterDate,
-      Upvotes: Upvotes,
-      Downvotes: Downvotes,
-      Score: 0,
-      Cred: 0,
-      Rank: 0,
+      id: id,
+      name: name,
+      registerDate: registerDate,
+      upvotes: upvotes,
+      downvotes: downvotes,
+      score: 0,
+      cred: 0,
+      rank: 0,
     );
   }
 
@@ -179,54 +179,54 @@ class User {
 }
 
 class Author {
-  final int ID;
-  final String Name;
-  final DateTime RegisterDate;
-  final int Upvotes;
-  final int Downvotes;
-  final double Score;
-  final double Cred;
-  final double Rank;
+  final int id;
+  final String name;
+  final DateTime registerDate;
+  final int upvotes;
+  final int downvotes;
+  final double score;
+  final double cred;
+  final double rank;
 
   const Author({
-    required this.ID,
-    required this.Name,
-    required this.RegisterDate,
-    required this.Upvotes,
-    required this.Downvotes,
-    required this.Score,
-    required this.Cred,
-    required this.Rank,
+    required this.id,
+    required this.name,
+    required this.registerDate,
+    required this.upvotes,
+    required this.downvotes,
+    required this.score,
+    required this.cred,
+    required this.rank,
   });
 
   factory Author.fromInt(int json) {
     return Author(
-      ID: json,
-      Name: "",
-      RegisterDate: DateTime.fromMicrosecondsSinceEpoch(0),
-      Upvotes: 0,
-      Downvotes: 0,
-      Score: 0,
-      Cred: 0,
-      Rank: 0,
+      id: json,
+      name: "",
+      registerDate: DateTime.fromMicrosecondsSinceEpoch(0),
+      upvotes: 0,
+      downvotes: 0,
+      score: 0,
+      cred: 0,
+      rank: 0,
     );
   }
 
   factory Author.fromJson(Map<String, dynamic> json) {
     return Author(
-      ID: json["ID"],
-      Name: json["Name"],
-      RegisterDate: DateTime.parse(json["RegisterDate"]),
-      Upvotes: json["Upvotes"],
-      Downvotes: json["Downvotes"],
-      Score: json["Score"],
-      Cred: json["Cred"],
-      Rank: json["Rank"],
+      id: json["ID"],
+      name: json["Name"],
+      registerDate: DateTime.parse(json["RegisterDate"]),
+      upvotes: json["Upvotes"],
+      downvotes: json["Downvotes"],
+      score: json["Score"],
+      cred: json["Cred"],
+      rank: json["Rank"],
     );
   }
 
   void showUserPage(BuildContext context) {
-    final page = AccountPage(user: this, title: Name);
+    final page = AccountPage(user: this, title: name);
 
     Navigator.push(
       context,
@@ -236,15 +236,15 @@ class Author {
 
   Widget followButton(Function() updateState) {
     final isFollowing = User.current?.following
-            .firstWhere((u) => u.ID == ID,
+            .firstWhere((u) => u.id == id,
                 orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
-            .ID !=
-        User.current?.ID;
+            .id !=
+        User.current?.id;
     final isIgnored = User.current?.ignored
-            .firstWhere((u) => u.ID == ID,
+            .firstWhere((u) => u.id == id,
                 orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
-            .ID !=
-        User.current?.ID;
+            .id !=
+        User.current?.id;
     final actionText = isIgnored
         ? "Don't Ignore"
         : isFollowing
@@ -256,16 +256,16 @@ class Author {
           return;
         }
         if (isIgnored) {
-          User.current?.ignored.removeWhere((u) => u.ID == ID);
-          NewSource.deleteUserCont(User.current!.ID, ID, UserContKind.ignored);
+          User.current?.ignored.removeWhere((u) => u.id == id);
+          NewSource.deleteUserCont(User.current!.id, id, UserContKind.ignored);
         } else if (isFollowing) {
-          User.current?.following.removeWhere((u) => u.ID == ID);
+          User.current?.following.removeWhere((u) => u.id == id);
           NewSource.deleteUserCont(
-              User.current!.ID, ID, UserContKind.userFollow);
+              User.current!.id, id, UserContKind.userFollow);
         } else {
           User.current?.following.add(this);
           NewSource.addUserCont(
-              uid: User.current!.ID, kind: UserContKind.userFollow, pid: ID);
+              uid: User.current!.id, kind: UserContKind.userFollow, pid: id);
         }
         updateState();
       },
@@ -278,9 +278,9 @@ class Author {
 
   Widget card(BuildContext context, Function() updateState,
       {int? up, int? down}) {
-    final title = Text(Name);
-    final upChip = buildUpvoteChip(context, Upvotes);
-    final downChip = buildDownvoteChip(context, Downvotes);
+    final title = Text(name);
+    final upChip = buildUpvoteChip(context, upvotes);
+    final downChip = buildDownvoteChip(context, downvotes);
     final follow =
         FittedBox(fit: BoxFit.contain, child: followButton(updateState));
     final votes = FittedBox(
@@ -289,7 +289,7 @@ class Author {
     return ListTile(
       title: title,
       trailing: Padding(padding: const EdgeInsets.all(8), child: votes),
-      subtitle: followButton(updateState),
+      subtitle: follow,
       onTap: () => showUserPage(context),
     );
   }

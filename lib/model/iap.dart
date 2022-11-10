@@ -64,9 +64,9 @@ void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
       if (User.current != null) {
         // FIXME: verify on server
         final newAmount =
-            await NewSource.purchaseCredit(User.current!.ID, amount);
+            await NewSource.purchaseCredit(User.current!.id, amount);
         if (newAmount != null) {
-          User.current?.Credits = newAmount;
+          User.current?.credits = newAmount;
           IAPConnection.instance.completePurchase(purchase);
         }
       }

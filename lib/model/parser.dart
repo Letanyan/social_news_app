@@ -118,8 +118,6 @@ class Parser {
       var minIndex = text.length;
       var endIndex = 0;
       var mapper = defaultMap;
-      var mapIndex = 0;
-      var currentIndex = 0;
       for (final map in mappings) {
         final match = map.pattern.firstMatch(text);
         if (match != null) {
@@ -127,10 +125,8 @@ class Parser {
             minIndex = match.start;
             endIndex = match.end;
             mapper = map.result;
-            mapIndex = currentIndex;
           }
         }
-        currentIndex += 1;
       }
       if (minIndex < text.length) {
         if (minIndex > 0) {
@@ -165,8 +161,6 @@ class Parser {
       var minIndex = rawText.length;
       var endIndex = 0;
       var mapper = defaultMap;
-      var mapIndex = 0;
-      var currentIndex = 0;
       for (final map in mappings) {
         final match = map.pattern.firstMatch(rawText);
         if (match != null) {
@@ -174,10 +168,8 @@ class Parser {
             minIndex = match.start;
             endIndex = match.end;
             mapper = map.result;
-            mapIndex = currentIndex;
           }
         }
-        currentIndex += 1;
       }
       if (minIndex < rawText.length) {
         if (minIndex > 0) {
@@ -325,8 +317,6 @@ class Parser {
         ParserMapping.listItem((s, c) {
           final match = RegexPatterns.listItem.firstMatch(s);
           if (match != null) {
-            final indent = match.group(1) ?? "";
-            final number = match.group(2) ?? "";
             final content = match.group(3) ?? "";
             final text = TextSpan(
               text: " ",

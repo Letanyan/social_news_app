@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
@@ -21,9 +20,9 @@ class Comment {
   final int replyCount;
   bool trashed;
   bool isReview;
-  double Score;
-  double Cred;
-  double Rank;
+  double score;
+  double cred;
+  double rank;
 
   Comment({
     required this.id,
@@ -37,9 +36,9 @@ class Comment {
     required this.replyCount,
     required this.trashed,
     required this.isReview,
-    required this.Score,
-    required this.Cred,
-    required this.Rank,
+    required this.score,
+    required this.cred,
+    required this.rank,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -57,9 +56,9 @@ class Comment {
       replyCount: json["ReplyCount"],
       trashed: json["Trashed"],
       isReview: json["IsReview"],
-      Score: json["Score"],
-      Cred: json["Cred"],
-      Rank: json["Rank"],
+      score: json["Score"],
+      cred: json["Cred"],
+      rank: json["Rank"],
     );
   }
 
@@ -97,10 +96,10 @@ class Comment {
         NewSource.voteForComment(
                 postId: postId,
                 commentId: id,
-                userId: User.current!.ID,
+                userId: User.current!.id,
                 amount: amount)
             .then((value) {
-          User.current!.Credits = value;
+          User.current!.credits = value;
         }).onError((error, stackTrace) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(error.toString())));
@@ -133,7 +132,7 @@ class Comment {
     final creator = InkWell(
       onTap: () => author.showUserPage(context),
       child: Text(
-        author.Name,
+        author.name,
         style: const TextStyle(color: Colors.grey),
       ),
     );
@@ -214,8 +213,8 @@ class Comment {
       child: const Text("Remove"),
     );
     final removeCommentList = <PopupMenuItem>[];
-    if (author.ID == User.current?.ID ||
-        (User.current?.ID == postAuthor && postAuthor != null)) {
+    if (author.id == User.current?.id ||
+        (User.current?.id == postAuthor && postAuthor != null)) {
       removeCommentList.add(removeComment);
     }
 

@@ -85,7 +85,7 @@ class _FilterBoxState extends State<FilterBox> {
       startDate = [defaultStart];
       endDate = [defaultEnd];
     } else {
-      for (final key in widget.selector!.keys) {
+      for (final _ in widget.selector!.keys) {
         sortOrder.add(SortOrder.upvotes);
         location.add(defaultLocation);
         searchString.add(defaultSearch);
@@ -353,21 +353,17 @@ class _FilterBoxState extends State<FilterBox> {
 
     var filterItems = <Widget>[];
 
-    var size = 0;
     if (widget.selector != null) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(selector);
-      size += 48;
     }
     if (widget.search != null) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(searchBox);
-      size += 48;
     }
     if (operatorItems.isNotEmpty) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(operatorRow);
-      size += 48;
     }
 
     final body = Column(

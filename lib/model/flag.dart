@@ -69,7 +69,7 @@ class _FlagDialogState extends State<FlagDialog> {
           onPressed: () {
             if (User.current != null) {
               NewSource.createFlag(
-                User.current!.ID,
+                User.current!.id,
                 widget.pid,
                 widget.sid,
                 selectReason,
@@ -116,7 +116,7 @@ class FlaggedPost {
 
   void handleFlag(
       BuildContext context, FlagHandle handle, Function() updateState) {
-    NewSource.handleFlag(id, content.ID, -1, handle).then((value) {
+    NewSource.handleFlag(id, content.id, -1, handle).then((value) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(flagHandleKind(handle))));
       handled = true;

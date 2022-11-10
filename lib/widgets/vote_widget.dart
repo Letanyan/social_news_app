@@ -34,7 +34,7 @@ class _VoteWidgetState extends State<VoteWidget> {
 
   void updateAmount(int amount) {
     final newAmount = voteAmount + amount;
-    if (newAmount > 0 && newAmount <= User.current!.Credits) {
+    if (newAmount > 0 && newAmount <= User.current!.credits) {
       setState(() => voteAmount += amount);
     }
   }
@@ -57,7 +57,7 @@ class _VoteWidgetState extends State<VoteWidget> {
     final action = widget.isPromote ? "Promote" : "Demote";
     final actionDescription = widget.isPromote ? "Promotion" : "Demotion";
     final content = userVoteKindToString(widget.kind);
-    if (User.current == null || User.current?.ValidationKey != 0) {
+    if (User.current == null || User.current?.validationKey != 0) {
       return AlertDialog(
         title: Text("Sign in to $action $content"),
         actions: [
@@ -135,7 +135,7 @@ void Function() showVoteDialog(
       context: context,
       builder: (context) {
         late final StatefulWidget page;
-        if ((User.current?.Credits ?? 0) <= 0) {
+        if ((User.current?.credits ?? 0) <= 0) {
           page = const PurchaseCredit();
         } else {
           page = VoteWidget(

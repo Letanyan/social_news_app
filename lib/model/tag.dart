@@ -4,33 +4,33 @@ import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Tag {
-  final int ID;
-  final String Name;
-  final int Upvotes;
-  final int Downvotes;
-  final double Score;
-  final double Cred;
-  final double Rank;
+  final int id;
+  final String name;
+  final int upvotes;
+  final int downvotes;
+  final double score;
+  final double cred;
+  final double rank;
 
   const Tag({
-    required this.ID,
-    required this.Name,
-    required this.Upvotes,
-    required this.Downvotes,
-    required this.Score,
-    required this.Cred,
-    required this.Rank,
+    required this.id,
+    required this.name,
+    required this.upvotes,
+    required this.downvotes,
+    required this.score,
+    required this.cred,
+    required this.rank,
   });
 
   factory Tag.fromJson(Map<String, dynamic> json) {
     return Tag(
-      ID: json["ID"],
-      Name: json["Name"],
-      Upvotes: json["Upvotes"],
-      Downvotes: json["Downvotes"],
-      Score: json["Score"],
-      Cred: json["Cred"],
-      Rank: json["Rank"],
+      id: json["ID"],
+      name: json["Name"],
+      upvotes: json["Upvotes"],
+      downvotes: json["Downvotes"],
+      score: json["Score"],
+      cred: json["Cred"],
+      rank: json["Rank"],
     );
   }
 
@@ -39,10 +39,10 @@ class Tag {
   }
 
   Widget chip(BuildContext context) {
-    final fullPostPage = PostsPage(title: Name, tags: [ID]);
+    final fullPostPage = PostsPage(title: name, tags: [id]);
 
     return ActionChip(
-      label: Text(Name),
+      label: Text(name),
       onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -96,14 +96,14 @@ class Tag {
     final newTags = await NewSource.getTagsFromIds(uncached);
 
     for (final tag in newTags) {
-      stored[tag.ID] = tag;
+      stored[tag.id] = tag;
     }
 
     return newTags;
   }
 
   void showTagPage(BuildContext context) {
-    final page = PostsPage(title: Name, tags: [ID]);
+    final page = PostsPage(title: name, tags: [id]);
 
     Navigator.push(
       context,
@@ -113,9 +113,9 @@ class Tag {
 
   Widget card(BuildContext context, Function() updateState,
       {int? up, int? down}) {
-    final title = Text(Name);
-    final upChip = buildUpvoteChip(context, Upvotes);
-    final downChip = buildDownvoteChip(context, Downvotes);
+    final title = Text(name);
+    final upChip = buildUpvoteChip(context, upvotes);
+    final downChip = buildDownvoteChip(context, downvotes);
     final votes = FittedBox(
         fit: BoxFit.contain, child: Row(children: [upChip, downChip]));
 

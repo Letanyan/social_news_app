@@ -129,7 +129,7 @@ class NewSource {
     var args = <String>[];
     addSecret(args);
 
-    final obj = await post(path, args, {"userId": User.current!.ID});
+    final obj = await post(path, args, {"userId": User.current!.id});
     if (obj == null) {
       throw unknownError;
     }
@@ -161,17 +161,17 @@ class NewSource {
     var args = <String>[];
     addSecret(args);
 
-    final path = ["users", "${user.ID}", "details"];
+    final path = ["users", "${user.id}", "details"];
     final body = {
-      "name": user.Name,
-      "PublicViews": user.PublicViews,
-      "PublicReadLater": user.PublicReadLater,
-      "PublicFollowing": user.PublicFollowing,
-      "PublicIgnored": user.PublicIgnored,
-      "PublicPostVotes": user.PublicPostVotes,
-      "PublicCommentVotes": user.PublicCommentVotes,
-      "PublicUserVotes": user.PublicUserVotes,
-      "PublicTagVotes": user.PublicTagVotes,
+      "name": user.name,
+      "PublicViews": user.publicViews,
+      "PublicReadLater": user.publicReadLater,
+      "PublicFollowing": user.publicFollowing,
+      "PublicIgnored": user.publicIgnored,
+      "PublicPostVotes": user.publicPostVotes,
+      "PublicCommentVotes": user.publicCommentVotes,
+      "PublicUserVotes": user.publicUserVotes,
+      "PublicTagVotes": user.publicTagVotes,
     };
     final obj = await post(path, args, body);
     if (obj == null) {
@@ -201,7 +201,7 @@ class NewSource {
         ["posts", "$postId", "comments"],
         args,
         {
-          "userId": User.current!.ID,
+          "userId": User.current!.id,
           "replyId": replyId,
           "content": content,
           "isReview": isReview
@@ -229,7 +229,7 @@ class NewSource {
         ["posts"],
         args,
         {
-          "userId": User.current!.ID,
+          "userId": User.current!.id,
           "location": [],
           "content": content,
           "tags": []
@@ -370,7 +370,7 @@ class NewSource {
       for (final item in list) {
         final p = UserPrefPost.fromJson(item);
         result.add(p);
-        uncached.addAll(p.post.Tags);
+        uncached.addAll(p.post.tags);
       }
       await Tag.cacheTags(uncached);
       return result;
@@ -485,7 +485,7 @@ class NewSource {
       for (final item in list) {
         final p = Post.fromJson(item);
         result.add(p);
-        uncached.addAll(p.Tags);
+        uncached.addAll(p.tags);
       }
       await Tag.cacheTags(uncached);
       return result;
@@ -610,7 +610,7 @@ class NewSource {
       for (final item in list) {
         final p = Post.fromJson(item);
         result.add(p);
-        uncached.addAll(p.Tags);
+        uncached.addAll(p.tags);
       }
       await Tag.cacheTags(uncached);
       return result;
@@ -647,7 +647,7 @@ class NewSource {
       for (final item in list) {
         final p = Post.fromJson(item);
         result.add(p);
-        uncached.addAll(p.Tags);
+        uncached.addAll(p.tags);
       }
       await Tag.cacheTags(uncached);
       return result;
@@ -1184,9 +1184,9 @@ void addSO(String name, SortOrder? value, List<String> args) {
 }
 
 void addSecret(List<String> args) {
-  if (User.current?.Secret != null) {
+  if (User.current?.secret != null) {
     args.add("secret");
-    args.add(User.current!.Secret);
+    args.add(User.current!.secret);
   }
 }
 

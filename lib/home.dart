@@ -55,7 +55,6 @@ class HomeViewState extends State<HomeView>
     final page = CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         activeColor: MyTheme.primary,
-        // backgroundColor: Color.fromARGB(128, 0, 0, 0),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border_rounded),
@@ -85,7 +84,7 @@ class HomeViewState extends State<HomeView>
             return PostsPage(
                 title: "For You",
                 order: SortOrder.score,
-                forUser: User.current?.ID);
+                forUser: User.current?.id);
 
           case 1:
             return SearchPage(title: "Trending", isTrending: true);

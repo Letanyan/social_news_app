@@ -128,7 +128,7 @@ class _AccountPageState extends State<AccountPage> {
   Widget build(BuildContext context) {
     final Widget? credit;
     final Widget? action;
-    final isOwner = widget.user.ID == User.current?.ID;
+    final isOwner = widget.user.id == User.current?.id;
     if (isOwner) {
       credit = InkWell(
         onTap: () {
@@ -152,7 +152,7 @@ class _AccountPageState extends State<AccountPage> {
       action = widget.user.followButton(() => setState(() {}));
     }
     final name = ListTile(
-      title: Text(widget.user.Name),
+      title: Text(widget.user.name),
       subtitle: credit,
       trailing: action,
     );
@@ -223,7 +223,7 @@ class _AccountPageState extends State<AccountPage> {
             padding: EdgeInsets.all(8), child: Text("Preferences")));
         settingsSection.add(const Divider(thickness: 1));
         settingsSection.add(settings);
-        if (User.current?.ID == -1 && NewSource.isDebug) {
+        if (User.current?.id == -1 && NewSource.isDebug) {
           settingsSection.add(postFlags);
           settingsSection.add(commentFlags);
           settingsSection.add(agents);

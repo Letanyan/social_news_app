@@ -61,7 +61,7 @@ class MyTheme {
       (MyTheme.mode == ThemeMode.system && SystemTheme.isDarkMode);
 
   static void loadThemeData() {
-    final prefs = SharedPreferences.getInstance().then((value) {
+    SharedPreferences.getInstance().then((value) {
       final color = value.getInt("theme:color") ?? 1;
       final mode = value.getInt("theme:mode") ?? 1;
 

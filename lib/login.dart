@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/new_source.dart';
-import 'package:social_news_app/signup.dart';
+import 'package:social_news_app/sign_up.dart';
 
 import 'model/user.dart';
 
@@ -29,17 +28,17 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> checkStoredUser() async {
     User savedUser = await User.fromStore();
-    if (savedUser.ID != 0 && savedUser.Secret.isNotEmpty) {
+    if (savedUser.id != 0 && savedUser.secret.isNotEmpty) {
       User.current = savedUser;
       openApp();
       try {
-        final user = await NewSource.getUser(savedUser.ID);
-        user.Secret = savedUser.Secret;
+        final user = await NewSource.getUser(savedUser.id);
+        user.secret = savedUser.secret;
         User.current = user;
         User.current?.following =
-            await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+            await NewSource.getUserContUsers(user.id, UserContKind.userFollow);
         User.current?.ignored =
-            await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
+            await NewSource.getUserContUsers(user.id, UserContKind.ignored);
       } catch (e) {
         print(e);
       }
@@ -51,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = false;
     });
     if (User.current != null) {
-      if (User.current?.ValidationKey != 0) {
+      if (User.current?.validationKey != 0) {
         Navigator.pop(context);
         Navigator.push(
           context,
@@ -73,9 +72,9 @@ class _LoginPageState extends State<LoginPage> {
       final user = await NewSource.signInUser(email, password);
       User.current = user;
       User.current?.following =
-          await NewSource.getUserContUsers(user.ID, UserContKind.userFollow);
+          await NewSource.getUserContUsers(user.id, UserContKind.userFollow);
       User.current?.ignored =
-          await NewSource.getUserContUsers(user.ID, UserContKind.ignored);
+          await NewSource.getUserContUsers(user.id, UserContKind.ignored);
       user.storeUser();
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -177,7 +176,8 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: signInGoogle, child: const Text("Sign In With Google"));
     var signInWithEmail =
         TextButton(onPressed: signIn, child: const Text("Sign In"));
-    var signUp = TextButton(onPressed: gotoSignUpPage, child: const Text("Sign Up"));
+    var signUp =
+        TextButton(onPressed: gotoSignUpPage, child: const Text("Sign Up"));
     var forgot = TextButton(
         onPressed: signIn,
         child: const Text("Forgot Password",

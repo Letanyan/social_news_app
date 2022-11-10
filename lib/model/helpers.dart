@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -63,8 +62,6 @@ String formatDateTime(DateTime date) {
   final sameHour =
       (today.millisecondsSinceEpoch - date.millisecondsSinceEpoch) <
           1000 * 60 * 60;
-  final sameMinute =
-      (today.millisecondsSinceEpoch - date.millisecondsSinceEpoch) < 1000 * 60;
 
   final diff = today.difference(date);
 
@@ -98,7 +95,7 @@ class MyCustomScrollBehavior extends MaterialScrollBehavior {
       };
 }
 
-TextStyle merge(TextStyle base, TextStyle other) {
+TextStyle merge(TextStyle base, TextStyle? other) {
   if (other == null) {
     return base;
   }

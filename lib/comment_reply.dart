@@ -58,7 +58,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
           .then((value) => Navigator.pop(context));
     } else if (widget.post != null) {
       final result =
-          NewSource.createComment(widget.post!.ID, 0, controller.text, isReview)
+          NewSource.createComment(widget.post!.id, 0, controller.text, isReview)
               .then((value) => Navigator.pop(context));
     } else {
       final result = NewSource.createPost(controller.text)
@@ -109,13 +109,10 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     final startPos = controller.selection.base;
     final endPos = controller.selection.extent;
     var start = 0;
-    late final int end;
     if (endPos.offset < startPos.offset) {
       start = endPos.offset;
-      end = startPos.offset;
     } else {
       start = startPos.offset;
-      end = endPos.offset;
     }
     final source = controller.text;
     while (start > 0 && source[start - 1] != '\n') {
@@ -152,7 +149,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     } else {
       preview = const SizedBox();
     }
-    final size = MediaQuery.of(context).size;
     final input = TextField(
         keyboardType: TextInputType.multiline,
         maxLines: null,
@@ -253,22 +249,22 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
 void Function() previewPost(BuildContext context, String content) {
   return () {
     final previewPost = Post(
-      ID: -1,
-      Creator: User.current!.toAuthor(),
-      Content: content,
-      Tags: [],
-      CreatedAt: DateTime.now(),
-      Location: [],
-      Upvotes: 0,
-      Downvotes: 0,
-      CommentCount: 0,
-      Trashed: false,
-      Score: 0,
-      Cred: 0,
-      Rank: 0,
+      id: -1,
+      creator: User.current!.toAuthor(),
+      content: content,
+      tags: [],
+      createdAt: DateTime.now(),
+      location: [],
+      upvotes: 0,
+      downvotes: 0,
+      commentCount: 0,
+      trashed: false,
+      score: 0,
+      cred: 0,
+      rank: 0,
     );
 
-    // FIXME: make post
+    // FIXME: send post
     final makePost = TextButton(onPressed: () {}, child: const Text("Post"));
 
     final page = Scaffold(

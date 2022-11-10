@@ -26,7 +26,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     );
     final message = Parser.basic(defaultStyle).parse(
         "Please click the verification link in the email sent to you "
-        "(**${User.current!.Email}**). If you did not receive "
+        "(**${User.current!.email}**). If you did not receive "
         "an email you can resend the link by pressing the "
         "**Resend Verification Link** button below. Ensure that the email is "
         "not in the Junk folder.\n\n"
@@ -40,7 +40,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           return;
         }
         await NewSource.sendVerificationLink(
-            User.current!.ID, User.current!.Email, User.current!.ValidationKey);
+            User.current!.id, User.current!.email, User.current!.validationKey);
       },
       child: const Text("Resend Verification Link"),
     );

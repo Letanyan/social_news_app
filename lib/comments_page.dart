@@ -70,7 +70,7 @@ class _CommentsPageState extends State<CommentsPage> {
       if (User.current == null) {
         return;
       }
-      NewSource.watchPost(User.current!.ID, widget.post.ID, 1);
+      NewSource.watchPost(User.current!.id, widget.post.id, 1);
     });
   }
 
@@ -83,7 +83,7 @@ class _CommentsPageState extends State<CommentsPage> {
 
   Future<void> loadComments(int commentId) async {
     allComments = NewSource.getComments(
-      postId: widget.post.ID,
+      postId: widget.post.id,
       replyId: commentId,
       order: SortOrder.createdAt,
       isReview: false,
@@ -101,7 +101,7 @@ class _CommentsPageState extends State<CommentsPage> {
 
   Future<void> loadReviews() async {
     final raw = await NewSource.getComments(
-      postId: widget.post.ID,
+      postId: widget.post.id,
       replyId: 0,
       order: SortOrder.createdAt,
       isReview: true,
@@ -187,15 +187,15 @@ class _CommentsPageState extends State<CommentsPage> {
         case SortOrder.addedOn:
           return a.createdAt.compareTo(b.createdAt);
         case SortOrder.score:
-          return -a.Score.compareTo(b.Score);
+          return -a.score.compareTo(b.score);
         case SortOrder.cred:
-          return -a.Cred.compareTo(b.Cred);
+          return -a.cred.compareTo(b.cred);
         case SortOrder.upvotes:
           return -a.upvotes.compareTo(b.upvotes);
         case SortOrder.downvotes:
           return -a.downvotes.compareTo(b.downvotes);
         case SortOrder.controversial:
-          return -controversial(a.Cred).compareTo(controversial(b.Cred));
+          return -controversial(a.cred).compareTo(controversial(b.cred));
         case SortOrder.createdAt:
           return a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedAt:
@@ -203,7 +203,7 @@ class _CommentsPageState extends State<CommentsPage> {
         case SortOrder.updatedOn:
           return a.createdAt.compareTo(b.createdAt);
         case SortOrder.rank:
-          return a.Rank.compareTo(b.Rank);
+          return a.rank.compareTo(b.rank);
       }
     });
     allComments = Future(() => source);
@@ -234,15 +234,15 @@ class _CommentsPageState extends State<CommentsPage> {
           case SortOrder.addedOn:
             return a.createdAt.compareTo(b.createdAt);
           case SortOrder.score:
-            return -a.Score.compareTo(b.Score);
+            return -a.score.compareTo(b.score);
           case SortOrder.cred:
-            return -a.Cred.compareTo(b.Cred);
+            return -a.cred.compareTo(b.cred);
           case SortOrder.upvotes:
             return -a.upvotes.compareTo(b.upvotes);
           case SortOrder.downvotes:
             return -a.downvotes.compareTo(b.downvotes);
           case SortOrder.controversial:
-            return -controversial(a.Cred).compareTo(controversial(b.Cred));
+            return -controversial(a.cred).compareTo(controversial(b.cred));
           case SortOrder.createdAt:
             return a.createdAt.compareTo(b.createdAt);
           case SortOrder.updatedAt:
@@ -250,7 +250,7 @@ class _CommentsPageState extends State<CommentsPage> {
           case SortOrder.updatedOn:
             return a.createdAt.compareTo(b.createdAt);
           case SortOrder.rank:
-            return a.Rank.compareTo(b.Rank);
+            return a.rank.compareTo(b.rank);
         }
       },
     );
@@ -324,7 +324,9 @@ class _CommentsPageState extends State<CommentsPage> {
       onValueChanged: (value) {
         final didChange = value != isReview && value != null;
         isReview = value ?? false;
-        updateState();
+        if (didChange) {
+          updateState();
+        }
       },
     );
     final sort = PopupMenuButton(
@@ -398,7 +400,7 @@ class _CommentsPageState extends State<CommentsPage> {
                   replyingTo = item.comment;
                 }),
                 visibleReplyIds.contains(item.comment.id),
-                postAuthor: widget.post.Creator.ID,
+                postAuthor: widget.post.creator.id,
               );
             },
           );

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
@@ -97,43 +96,43 @@ class _UserPrefPageState extends State<UserPrefPage> {
     final src = filterBox.currentState?.search;
     if (isTypeEqual<T, UserPrefTag>()) {
       return NewSource.getUserPrefTags(
-        uid: widget.user.ID,
+        uid: widget.user.id,
         startVoted: sd,
         endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: srt, // FIXME: sort by vote date?
+        order: srt,
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefPost>()) {
       return NewSource.getUserPrefPosts(
-        uid: widget.user.ID,
+        uid: widget.user.id,
         location: loc,
         startVoted: sd,
         endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: srt, // FIXME: sort by vote date?
+        order: srt,
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefUser>()) {
       return NewSource.getUserPrefUsers(
-        uid: widget.user.ID,
+        uid: widget.user.id,
         startVoted: sd,
         endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: srt, // FIXME: sort by vote date?
+        order: srt,
         search: src,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefComment>()) {
       return NewSource.getUserPrefComments(
-        uid: widget.user.ID,
+        uid: widget.user.id,
         startVoted: sd,
         endVoted: ed,
         offset: offset,
         limit: pageSize,
-        order: srt, // FIXME: sort by vote date?
+        order: srt,
         search: src,
       ) as Future<List<T>>;
     } else {

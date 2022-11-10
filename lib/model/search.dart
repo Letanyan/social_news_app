@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
@@ -262,9 +261,9 @@ class SearchPageState extends State<SearchPage> {
                 final item = snapshot.data![index];
                 if (current == 0) {
                   final tag = item as Tag;
-                  final page = PostsPage(title: tag.Name, tags: [tag.ID]);
+                  final page = PostsPage(title: tag.name, tags: [tag.id]);
                   return ListTile(
-                    title: Text(tag.Name),
+                    title: Text(tag.name),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => page),
@@ -275,7 +274,7 @@ class SearchPageState extends State<SearchPage> {
                 } else if (current == 2) {
                   final user = item as Author;
                   return ListTile(
-                      title: Text(user.Name),
+                      title: Text(user.name),
                       onTap: () => user.showUserPage(context));
                 } else if (current == 3) {
                   final comment = item as Comment;

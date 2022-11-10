@@ -147,10 +147,10 @@ class _PostsPageState extends State<PostsPage> {
               if (User.current != null && widget.forUser != null) {
                 var list = <int>[];
                 for (final p in await posts) {
-                  list.add(p.ID);
+                  list.add(p.id);
                 }
                 NewSource.refreshUserContRecommendations(
-                    User.current!.ID, list);
+                    User.current!.id, list);
               }
               offset = 0;
               count = 0;

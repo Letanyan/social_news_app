@@ -1,3 +1,11 @@
 {
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "cSpell.words": [
+        "addedon",
+        "createdat",
+        "cred",
+        "strikethrough",
+        "updatedat",
+        "updatedon"
+    ]
 }

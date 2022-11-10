@@ -70,7 +70,7 @@ class _SignUpPageState extends State<SignUpPage> {
         isLoading = false;
       });
       if (User.current != null) {
-        if (User.current?.ValidationKey != 0) {
+        if (User.current?.validationKey != 0) {
           Navigator.push(
             context,
             MaterialPageRoute(

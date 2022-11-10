@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -15,53 +14,53 @@ import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Post {
-  final int ID;
-  final Author Creator;
-  final String Content;
-  final List<int> Tags;
-  final DateTime CreatedAt;
-  final List<String> Location;
-  int Upvotes;
-  int Downvotes;
-  final int CommentCount;
-  bool Trashed;
-  double Score;
-  double Cred;
-  double Rank;
+  final int id;
+  final Author creator;
+  final String content;
+  final List<int> tags;
+  final DateTime createdAt;
+  final List<String> location;
+  int upvotes;
+  int downvotes;
+  final int commentCount;
+  bool trashed;
+  double score;
+  double cred;
+  double rank;
 
   String? sourceUrl;
 
   Post({
-    required this.ID,
-    required this.Creator,
-    required this.Content,
-    required this.Tags,
-    required this.CreatedAt,
-    required this.Location,
-    required this.Upvotes,
-    required this.Downvotes,
-    required this.CommentCount,
-    required this.Trashed,
-    required this.Score,
-    required this.Cred,
-    required this.Rank,
+    required this.id,
+    required this.creator,
+    required this.content,
+    required this.tags,
+    required this.createdAt,
+    required this.location,
+    required this.upvotes,
+    required this.downvotes,
+    required this.commentCount,
+    required this.trashed,
+    required this.score,
+    required this.cred,
+    required this.rank,
   }) : sourceUrl = null;
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      ID: json["ID"],
-      Creator: Author.fromJson(json["Author"]),
-      Content: json["Content"],
-      Tags: List<int>.from(json["Tags"]),
-      CreatedAt: DateTime.parse(json["CreatedAt"]),
-      Location: List<String>.from(json["Location"]),
-      Upvotes: json["Upvotes"],
-      Downvotes: json["Downvotes"],
-      CommentCount: json["CommentCount"],
-      Trashed: json["Trashed"],
-      Score: json["Score"],
-      Cred: json["Cred"],
-      Rank: json["Rank"],
+      id: json["ID"],
+      creator: Author.fromJson(json["Author"]),
+      content: json["Content"],
+      tags: List<int>.from(json["Tags"]),
+      createdAt: DateTime.parse(json["CreatedAt"]),
+      location: List<String>.from(json["Location"]),
+      upvotes: json["Upvotes"],
+      downvotes: json["Downvotes"],
+      commentCount: json["CommentCount"],
+      trashed: json["Trashed"],
+      score: json["Score"],
+      cred: json["Cred"],
+      rank: json["Rank"],
     );
   }
 
@@ -81,7 +80,7 @@ class Post {
     return () {
       if (User.current != null) {
         NewSource.addUserCont(
-            uid: User.current!.ID, kind: UserContKind.viewed, pid: ID);
+            uid: User.current!.id, kind: UserContKind.viewed, pid: id);
       }
       Navigator.push(
         context,
@@ -93,8 +92,8 @@ class Post {
   void openSimilar(BuildContext context) {
     final postsPage = PostsPage(
         title: "Similar",
-        forUser: User.current!.ID,
-        postId: ID,
+        forUser: User.current!.id,
+        postId: id,
         order: SortOrder.score);
     Navigator.push(
       context,
@@ -108,16 +107,16 @@ class Post {
         return;
       }
       if (amount > 0) {
-        Upvotes += amount;
+        upvotes += amount;
       } else {
-        Downvotes += -amount;
+        downvotes += -amount;
       }
       updateState();
       try {
         NewSource.voteForPost(
-                postId: ID, userId: User.current!.ID, amount: amount)
+                postId: id, userId: User.current!.id, amount: amount)
             .then((value) {
-          User.current!.Credits = value;
+          User.current!.credits = value;
         }).onError((error, stackTrace) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(error.toString())));
@@ -131,13 +130,13 @@ class Post {
 
   Widget buildCreator(BuildContext context) {
     return InkWell(
-      onTap: () => Creator.showUserPage(context),
-      child: Text(Creator.Name),
+      onTap: () => creator.showUserPage(context),
+      child: Text(creator.name),
     );
   }
 
   Widget buildDate(BuildContext context) {
-    return Text(formatDateTime(CreatedAt));
+    return Text(formatDateTime(createdAt));
   }
 
   Widget buildReply(BuildContext context) {
@@ -169,17 +168,17 @@ class Post {
       ),
       avatar: Icon(Icons.comment, color: MyTheme.primary, size: 18),
       label: Text(
-          CommentCount == 1 ? "$CommentCount Reply" : "$CommentCount Replies"),
+          commentCount == 1 ? "$commentCount Reply" : "$commentCount Replies"),
     );
   }
 
   PopupMenuItem buildRemove(BuildContext context, VoidCallback updateState) {
     return PopupMenuItem(
       onTap: () {
-        NewSource.deletePost(ID).then((value) {
+        NewSource.deletePost(id).then((value) {
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text("Removed")));
-          Trashed = true;
+          trashed = true;
           updateState();
           return value;
         });
@@ -193,9 +192,9 @@ class Post {
       return;
     }
     await NewSource.addUserCont(
-      uid: User.current!.ID,
+      uid: User.current!.id,
       kind: UserContKind.readLater,
-      pid: ID,
+      pid: id,
     );
   }
 
@@ -229,9 +228,9 @@ class Post {
       return;
     }
     await NewSource.addUserCont(
-      uid: User.current!.ID,
+      uid: User.current!.id,
       kind: UserContKind.ignored,
-      pid: Creator.ID,
+      pid: creator.id,
     );
   }
 
@@ -263,7 +262,7 @@ class Post {
   void report(BuildContext context) {
     showPlatformDialog(
       context: context,
-      builder: (context) => FlagDialog(pid: ID, sid: -1),
+      builder: (context) => FlagDialog(pid: id, sid: -1),
     );
   }
 
@@ -294,7 +293,7 @@ class Post {
 
   Widget card(BuildContext context, VoidCallback updateState,
       {int? up, int? down}) {
-    if (Trashed) {
+    if (trashed) {
       return const SizedBox();
     }
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -306,41 +305,41 @@ class Post {
     final parser = Parser.basic(defaultStyle);
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
 
-    final firstUrl = urlParser.pattern.firstMatch(Content);
+    final firstUrl = urlParser.pattern.firstMatch(content);
     late String newContent;
     if (firstUrl != null && firstUrl.start == 0) {
-      newContent = Content.substring(firstUrl.end);
-      sourceUrl = Content.substring(firstUrl.start, firstUrl.end);
+      newContent = content.substring(firstUrl.end);
+      sourceUrl = content.substring(firstUrl.start, firstUrl.end);
     } else {
-      newContent = Content;
+      newContent = content;
     }
 
     final query = MediaQuery.of(context).size;
     final size = <String, dynamic>{"w": query.width, "h": query.height};
     final body = RichText(text: parser.parse(newContent, size));
 
-    final creator = buildCreator(context);
+    final creatorField = buildCreator(context);
     final date = buildDate(context);
     final meta = Padding(
       padding: const EdgeInsets.all(8),
       child: Row(children: [
-        creator,
+        creatorField,
         Expanded(child: Align(alignment: Alignment.centerRight, child: date))
       ]),
     );
 
-    final resolvedTags = Tag.getTags(Tags);
-    final tags = Tag.chips(context, resolvedTags);
+    final resolvedTags = Tag.getTags(tags);
+    final tagsRow = Tag.chips(context, resolvedTags);
 
     final reply = buildReply(context);
     final replyCount = buildReplyCount(context);
     final upvoteButton = buildUpvoteButton(
-        context, Upvotes, UserVoteKind.post, updateVote(updateState));
+        context, upvotes, UserVoteKind.post, updateVote(updateState));
     final downvoteButton = buildDownvoteButton(
-        context, Downvotes, UserVoteKind.post, updateVote(updateState));
+        context, downvotes, UserVoteKind.post, updateVote(updateState));
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
-    if (Creator.ID == User.current?.ID) {
+    if (creator.id == User.current?.id) {
       removePostList.add(removePost);
     }
     final moreButton = PopupMenuButton(
@@ -358,8 +357,8 @@ class Post {
 
     var reviewItems = <Widget>[];
     if (up != null && down != null) {
-      final upChip = buildUpvoteChip(context, Upvotes);
-      final downChip = buildDownvoteChip(context, Downvotes);
+      final upChip = buildUpvoteChip(context, upvotes);
+      final downChip = buildDownvoteChip(context, downvotes);
       reviewItems.add(upChip);
       reviewItems.add(downChip);
     }
@@ -399,9 +398,9 @@ class Post {
           )),
       const Divider(),
       Padding(padding: const EdgeInsets.all(0), child: meta),
-      tags,
+      tagsRow,
     ];
-    if (ID != -1) {
+    if (id != -1) {
       items.add(const Divider());
       items.add(buttonRow);
     }
@@ -431,18 +430,18 @@ class Post {
 
   Widget tile(BuildContext context, VoidCallback updateState,
       {int? up, int? down}) {
-    if (Trashed) {
+    if (trashed) {
       return const SizedBox();
     }
 
-    final urls = RegexPatterns.url.allMatches(Content);
-    final headline = RegexPatterns.h1.firstMatch(Content);
-    final lines = Content.split("\n");
+    final urls = RegexPatterns.url.allMatches(content);
+    final headline = RegexPatterns.h1.firstMatch(content);
+    final lines = content.split("\n");
 
     Widget title;
     if (headline != null) {
       title = Text(
-        Content.substring(headline.start + 1, headline.end),
+        content.substring(headline.start + 1, headline.end),
         style: const TextStyle(fontSize: 18),
       );
     } else if (lines.isNotEmpty) {
@@ -463,7 +462,7 @@ class Post {
     const imageWidth = 164.0;
     Widget? image;
     for (final match in urls) {
-      final url = Content.substring(match.start, match.end);
+      final url = content.substring(match.start, match.end);
       if (url.endsWith(".png") || url.endsWith(".jpg")) {
         // FIXME: handle all image urls
         final img = ClipRRect(
@@ -498,15 +497,15 @@ class Post {
       }
     }
     final date = buildDate(context);
-    final creator = buildCreator(context);
+    final creatorField = buildCreator(context);
     final meta = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Padding(padding: const EdgeInsets.all(8), child: creator),
+        Padding(padding: const EdgeInsets.all(8), child: creatorField),
         Padding(padding: const EdgeInsets.all(8), child: date),
       ],
     );
-    final content = Row(
+    final contentBody = Row(
       children: [
         image ?? const SizedBox(),
         Expanded(
@@ -523,13 +522,13 @@ class Post {
     final replyCount = buildReplyCount(context);
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
-    if (Creator.ID == User.current?.ID) {
+    if (creator.id == User.current?.id) {
       removePostList.add(removePost);
     }
     final upvoteButton = buildUpvoteButton(
-        context, Upvotes, UserVoteKind.post, updateVote(updateState));
+        context, upvotes, UserVoteKind.post, updateVote(updateState));
     final downvoteButton = buildDownvoteButton(
-        context, Downvotes, UserVoteKind.post, updateVote(updateState));
+        context, downvotes, UserVoteKind.post, updateVote(updateState));
     final voteBox = SizedBox(
       width: 172,
       child: Padding(
@@ -573,7 +572,7 @@ class Post {
       child: InkWell(
         onTap: openComments(context),
         child: Column(
-          children: [content, buttonRow, personal],
+          children: [contentBody, buttonRow, personal],
         ),
       ),
     );

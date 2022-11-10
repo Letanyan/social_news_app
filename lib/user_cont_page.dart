@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment.dart';
@@ -100,7 +99,7 @@ class _UserContPageState extends State<UserContPage> {
     final src = filterBox.currentState?.search;
     if (isTypeEqual<T, Post>()) {
       return NewSource.getUserContPost(
-        uid: widget.user.ID,
+        uid: widget.user.id,
         kind: widget.playlist,
         location: loc,
         startCreated: sd,
@@ -112,7 +111,7 @@ class _UserContPageState extends State<UserContPage> {
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, Comment>()) {
       return NewSource.getUserContComments(
-        uid: widget.user.ID,
+        uid: widget.user.id,
         startCreated: sd,
         endCreated: ed,
         offset: offset,
@@ -123,14 +122,14 @@ class _UserContPageState extends State<UserContPage> {
     } else if (isTypeEqual<T, Author>()) {
       if (widget.playlist == UserContKind.userFollow) {
         return NewSource.getUserContUsers(
-          widget.user.ID,
+          widget.user.id,
           UserContKind.userFollow,
           startDate: sd,
           endDate: ed,
         ) as Future<List<T>>;
       } else if (widget.playlist == UserContKind.ignored) {
         return NewSource.getUserContUsers(
-          widget.user.ID,
+          widget.user.id,
           UserContKind.ignored,
           startDate: sd,
           endDate: ed,
