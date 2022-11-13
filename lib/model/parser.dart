@@ -17,6 +17,8 @@ abstract class RegexPatterns {
   static final h2 = RegExp(r"^!![^\n]+$", dotAll: true, multiLine: true);
   static final h1 = RegExp(r"^![^\n]+$", dotAll: true, multiLine: true);
   static final line = RegExp(r"^.+$", dotAll: true, multiLine: true);
+  static final hashtag =
+      RegExp(r"#\(?([\w\d\s]+)\)?", dotAll: true, multiLine: true);
   static final namedUrl =
       RegExp("\\[([\\w\\d\\s]+)\\]\\((${url.pattern})\\)", multiLine: true);
   static final numberItem = RegExp(
@@ -82,6 +84,10 @@ class ParserMapping {
 
   static ParserMapping h4(InlineSpan Function(String, dynamic) f) {
     return ParserMapping(pattern: RegexPatterns.h4, result: f);
+  }
+
+  static ParserMapping hashtag(InlineSpan Function(String, dynamic) f) {
+    return ParserMapping(pattern: RegexPatterns.hashtag, result: f);
   }
 
   static ParserMapping numberItem(InlineSpan Function(String, dynamic) f) {
@@ -237,6 +243,13 @@ class Parser {
             }
           },
         ),
+        ParserMapping.hashtag((s, c) {
+          String t = s.substring(1); // remove '#'
+          if (t[0] == '(') {
+            t = t.substring(1, t.length - 1); // remove '(' and ')'
+          }
+          return TextSpan(text: t);
+        }),
         ParserMapping.namedUrl((s, c) {
           final match = RegexPatterns.namedUrl.firstMatch(s);
           if (match != null) {

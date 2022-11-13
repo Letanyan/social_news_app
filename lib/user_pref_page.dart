@@ -11,9 +11,9 @@ class UserPrefPage extends StatefulWidget {
   final ContentKind prefKind;
   final Author user;
   final bool isViewed;
-  String title;
+  final String title;
 
-  UserPrefPage(
+  const UserPrefPage(
       {super.key,
       required this.title,
       required this.showSearch,

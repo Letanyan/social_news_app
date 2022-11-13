@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -12,9 +13,9 @@ class UserContPage extends StatefulWidget {
   final ContentKind kind;
   final UserContKind playlist;
   final Author user;
-  String title;
+  final String title;
 
-  UserContPage(
+  const UserContPage(
       {super.key,
       required this.title,
       required this.showSearch,
@@ -30,6 +31,7 @@ class _UserContPageState extends State<UserContPage> {
   late Future<List<Post>> posts;
   late Future<List<Comment>> comments;
   late Future<List<Author>> users;
+  late Future<List<Tag>> tags;
   late TextEditingController controller;
 
   var current = ContentKind.post;
@@ -61,12 +63,15 @@ class _UserContPageState extends State<UserContPage> {
     posts = Future(() => []);
     comments = Future(() => []);
     users = Future(() => []);
+    tags = Future(() => []);
     if (current == ContentKind.post) {
       posts = getNewItems<Post>().then(updateItemsState);
     } else if (current == ContentKind.comment) {
       comments = getNewItems<Comment>().then(updateItemsState);
     } else if (current == ContentKind.user) {
       users = getNewItems<Author>().then(updateItemsState);
+    } else if (current == ContentKind.tag) {
+      tags = getNewItems<Tag>().then(updateItemsState);
     }
 
     offset = pageSize;
@@ -85,6 +90,8 @@ class _UserContPageState extends State<UserContPage> {
       return 1;
     } else if (isTypeEqual<T, Author>()) {
       return 2;
+    } else if (isTypeEqual<T, Tag>()) {
+      return 3;
     } else {
       return 100;
     }
@@ -137,6 +144,9 @@ class _UserContPageState extends State<UserContPage> {
       } else {
         return Future(() => <T>[]);
       }
+    } else if (isTypeEqual<T, Tag>()) {
+      return NewSource.getUserContTag(widget.user.id, UserContKind.tagFollow)
+          as Future<List<T>>;
     } else {
       return Future(() => <T>[]);
     }
@@ -160,6 +170,8 @@ class _UserContPageState extends State<UserContPage> {
         comments = getNewItems<Comment>().then(updateItemsState);
       } else if (current == ContentKind.user) {
         users = getNewItems<Author>().then(updateItemsState);
+      } else if (current == ContentKind.tag) {
+        tags = getNewItems<Tag>().then(updateItemsState);
       }
       offset = pageSize;
     });
@@ -216,6 +228,9 @@ class _UserContPageState extends State<UserContPage> {
                     } else if (current == ContentKind.user) {
                       final newItems = getNewItems<Author>();
                       _loadMore(newItems, users);
+                    } else if (current == ContentKind.tag) {
+                      final newItems = getNewItems<Tag>();
+                      _loadMore(newItems, tags);
                     }
                     isLoading = true;
                     return const CircularProgressIndicator();
@@ -239,6 +254,9 @@ class _UserContPageState extends State<UserContPage> {
                 } else if (current == ContentKind.user) {
                   final user = item as Author;
                   return user.card(context, updateState);
+                } else if (current == ContentKind.tag) {
+                  final tag = item as Tag;
+                  return tag.card(context, updateState);
                 } else {
                   return const SizedBox();
                 }
@@ -267,6 +285,8 @@ class _UserContPageState extends State<UserContPage> {
       list = buildList(context, comments);
     } else if (current == ContentKind.user) {
       list = buildList(context, users);
+    } else if (current == ContentKind.tag) {
+      list = buildList(context, tags);
     } else {
       list = const SizedBox();
     }

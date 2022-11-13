@@ -8,9 +8,9 @@ class Tag {
   final String name;
   final int upvotes;
   final int downvotes;
-  final double score;
-  final double cred;
-  final double rank;
+  final num score;
+  final num cred;
+  final num rank;
 
   const Tag({
     required this.id,
@@ -31,6 +31,18 @@ class Tag {
       score: json["Score"],
       cred: json["Cred"],
       rank: json["Rank"],
+    );
+  }
+
+  factory Tag.zero() {
+    return const Tag(
+      id: 0,
+      name: "",
+      upvotes: 0,
+      downvotes: 0,
+      score: 0,
+      cred: 0,
+      rank: 0,
     );
   }
 
@@ -83,6 +95,10 @@ class Tag {
     }
 
     return result;
+  }
+
+  static Tag getTag(int id) {
+    return stored[id] ?? Tag.zero();
   }
 
   static Future<List<Tag>> cacheTags(List<int> ids) async {

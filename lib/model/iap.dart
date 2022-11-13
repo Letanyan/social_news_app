@@ -33,7 +33,9 @@ class PurchasableCredit {
 Future<List<PurchasableCredit>> loadPurchases() async {
   final iap = IAPConnection.instance;
   if (!await iap.isAvailable()) {
-    print("Unavailable");
+    return [];
+  }
+  if (!await NewSource.isAvailable()) {
     return [];
   }
   final response =
@@ -63,11 +65,18 @@ void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
     if (amount != null && purchase.status == PurchaseStatus.purchased) {
       if (User.current != null) {
         // FIXME: verify on server
-        final newAmount =
-            await NewSource.purchaseCredit(User.current!.id, amount);
-        if (newAmount != null) {
-          User.current?.credits = newAmount;
-          IAPConnection.instance.completePurchase(purchase);
+        final platform = purchase.verificationData.source;
+        final verifyKey = purchase.verificationData.serverVerificationData;
+        final productId = purchase.productID;
+        try {
+          final newAmount = await NewSource.authenticateIAP(
+              platform, User.current!.id, verifyKey, productId);
+          if (newAmount != -1) {
+            User.current?.credits = newAmount;
+            IAPConnection.instance.completePurchase(purchase);
+          }
+        } catch (e) {
+          print("Failed");
         }
       }
     }
@@ -84,8 +93,9 @@ class TestIAPConnection implements InAppPurchase {
         productID: purchaseParam.productDetails.id,
         verificationData: PurchaseVerificationData(
           localVerificationData: "local",
-          serverVerificationData: "server",
-          source: "dummy",
+          serverVerificationData:
+              "paomfafbchbflobidmidloef.AO-J1OwiqNsoiKp72bKaSxYN5p2BWGJdCvYqNaXjyM3PPJpR2BinkNbAlHB0kUpddnxtcm-vjSGwECxBDxdSqhNkKqRFdoSKxJSmSXDhYqTcPOetjJ2bPXQ",
+          source: "google_play",
         ),
         transactionDate: "${DateTime.now().millisecondsSinceEpoch}",
         status: PurchaseStatus.pending);
@@ -93,8 +103,9 @@ class TestIAPConnection implements InAppPurchase {
         productID: purchaseParam.productDetails.id,
         verificationData: PurchaseVerificationData(
           localVerificationData: "local",
-          serverVerificationData: "server",
-          source: "dummy",
+          serverVerificationData:
+              "paomfafbchbflobidmidloef.AO-J1OwiqNsoiKp72bKaSxYN5p2BWGJdCvYqNaXjyM3PPJpR2BinkNbAlHB0kUpddnxtcm-vjSGwECxBDxdSqhNkKqRFdoSKxJSmSXDhYqTcPOetjJ2bPXQ",
+          source: "google_play",
         ),
         transactionDate: "${DateTime.now().millisecondsSinceEpoch}",
         status: PurchaseStatus.purchased);

@@ -1,4 +1,12 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:social_news_app/account.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
@@ -35,10 +43,6 @@ class _LoginPageState extends State<LoginPage> {
         final user = await NewSource.getUser(savedUser.id);
         user.secret = savedUser.secret;
         User.current = user;
-        User.current?.following =
-            await NewSource.getUserContUsers(user.id, UserContKind.userFollow);
-        User.current?.ignored =
-            await NewSource.getUserContUsers(user.id, UserContKind.ignored);
       } catch (e) {
         print(e);
       }
@@ -71,10 +75,6 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final user = await NewSource.signInUser(email, password);
       User.current = user;
-      User.current?.following =
-          await NewSource.getUserContUsers(user.id, UserContKind.userFollow);
-      User.current?.ignored =
-          await NewSource.getUserContUsers(user.id, UserContKind.ignored);
       user.storeUser();
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -101,38 +101,67 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void signInGoogle() async {
-    // final googleSignIn = GoogleSignIn(scopes: ['email']);
-    // final account = await googleSignIn.signIn();
-
-    // print(account?.email ?? "??");
-    final email = emailController.text == "" ? "@@" : emailController.text;
-    final password = passwordController.text == ""
-        ? "AbstractServer8080"
-        : passwordController.text;
-
     setState(() {
       isLoading = true;
     });
 
-    signInTemplate(email, password);
+    final auth = await AuthService.instance.login(GOOGLE_ISSUER);
+
+    if (auth) {
+      openApp();
+    }
+
+    // final email = emailController.text == "" ? "@@" : emailController.text;
+    // final password = passwordController.text == ""
+    //     ? "AbstractServer8080"
+    //     : passwordController.text;
+
+    // setState(() {
+    //   isLoading = true;
+    // });
+
+    // signInTemplate(email, password);
   }
 
   void signInApple() async {
-    // final credential = await SignInWithApple.getAppleIDCredential(scopes: [
-    //   AppleIDAuthorizationScopes.email,
-    // ]);
-    // print(credential);
-    final email = emailController.text == ""
-        ? "letanyan@icloud.com"
-        : emailController.text;
-    final password =
-        passwordController.text == "" ? "12345678" : passwordController.text;
-
     setState(() {
       isLoading = true;
     });
 
-    signInTemplate(email, password);
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+          ],
+          webAuthenticationOptions: WebAuthenticationOptions(
+            clientId: "com.letanyan.newsourceserviceid",
+            redirectUri: Uri.parse(
+                "https://new-source-server-mhvly.ondigitalocean.app/api/v1/auth/callbacks/sign-in-with-apple"),
+          ));
+
+      final user =
+          await NewSource.signInUserApple(credential.authorizationCode);
+
+      if (user.id != 0) {
+        user.storeUser();
+        User.current = user;
+        openApp();
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    // final email = emailController.text == ""
+    //     ? "letanyan@icloud.com"
+    //     : emailController.text;
+    // final password =
+    //     passwordController.text == "" ? "12345678" : passwordController.text;
+
+    // setState(() {
+    //   isLoading = true;
+    // });
+
+    // signInTemplate(email, password);
   }
 
   Widget _getIndicator() {

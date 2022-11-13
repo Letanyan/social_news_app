@@ -20,9 +20,9 @@ class Comment {
   final int replyCount;
   bool trashed;
   bool isReview;
-  double score;
-  double cred;
-  double rank;
+  num score;
+  num cred;
+  num rank;
 
   Comment({
     required this.id,

@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/news_agent.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user_pref.dart';
@@ -12,7 +14,7 @@ import 'user.dart';
 import 'tag.dart';
 
 class NewSource {
-  static const isDebug = true;
+  static const isDebug = false;
   static var host = isDebug
       ? "http://192.168.0.147:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
@@ -82,13 +84,7 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      final list = obj["payload"];
-      var result = <T>[];
-      for (final item in list) {
-        final p = map(item);
-        result.add(p);
-      }
-      return result;
+      return jsonArrayTo(obj["payload"], map);
     }
   }
 
@@ -96,8 +92,8 @@ class NewSource {
   // Sign In
   //----------------------------------------------------------------------------
   static Future<User> signInUser(String email, String password) async {
-    final obj = await post(["auth", "callbacks", "sign-in"], [],
-        {"email": email, "password": password});
+    final obj = await post(
+        ["auth", "sign-in"], [], {"email": email, "password": password});
     if (obj == null) {
       throw unknownError;
     }
@@ -124,8 +120,42 @@ class NewSource {
     }
   }
 
+  static Future<User> signInUserGoogle(String idToken, String access) async {
+    final body = {"token": idToken, "access": access};
+    final obj = await post(
+      ["auth", "sign-in-with-google"],
+      [],
+      body,
+    );
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return User.fromSecretJson(obj["payload"]);
+    }
+  }
+
+  static Future<User> signInUserApple(String code) async {
+    final body = {"code": code};
+    final obj = await post(
+      ["auth", "sign-in-with-apple"],
+      [],
+      body,
+    );
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return User.fromSecretJson(obj["payload"]);
+    }
+  }
+
   static Future<bool> signOut() async {
-    final path = ["auth", "callbacks", "sign-out"];
+    final path = ["auth", "sign-out"];
     var args = <String>[];
     addSecret(args);
 
@@ -155,6 +185,44 @@ class NewSource {
     } else {
       return obj["payload"];
     }
+  }
+
+  static Future<int> authenticateIAP(
+      String platform, int userId, String data, String productId) async {
+    final List<String> path;
+    switch (platform) {
+      case "google_play":
+        path = ["auth", "google-iap"];
+        break;
+      case "apple_app_store": // FIXME: get real name
+        path = ["auth", "apple-iap"];
+        break;
+      default:
+        return -1;
+    }
+
+    var args = <String>[];
+    addSecret(args);
+
+    final input = {"data": data, "productId": productId, "userId": userId};
+    final obj = await post(path, args, input);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      return -1;
+    } else {
+      return obj["payload"];
+    }
+  }
+
+  static Future<bool> isAvailable() async {
+    final obj = await get(["available"], []);
+    if (obj == null) {
+      return false;
+    }
+    return obj["success"] == true;
   }
 
   static Future<bool> updateUserDetails(User user) async {
@@ -217,7 +285,7 @@ class NewSource {
     }
   }
 
-  static Future<Comment> createPost(String content) async {
+  static Future<Post> createPost(String content) async {
     if (User.current == null) {
       throw userNotSignedIn;
     }
@@ -230,9 +298,7 @@ class NewSource {
         args,
         {
           "userId": User.current!.id,
-          "location": [],
           "content": content,
-          "tags": []
         });
     if (obj == null) {
       throw unknownError;
@@ -241,7 +307,7 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      return Comment.fromJson(obj["payload"]);
+      return Post.fromJson(obj["payload"]);
     }
   }
 
@@ -265,7 +331,7 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      return User.fromJson(obj["payload"]);
+      return User.fromSecretJson(obj["payload"]);
     }
   }
 
@@ -543,6 +609,27 @@ class NewSource {
       throw unknownError;
     }
     return handlePayload(obj, Author.fromJson);
+  }
+
+  static Future<List<Tag>> getUserContTag(
+    int uid,
+    UserContKind kind, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    late List<String> path;
+    if (kind == UserContKind.tagFollow) {
+      path = ["users", "$uid", "content", "tag-follows"];
+    }
+    var args = <String>[];
+    addD("start", startDate, args);
+    addD("end", endDate, args);
+    addSecret(args);
+    final obj = await get(path, args);
+    if (obj == null) {
+      throw unknownError;
+    }
+    return handlePayload(obj, Tag.fromJson);
   }
 
   //----------------------------------------------------------------------------
@@ -845,6 +932,11 @@ class NewSource {
       case UserContKind.ignored:
         path = ["users", "$uid", "content", "ignored"];
         break;
+      case UserContKind.userRecommend:
+        return false;
+      case UserContKind.tagFollow:
+        path = ["users", "$uid", "content", "tag-follows"];
+        break;
     }
 
     var args = <String>[];
@@ -914,6 +1006,11 @@ class NewSource {
         break;
       case UserContKind.created:
         return Future(() => false);
+      case UserContKind.userRecommend:
+        return Future(() => false);
+      case UserContKind.tagFollow:
+        path = ["trash", "users", "$uid", "content", "tag-follows", "$pid"];
+        break;
     }
 
     var args = <String>[];
@@ -1196,6 +1293,8 @@ enum UserContKind {
   readLater,
   userFollow,
   ignored,
+  userRecommend,
+  tagFollow,
 }
 
 enum UserPrefKind {
@@ -1362,7 +1461,7 @@ String userVoteKindToString(UserVoteKind uvk) {
   }
 }
 
-double controversial(double cred) {
+num controversial(num cred) {
   var diff = cred - 0.5;
   if (diff < 0) {
     diff = -diff;

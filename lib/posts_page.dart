@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
+import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';
 
 class PostsPage extends StatefulWidget {
@@ -113,6 +114,49 @@ class _PostsPageState extends State<PostsPage> {
     setState(() {});
   }
 
+  List<Widget> buildTagFollow() {
+    if (User.current == null) {
+      return [];
+    }
+    if (widget.tags?.length != 1) {
+      return [];
+    }
+    final tag = widget.tags![0];
+    final isFollowing = User.current!.favourites
+            .firstWhere(
+              (element) => element.id == tag,
+              orElse: () => Tag.zero(),
+            )
+            .id !=
+        0;
+    final button = TextButton(
+      onPressed: () {
+        if (User.current == null) {
+          return;
+        }
+        if (isFollowing) {
+          User.current?.favourites.removeWhere((t) => t.id == tag);
+          NewSource.deleteUserCont(
+            User.current!.id,
+            tag,
+            UserContKind.tagFollow,
+          );
+        } else {
+          final t = Tag.getTag(tag);
+          User.current?.favourites.add(t);
+          NewSource.addUserCont(
+            uid: User.current!.id,
+            kind: UserContKind.tagFollow,
+            pid: tag,
+          );
+        }
+        setState(() {});
+      },
+      child: Text(isFollowing ? "Unfollow" : "Follow"),
+    );
+    return [button];
+  }
+
   @override
   Widget build(BuildContext context) {
     final page = FutureBuilder<List<Post>>(
@@ -169,7 +213,10 @@ class _PostsPageState extends State<PostsPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: buildTagFollow(),
+      ),
       body: page,
     );
   }

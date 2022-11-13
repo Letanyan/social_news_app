@@ -28,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
       cont[UserContKind.readLater] = User.current!.publicReadLater;
       cont[UserContKind.ignored] = User.current!.publicIgnored;
       cont[UserContKind.userFollow] = User.current!.publicFollowing;
+      cont[UserContKind.tagFollow] = User.current!.publicTagFollow;
 
       pref[UserPrefKind.post] = User.current!.publicPostVotes;
       pref[UserPrefKind.comment] = User.current!.publicCommentVotes;
@@ -54,6 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
       User.current!.publicViews = cont[UserContKind.viewed] ?? false;
       User.current!.publicIgnored = cont[UserContKind.ignored] ?? false;
       User.current!.publicFollowing = cont[UserContKind.userFollow] ?? false;
+      User.current!.publicTagFollow = cont[UserContKind.tagFollow] ?? false;
     });
   }
 
@@ -174,6 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
       publicContSetting("Public Viewed Posts", UserContKind.viewed),
       publicContSetting("Public Followed Users", UserContKind.userFollow),
       publicContSetting("Public Ignored Users", UserContKind.ignored),
+      publicContSetting("Public Followed Tags", UserContKind.tagFollow),
       publicPrefSetting("Public Voted For Posts", UserPrefKind.post),
       publicPrefSetting("Public Voted For Comments", UserPrefKind.comment),
       publicPrefSetting("Public Voted For Users", UserPrefKind.user),

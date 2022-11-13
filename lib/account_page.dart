@@ -50,7 +50,9 @@ class _AccountPageState extends State<AccountPage> {
         MaterialPageRoute(
           builder: (context) => body,
         ),
-      );
+      ).then((value) => setState(
+            () {},
+          ));
     };
   }
 
@@ -61,7 +63,7 @@ class _AccountPageState extends State<AccountPage> {
 
       final body = UserContPage(
         title: title,
-        showSearch: true,
+        showSearch: false,
         kind: kind,
         playlist: playlist,
         user: widget.user,
@@ -72,7 +74,9 @@ class _AccountPageState extends State<AccountPage> {
         MaterialPageRoute(
           builder: (context) => body,
         ),
-      );
+      ).then((value) => setState(
+            () {},
+          ));
     };
   }
 
@@ -96,7 +100,9 @@ class _AccountPageState extends State<AccountPage> {
         MaterialPageRoute(
           builder: (context) => page,
         ),
-      );
+      ).then((value) => setState(
+            () {},
+          ));
     };
   }
 
@@ -108,7 +114,9 @@ class _AccountPageState extends State<AccountPage> {
         MaterialPageRoute(
           builder: (context) => page,
         ),
-      );
+      ).then((value) => setState(
+            () {},
+          ));
     };
   }
 
@@ -120,17 +128,19 @@ class _AccountPageState extends State<AccountPage> {
         MaterialPageRoute(
           builder: (context) => page,
         ),
-      );
+      ).then((value) => setState(
+            () {},
+          ));
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final Widget? credit;
+    final Widget? subtitle;
     final Widget? action;
     final isOwner = widget.user.id == User.current?.id;
     if (isOwner) {
-      credit = InkWell(
+      final credit = InkWell(
         onTap: () {
           showPlatformDialog(
               context: context, builder: (context) => const PurchaseCredit());
@@ -147,13 +157,27 @@ class _AccountPageState extends State<AccountPage> {
         },
         child: const Text("Logout"),
       );
+      subtitle = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          credit,
+          Text("Reputation: ${widget.user.calculateScore()}"),
+          Text("Credibility: ${widget.user.calculateCred()}"),
+        ],
+      );
     } else {
-      credit = null;
+      subtitle = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Reputation: ${widget.user.calculateScore()}"),
+          Text("Credibility: ${widget.user.calculateCred()}"),
+        ],
+      );
       action = widget.user.followButton(() => setState(() {}));
     }
     final name = ListTile(
       title: Text(widget.user.name),
-      subtitle: credit,
+      subtitle: subtitle,
       trailing: action,
     );
 
@@ -175,13 +199,21 @@ class _AccountPageState extends State<AccountPage> {
         onTap: showUserContPage(
             context, ContentKind.post, UserContKind.readLater));
     final following = ListTile(
-      title: const Text("Following"),
+      title: const Text("Users Following"),
       onTap:
           showUserContPage(context, ContentKind.user, UserContKind.userFollow),
     );
     final ignored = ListTile(
       title: const Text("Ignored"),
       onTap: showUserContPage(context, ContentKind.user, UserContKind.ignored),
+    );
+    final favourites = ListTile(
+      title: const Text("Tags Following"),
+      onTap: showUserContPage(
+        context,
+        ContentKind.tag,
+        UserContKind.tagFollow,
+      ),
     );
 
     final votedPosts = ListTile(
@@ -245,6 +277,7 @@ class _AccountPageState extends State<AccountPage> {
       readLater,
       following,
       ignored,
+      favourites,
       const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Voted For")),
       const Divider(thickness: 1),

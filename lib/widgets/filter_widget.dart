@@ -72,9 +72,9 @@ class _FilterBoxState extends State<FilterBox> {
   void initState() {
     super.initState();
 
-    final defaultStart =
-        widget.startDate ?? DateTime.now().add(const Duration(days: -7));
-    final defaultEnd = widget.endDate ?? DateTime.now();
+    final defaultStart = startOfDay(
+        widget.startDate ?? DateTime.now().add(const Duration(days: -7)));
+    final defaultEnd = endOfDay(widget.endDate ?? DateTime.now());
     final defaultLocation = widget.location ?? "";
     final defaultSearch = widget.search ?? "";
 
@@ -160,14 +160,14 @@ class _FilterBoxState extends State<FilterBox> {
           context: context,
           initialDate: isStartDate ? startDate[current] : endDate[current],
           firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
-          lastDate: DateTime.now());
+          lastDate: endOfDay(DateTime.now()));
       if (date == null) {
         return;
       }
       if (isStartDate) {
-        startDate[current] = date;
+        startDate[current] = startOfDay(date);
       } else {
-        endDate[current] = date;
+        endDate[current] = endOfDay(date);
       }
       updateState();
       setState(() {});

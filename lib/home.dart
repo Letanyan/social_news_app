@@ -36,7 +36,6 @@ class HomeViewState extends State<HomeView>
     final purchaseUpdated = IAPConnection.instance.purchaseStream;
     subscription = purchaseUpdated.listen((purchaseDetailsList) {
       handlePurchases(purchaseDetailsList);
-      print(purchaseDetailsList);
     }, onDone: () {
       subscription.cancel();
     }, onError: (error) {
@@ -89,7 +88,7 @@ class HomeViewState extends State<HomeView>
           case 1:
             return SearchPage(title: "Trending", isTrending: true);
           case 2:
-            return CommentReplyPage();
+            return const CommentReplyPage();
           case 3:
             return SearchPage(title: "Search", isTrending: false);
           case 4:

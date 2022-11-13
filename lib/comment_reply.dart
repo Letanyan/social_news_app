@@ -12,8 +12,7 @@ import 'package:social_news_app/model/user.dart';
 class CommentReplyPage extends StatefulWidget {
   final Comment? comment;
   final Post? post;
-  TextEditingController? controller;
-  CommentReplyPage({super.key, this.comment, this.post, this.controller});
+  const CommentReplyPage({super.key, this.comment, this.post});
 
   @override
   State<CommentReplyPage> createState() => _CommentReplyPageState();
@@ -31,7 +30,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     super.initState();
     controller = TextEditingController();
     focus = FocusNode();
-    widget.controller = controller;
     var keyboardVisibilityController = KeyboardVisibilityController();
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((visible) {
@@ -62,7 +60,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
               .then((value) => Navigator.pop(context));
     } else {
       final result = NewSource.createPost(controller.text)
-          .then((value) => Navigator.pop(context));
+          .then((value) => Navigator.pop(context, "posted"));
     }
   }
 
@@ -244,37 +242,42 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       body: keyHandler,
     );
   }
-}
 
-void Function() previewPost(BuildContext context, String content) {
-  return () {
-    final previewPost = Post(
-      id: -1,
-      creator: User.current!.toAuthor(),
-      content: content,
-      tags: [],
-      createdAt: DateTime.now(),
-      location: [],
-      upvotes: 0,
-      downvotes: 0,
-      commentCount: 0,
-      trashed: false,
-      score: 0,
-      cred: 0,
-      rank: 0,
-    );
+  void Function() previewPost(BuildContext context, String content) {
+    return () {
+      final previewPost = Post(
+        id: -1,
+        creator: User.current!.toAuthor(),
+        content: content,
+        tags: [],
+        createdAt: DateTime.now(),
+        location: [],
+        upvotes: 0,
+        downvotes: 0,
+        commentCount: 0,
+        trashed: false,
+        score: 0,
+        cred: 0,
+        rank: 0,
+      );
 
-    // FIXME: send post
-    final makePost = TextButton(onPressed: () {}, child: const Text("Post"));
+      final makePost =
+          TextButton(onPressed: replyToComment, child: const Text("Post"));
 
-    final page = Scaffold(
-      appBar: AppBar(
-        title: const Text("Preview"),
-        actions: [makePost],
-      ),
-      body: ListView(children: [previewPost.card(context, () {})]),
-    );
+      final page = Scaffold(
+        appBar: AppBar(
+          title: const Text("Preview"),
+          actions: [makePost],
+        ),
+        body: ListView(children: [previewPost.card(context, () {})]),
+      );
 
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
-  };
+      Navigator.push(context, MaterialPageRoute(builder: (context) => page))
+          .then((value) {
+        if (value == "posted") {
+          controller.text = "";
+        }
+      });
+    };
+  }
 }

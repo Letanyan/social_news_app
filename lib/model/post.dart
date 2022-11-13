@@ -24,9 +24,9 @@ class Post {
   int downvotes;
   final int commentCount;
   bool trashed;
-  double score;
-  double cred;
-  double rank;
+  num score;
+  num cred;
+  num rank;
 
   String? sourceUrl;
 
@@ -64,7 +64,8 @@ class Post {
     );
   }
 
-  void Function() openComments(BuildContext context) {
+  void Function() openComments(
+      BuildContext context, void Function() updateState) {
     final commentsPage = Scaffold(
       appBar: AppBar(
         title: const Text("Comments"),
@@ -85,7 +86,7 @@ class Post {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => commentsPage),
-      );
+      ).then((value) => updateState());
     };
   }
 
@@ -129,9 +130,25 @@ class Post {
   }
 
   Widget buildCreator(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
     return InkWell(
       onTap: () => creator.showUserPage(context),
-      child: Text(creator.name),
+      child: RichText(
+        text: TextSpan(
+          text: "${creator.name} ",
+          style: theme.bodyText1,
+          children: [
+            TextSpan(
+              text: "${creator.calculateScore()} ",
+              style: const TextStyle(color: Colors.grey),
+            ),
+            TextSpan(
+              text: "(${creator.calculateCred()})",
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -157,9 +174,9 @@ class Post {
     );
   }
 
-  Widget buildReplyCount(BuildContext context) {
+  Widget buildReplyCount(BuildContext context, void Function() updateState) {
     return ActionChip(
-      onPressed: openComments(context),
+      onPressed: openComments(context, updateState),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(16),
@@ -175,13 +192,9 @@ class Post {
   PopupMenuItem buildRemove(BuildContext context, VoidCallback updateState) {
     return PopupMenuItem(
       onTap: () {
-        NewSource.deletePost(id).then((value) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text("Removed")));
-          trashed = true;
-          updateState();
-          return value;
-        });
+        trashed = true;
+        NewSource.deletePost(id);
+        Navigator.of(context).pop();
       },
       child: const Text("Remove"),
     );
@@ -332,7 +345,7 @@ class Post {
     final tagsRow = Tag.chips(context, resolvedTags);
 
     final reply = buildReply(context);
-    final replyCount = buildReplyCount(context);
+    final replyCount = buildReplyCount(context, updateState);
     final upvoteButton = buildUpvoteButton(
         context, upvotes, UserVoteKind.post, updateVote(updateState));
     final downvoteButton = buildDownvoteButton(
@@ -519,7 +532,7 @@ class Post {
     );
 
     final reply = buildReply(context);
-    final replyCount = buildReplyCount(context);
+    final replyCount = buildReplyCount(context, updateState);
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
     if (creator.id == User.current?.id) {
@@ -570,7 +583,7 @@ class Post {
 
     final tile = Material(
       child: InkWell(
-        onTap: openComments(context),
+        onTap: openComments(context, updateState),
         child: Column(
           children: [contentBody, buttonRow, personal],
         ),

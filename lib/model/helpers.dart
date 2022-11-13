@@ -84,6 +84,14 @@ String formatDateTime(DateTime date) {
   }
 }
 
+DateTime endOfDay(DateTime d) {
+  return DateTime(d.year, d.month, d.day, 23, 59, 59);
+}
+
+DateTime startOfDay(DateTime d) {
+  return DateTime(d.year, d.month, d.day);
+}
+
 bool isTypeEqual<S, T>() => S == T;
 
 class MyCustomScrollBehavior extends MaterialScrollBehavior {
@@ -139,4 +147,14 @@ TextStyle merge(TextStyle base, TextStyle? other) {
     // package: other.package,
     overflow: other.overflow,
   );
+}
+
+List<T> jsonArrayTo<T>(
+    dynamic list, T Function(Map<String, dynamic> json) map) {
+  var result = <T>[];
+  for (final item in list) {
+    final p = map(item);
+    result.add(p);
+  }
+  return result;
 }

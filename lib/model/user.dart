@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/account_page.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class User {
@@ -13,9 +15,11 @@ class User {
   int upvotes;
   int downvotes;
   int credits;
+  int investment;
   final int validationKey;
   List<Author> following;
   List<Author> ignored;
+  List<Tag> favourites;
   String secret;
 
   bool publicViews;
@@ -26,6 +30,7 @@ class User {
   bool publicCommentVotes;
   bool publicUserVotes;
   bool publicTagVotes;
+  bool publicTagFollow;
 
   String creditAmount() {
     return credits < 0 ? "..." : "$credits";
@@ -69,6 +74,7 @@ class User {
       upvotes: 0,
       downvotes: 0,
       credits: -1,
+      investment: 0,
       validationKey: validation,
       publicViews: false,
       publicReadLater: false,
@@ -78,6 +84,7 @@ class User {
       publicCommentVotes: false,
       publicUserVotes: false,
       publicTagVotes: false,
+      publicTagFollow: false,
     );
     result.secret = secret;
     return result;
@@ -92,6 +99,7 @@ class User {
     required this.upvotes,
     required this.downvotes,
     required this.credits,
+    required this.investment,
     required this.validationKey,
     required this.publicViews,
     required this.publicReadLater,
@@ -101,8 +109,10 @@ class User {
     required this.publicCommentVotes,
     required this.publicUserVotes,
     required this.publicTagVotes,
+    required this.publicTagFollow,
   })  : following = [],
         ignored = [],
+        favourites = [],
         secret = "";
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -115,6 +125,7 @@ class User {
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
       credits: json["Credits"],
+      investment: json["Investment"],
       validationKey: json["ValidationKey"],
       publicViews: json["PublicViews"],
       publicReadLater: json["PublicReadLater"],
@@ -124,6 +135,7 @@ class User {
       publicCommentVotes: json["PublicCommentVotes"],
       publicUserVotes: json["PublicUserVotes"],
       publicTagVotes: json["PublicTagVotes"],
+      publicTagFollow: json["PublicTagFollow"],
     );
   }
 
@@ -138,6 +150,7 @@ class User {
       upvotes: obj["Upvotes"],
       downvotes: obj["Downvotes"],
       credits: obj["Credits"],
+      investment: obj["Investment"],
       validationKey: obj["ValidationKey"],
       publicViews: obj["PublicViews"],
       publicReadLater: obj["PublicReadLater"],
@@ -147,8 +160,12 @@ class User {
       publicCommentVotes: obj["PublicCommentVotes"],
       publicUserVotes: obj["PublicUserVotes"],
       publicTagVotes: obj["PublicTagVotes"],
+      publicTagFollow: obj["PublicTagFollow"],
     );
     user.secret = json["token"];
+    user.following = jsonArrayTo(json["following"], Author.fromJson);
+    user.ignored = jsonArrayTo(json["ignored"], Author.fromJson);
+    user.favourites = jsonArrayTo(json["tags"], Tag.fromJson);
     return user;
   }
 
@@ -161,6 +178,7 @@ class User {
       registerDate: registerDate,
       upvotes: upvotes,
       downvotes: downvotes,
+      investment: investment,
       score: 0,
       cred: 0,
       rank: 0,
@@ -184,9 +202,10 @@ class Author {
   final DateTime registerDate;
   final int upvotes;
   final int downvotes;
-  final double score;
-  final double cred;
-  final double rank;
+  final int investment;
+  final num score;
+  final num cred;
+  final num rank;
 
   const Author({
     required this.id,
@@ -194,6 +213,7 @@ class Author {
     required this.registerDate,
     required this.upvotes,
     required this.downvotes,
+    required this.investment,
     required this.score,
     required this.cred,
     required this.rank,
@@ -206,6 +226,7 @@ class Author {
       registerDate: DateTime.fromMicrosecondsSinceEpoch(0),
       upvotes: 0,
       downvotes: 0,
+      investment: 0,
       score: 0,
       cred: 0,
       rank: 0,
@@ -219,10 +240,30 @@ class Author {
       registerDate: DateTime.parse(json["RegisterDate"]),
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
-      score: json["Score"],
-      cred: json["Cred"],
-      rank: json["Rank"],
+      investment: json["Investment"],
+      score: double.parse(json["Score"].toString()),
+      cred: double.parse(json["Cred"].toString()),
+      rank: double.parse(json["Rank"].toString()),
     );
+  }
+
+  double ratio(int x, int y) {
+    final bottom = x + y;
+    if (bottom == 0) {
+      return 0;
+    }
+    return x / bottom;
+  }
+
+  String calculateCred() {
+    final v = ratio(upvotes, downvotes) * 100;
+    return "${v.toStringAsFixed(0)}%";
+  }
+
+  String calculateScore() {
+    final u = upvotes + investment;
+    final v = u * ratio(u, downvotes);
+    return v.toStringAsFixed(0);
   }
 
   void showUserPage(BuildContext context) {
@@ -276,13 +317,35 @@ class Author {
     return action;
   }
 
+  Widget buildCreator(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: () => showUserPage(context),
+      child: RichText(
+        text: TextSpan(
+          text: "${name} ",
+          style: theme.bodyText1,
+          children: [
+            TextSpan(
+              text: "${calculateScore()} ",
+              style: const TextStyle(color: Colors.grey),
+            ),
+            TextSpan(
+              text: "(${calculateCred()})",
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget card(BuildContext context, Function() updateState,
       {int? up, int? down}) {
     final title = Text(name);
     final upChip = buildUpvoteChip(context, upvotes);
     final downChip = buildDownvoteChip(context, downvotes);
-    final follow =
-        FittedBox(fit: BoxFit.contain, child: followButton(updateState));
+    final follow = followButton(updateState);
     final votes = FittedBox(
         fit: BoxFit.contain, child: Row(children: [upChip, downChip]));
 

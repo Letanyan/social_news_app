@@ -10,9 +10,9 @@ import 'helpers.dart';
 
 class SearchPage extends StatefulWidget {
   final bool isTrending;
-  String title;
+  final String title;
 
-  SearchPage({super.key, required this.isTrending, required this.title});
+  const SearchPage({super.key, required this.isTrending, required this.title});
 
   @override
   State<SearchPage> createState() => SearchPageState();
