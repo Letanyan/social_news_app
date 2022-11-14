@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comments_page.dart';
@@ -75,7 +76,7 @@ class Comment {
         );
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => page),
+          route(builder: (context) => page),
         );
       }));
     };

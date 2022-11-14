@@ -246,7 +246,7 @@ class _FilterBoxState extends State<FilterBox> {
         }
         var loc = await Navigator.push(
             context,
-            MaterialPageRoute(
+            route(
               builder: (context) =>
                   LocationCountryPickerPage(country: country, region: region),
             ));

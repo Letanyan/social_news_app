@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,6 +11,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/sign_up.dart';
 
@@ -58,14 +60,13 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => const EmailVerificationPage()),
+          route(builder: (context) => const EmailVerificationPage()),
         );
       } else {
         Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const HomeView()),
+          route(builder: (context) => const HomeView()),
         );
       }
     }
@@ -178,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
       body: const SignUpPage(),
     );
 
-    Navigator.push(context, MaterialPageRoute(builder: (c) => page));
+    Navigator.push(context, route(builder: (c) => page));
   }
 
   @override

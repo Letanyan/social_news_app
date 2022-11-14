@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/news_agent_page.dart';
 
@@ -153,7 +155,7 @@ class NewsAgent {
 
   void showSubAgent(BuildContext context) {
     final page = SubNewsAgentPage(aid: id, subs: subs);
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+    Navigator.push(context, route(builder: (context) => page));
   }
 
   Widget tile(BuildContext context, void Function(NewsAgent?) updateState) {

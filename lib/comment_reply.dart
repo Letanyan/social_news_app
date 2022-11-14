@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -272,8 +273,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         body: ListView(children: [previewPost.card(context, () {})]),
       );
 
-      Navigator.push(context, MaterialPageRoute(builder: (context) => page))
-          .then((value) {
+      Navigator.push(context, route(builder: (context) => page)).then((value) {
         if (value == "posted") {
           controller.text = "";
         }

@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -46,8 +48,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     );
 
     final ignore = ElevatedButton(
-      onPressed: () => Navigator.push(
-          context, MaterialPageRoute(builder: (c) => const HomeView())),
+      onPressed: () =>
+          Navigator.push(context, route(builder: (c) => const HomeView())),
       child: const Text("Got It"),
     );
 

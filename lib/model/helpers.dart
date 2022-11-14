@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -157,4 +160,17 @@ List<T> jsonArrayTo<T>(
     result.add(p);
   }
   return result;
+}
+
+PageRoute route({required Widget Function(BuildContext) builder}) {
+  try {
+    if (Platform.isIOS) {
+      return CupertinoPageRoute(builder: builder);
+    } else if (Platform.isAndroid) {
+      return MaterialPageRoute(builder: builder);
+    }
+    return MaterialPageRoute(builder: builder);
+  } catch (e) {
+    return MaterialPageRoute(builder: builder);
+  }
 }

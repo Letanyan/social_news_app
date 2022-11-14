@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -85,7 +86,7 @@ class Post {
       }
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => commentsPage),
+        route(builder: (context) => commentsPage),
       ).then((value) => updateState());
     };
   }
@@ -98,7 +99,7 @@ class Post {
         order: SortOrder.score);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => postsPage),
+      route(builder: (context) => postsPage),
     );
   }
 
@@ -160,7 +161,7 @@ class Post {
     return ActionChip(
       onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(
+          route(
             builder: (context) => CommentReplyPage(post: this),
           )),
       shape: const RoundedRectangleBorder(

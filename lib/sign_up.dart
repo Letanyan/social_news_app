@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/user.dart';
@@ -73,13 +75,12 @@ class _SignUpPageState extends State<SignUpPage> {
         if (User.current?.validationKey != 0) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => const EmailVerificationPage()),
+            route(builder: (context) => const EmailVerificationPage()),
           );
         } else {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const HomeView()),
+            route(builder: (context) => const HomeView()),
           );
         }
       }

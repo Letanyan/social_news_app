@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/geo.dart';
+import 'package:social_news_app/model/helpers.dart';
 
 class LocationCountryPickerPage extends StatefulWidget {
   final String country;
@@ -36,7 +38,7 @@ class _LocationCountryPickerPageState extends State<LocationCountryPickerPage> {
                 country = countries[index];
                 var loc = await Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    route(
                       builder: (context) => LocationRegionPickerPage(
                           country: country, region: region),
                     ));

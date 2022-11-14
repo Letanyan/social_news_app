@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/flags_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/main.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/news_agent_page.dart';
@@ -45,14 +47,8 @@ class _AccountPageState extends State<AccountPage> {
         isViewed: isViewed,
       );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => body,
-        ),
-      ).then((value) => setState(
-            () {},
-          ));
+      Navigator.push(context, route(builder: (context) => body))
+          .then((value) => setState(() {}));
     };
   }
 
@@ -69,14 +65,8 @@ class _AccountPageState extends State<AccountPage> {
         user: widget.user,
       );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => body,
-        ),
-      ).then((value) => setState(
-            () {},
-          ));
+      Navigator.push(context, route(builder: (context) => body))
+          .then((value) => setState(() {}));
     };
   }
 
@@ -95,42 +85,24 @@ class _AccountPageState extends State<AccountPage> {
         ),
       );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => page,
-        ),
-      ).then((value) => setState(
-            () {},
-          ));
+      Navigator.push(context, route(builder: (context) => page))
+          .then((value) => setState(() {}));
     };
   }
 
   void Function() showFlaggedContent(BuildContext context, bool isPosts) {
     return () {
       var page = FlagsPage(isPosts: isPosts);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => page,
-        ),
-      ).then((value) => setState(
-            () {},
-          ));
+      Navigator.push(context, route(builder: (context) => page))
+          .then((value) => setState(() {}));
     };
   }
 
   void Function() showAgents(BuildContext context) {
     return () {
       const page = NewsAgentPage();
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => page,
-        ),
-      ).then((value) => setState(
-            () {},
-          ));
+      Navigator.push(context, route(builder: (context) => page))
+          .then((value) => setState(() {}));
     };
   }
 
@@ -140,30 +112,30 @@ class _AccountPageState extends State<AccountPage> {
     final Widget? action;
     final isOwner = widget.user.id == User.current?.id;
     if (isOwner) {
-      final credit = InkWell(
-        onTap: () {
-          showPlatformDialog(
-              context: context, builder: (context) => const PurchaseCredit());
-        },
-        child: Text("Credits: ${User.current!.creditAmount()}"),
-      );
+      final credit = Text("Credits: ${User.current!.creditAmount()}");
       action = TextButton(
         onPressed: () {
           User.removeUser();
           NewSource.signOut();
           Navigator.pop(context);
-          Navigator.push(
-              context, MaterialPageRoute(builder: (c) => const MainApp()));
+          Navigator.push(context, route(builder: (c) => const MainApp()));
         },
         child: const Text("Logout"),
       );
-      subtitle = Column(
+      final col = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           credit,
           Text("Reputation: ${widget.user.calculateScore()}"),
           Text("Credibility: ${widget.user.calculateCred()}"),
         ],
+      );
+      subtitle = InkWell(
+        onTap: () {
+          showPlatformDialog(
+              context: context, builder: (context) => const PurchaseCredit());
+        },
+        child: col,
       );
     } else {
       subtitle = Column(

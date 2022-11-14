@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
@@ -266,7 +267,7 @@ class SearchPageState extends State<SearchPage> {
                     title: Text(tag.name),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => page),
+                      route(builder: (context) => page),
                     ),
                   );
                 } else if (current == 1) {

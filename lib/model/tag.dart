@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -55,11 +57,8 @@ class Tag {
 
     return ActionChip(
       label: Text(name),
-      onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => fullPostPage,
-          )),
+      onPressed: () =>
+          Navigator.push(context, route(builder: (context) => fullPostPage)),
     );
   }
 
@@ -123,7 +122,7 @@ class Tag {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => page),
+      route(builder: (context) => page),
     );
   }
 
