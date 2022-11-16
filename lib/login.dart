@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -11,8 +12,10 @@ import 'package:http/http.dart' as http;
 
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/mod_packages/sign_button.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/sign_up.dart';
 
 import 'model/user.dart';
@@ -78,27 +81,46 @@ class _LoginPageState extends State<LoginPage> {
       User.current = user;
       user.storeUser();
     } catch (e) {
+      late final String message;
+      if (e.toString() == "missing") {
+        // if email not in database
+        gotoSignUpPage();
+        return;
+      } else if (e.toString() == "incorrect") {
+        message = "Incorrect password or email address";
+      } else {
+        message = e.toString();
+      }
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+          .showSnackBar(SnackBar(content: Text(message)));
     } finally {
       openApp();
     }
   }
 
   void signIn() async {
-    if (originController.text.isNotEmpty) {
-      NewSource.host = originController.text;
-    }
     final email =
         emailController.text == "" ? "ribet@yahoo.com" : emailController.text;
     final password =
         passwordController.text == "" ? "123456" : passwordController.text;
+
+    if (email.isEmpty) {
+      gotoSignUpPage();
+    }
 
     setState(() {
       isLoading = true;
     });
 
     signInTemplate(email, password);
+  }
+
+  void signInAnon() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      route(builder: (context) => const HomeView()),
+    );
   }
 
   void signInGoogle() async {
@@ -111,17 +133,6 @@ class _LoginPageState extends State<LoginPage> {
     if (auth) {
       openApp();
     }
-
-    // final email = emailController.text == "" ? "@@" : emailController.text;
-    // final password = passwordController.text == ""
-    //     ? "AbstractServer8080"
-    //     : passwordController.text;
-
-    // setState(() {
-    //   isLoading = true;
-    // });
-
-    // signInTemplate(email, password);
   }
 
   void signInApple() async {
@@ -151,18 +162,6 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       print(e);
     }
-
-    // final email = emailController.text == ""
-    //     ? "letanyan@icloud.com"
-    //     : emailController.text;
-    // final password =
-    //     passwordController.text == "" ? "12345678" : passwordController.text;
-
-    // setState(() {
-    //   isLoading = true;
-    // });
-
-    // signInTemplate(email, password);
   }
 
   Widget _getIndicator() {
@@ -184,8 +183,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final s = MediaQuery.of(context).size;
-
     var email = TextField(
       controller: emailController,
       decoration: const InputDecoration(labelText: "Email"),
@@ -195,39 +192,90 @@ class _LoginPageState extends State<LoginPage> {
       obscureText: true,
       decoration: const InputDecoration(labelText: "Password"),
     );
-    var origin = TextField(
-      controller: originController,
-      decoration: const InputDecoration(labelText: "Host"),
+    var emailRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 0, maxWidth: 320),
+          child: email,
+        ),
+      ],
+    );
+    var passwordRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 0, maxWidth: 320),
+          child: password,
+        ),
+      ],
     );
 
-    var signInWithApple = TextButton(
-        onPressed: signInApple, child: const Text("Sign In With Apple"));
-    var signInWithGoole = TextButton(
-        onPressed: signInGoogle, child: const Text("Sign In With Google"));
-    var signInWithEmail =
-        TextButton(onPressed: signIn, child: const Text("Sign In"));
-    var signUp =
-        TextButton(onPressed: gotoSignUpPage, child: const Text("Sign Up"));
+    var signInWithApple = SignInButton(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      buttonType: MyTheme.isDark ? ButtonType.apple : ButtonType.appleDark,
+      onPressed: signInApple,
+    );
+    var signInWithGoogle = SignInButton(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      buttonType: MyTheme.isDark ? ButtonType.google : ButtonType.googleDark,
+      onPressed: signInGoogle,
+    );
+    var signInWithEmail = SignInButton(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      buttonType: MyTheme.isDark ? ButtonType.email : ButtonType.emailDark,
+      onPressed: signIn,
+    );
     var forgot = TextButton(
-        onPressed: signIn,
-        child: const Text("Forgot Password",
-            style: TextStyle(
-                color: Color.fromARGB(255, 64, 64, 64), fontSize: 9)));
+      onPressed: signIn,
+      child: Text(
+        "Forgot Password",
+        style: TextStyle(
+          color: MyTheme.isDark ? Colors.grey[200] : Colors.grey[800],
+          fontSize: 9,
+        ),
+      ),
+    );
+    var anon = TextButton(
+      onPressed: signInAnon,
+      child: Text(
+        "Just Browse",
+        style: TextStyle(color: MyTheme.isDark ? Colors.white : Colors.black),
+      ),
+    );
 
-    var form = ListView(
-      padding: const EdgeInsets.all(16),
+    var form = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        email,
-        password,
-        const SizedBox(height: 8),
-        Center(child: signInWithEmail),
-        Center(child: signUp),
-        Center(child: forgot),
-        const SizedBox(height: 8),
-        Center(child: signInWithGoole),
-        Center(child: signInWithApple),
-        const SizedBox(height: 8),
-        Center(child: origin),
+        Flexible(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              emailRow,
+              passwordRow,
+              const SizedBox(height: 16),
+              Center(child: signInWithEmail),
+              Center(child: forgot),
+            ],
+          ),
+        ),
+        Flexible(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              signInWithGoogle,
+              const SizedBox(height: 8),
+              signInWithApple,
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(8),
+          child: anon,
+        ),
       ],
     );
 

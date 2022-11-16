@@ -246,6 +246,12 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
 
   void Function() previewPost(BuildContext context, String content) {
     return () {
+      if (User.current == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("You must sign in to make a post")));
+        return;
+      }
+
       final previewPost = Post(
         id: -1,
         creator: User.current!.toAuthor(),

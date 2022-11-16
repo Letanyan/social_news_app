@@ -5,7 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/post.dart';
+import 'package:social_news_app/model/tag.dart';
+import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/model/user_pref.dart';
+import 'package:social_news_app/posts_page.dart';
+import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 bool targetPlatformIsMobile() {
@@ -173,4 +181,168 @@ PageRoute route({required Widget Function(BuildContext) builder}) {
   } catch (e) {
     return MaterialPageRoute(builder: builder);
   }
+}
+
+FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
+  BuildContext context,
+  void Function<U>(Future<List<U>>, Future<List<U>>) loadMore,
+  FilterBoxState filterState,
+  List<int> count,
+  List<bool> isLoading,
+  List<bool> hasMore,
+  Future<List<U>> Function<U>() getNewItems,
+  void Function() updateState,
+  Future<List<Tag>> tags,
+  Future<List<Post>> posts,
+  Future<List<Author>> users,
+  Future<List<Comment>> comments,
+  Future<List<FlaggedPost>> flaggedPosts,
+  Future<List<FlaggedComment>> flaggedComments,
+  Future<List<UserPrefTag>> prefTags,
+  Future<List<UserPrefPost>> prefPosts,
+  Future<List<UserPrefUser>> prefUsers,
+  Future<List<UserPrefComment>> prefComments,
+) {
+  return <T>(Future<List<T>> items) {
+    return FutureBuilder<List<T>>(
+        future: items,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            final circle = Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [CircularProgressIndicator()],
+            );
+            return SliverList(
+              delegate: SliverChildListDelegate.fixed([circle]),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return SliverList(
+              delegate: SliverChildListDelegate.fixed(
+                [Text("${snapshot.error}")],
+              ),
+            );
+          }
+
+          if (snapshot.data == null || snapshot.data?.isEmpty == true) {
+            return const SliverList(
+                delegate: SliverChildListDelegate.fixed([]));
+          }
+
+          final list = SliverList(
+            delegate: SliverChildBuilderDelegate(
+              childCount: count[filterState.current] + 1,
+              (context, index) {
+                if (index >= count[filterState.current]) {
+                  if (isLoading[filterState.current]) {
+                    return const CircularProgressIndicator();
+                  } else if (hasMore[filterState.current]) {
+                    final newItems = getNewItems<T>();
+                    if (isTypeEqual<T, Tag>()) {
+                      loadMore(newItems, tags);
+                    } else if (isTypeEqual<T, Post>()) {
+                      loadMore(newItems, posts);
+                    } else if (isTypeEqual<T, Author>()) {
+                      loadMore(newItems, users);
+                    } else if (isTypeEqual<T, Comment>()) {
+                      loadMore(newItems, comments);
+                    } else if (isTypeEqual<T, FlaggedPost>()) {
+                      loadMore(newItems, flaggedPosts);
+                    } else if (isTypeEqual<T, FlaggedComment>()) {
+                      loadMore(newItems, flaggedComments);
+                    } else if (isTypeEqual<T, UserPrefTag>()) {
+                      loadMore(newItems, prefTags);
+                    } else if (isTypeEqual<T, UserPrefPost>()) {
+                      loadMore(newItems, prefPosts);
+                    } else if (isTypeEqual<T, UserPrefUser>()) {
+                      loadMore(newItems, prefUsers);
+                    } else if (isTypeEqual<T, UserPrefComment>()) {
+                      loadMore(newItems, prefComments);
+                    }
+                    isLoading[filterState.current] = true;
+                    return const CircularProgressIndicator();
+                  } else {
+                    return const SizedBox();
+                  }
+                }
+                final item = snapshot.data![index];
+                if (isTypeEqual<T, Tag>()) {
+                  final tag = item as Tag;
+                  final page = PostsPage(title: tag.name, tags: [tag.id]);
+                  return ListTile(
+                    title: Text(tag.name),
+                    onTap: () => Navigator.push(
+                      context,
+                      route(builder: (context) => page),
+                    ),
+                  );
+                } else if (isTypeEqual<T, Post>()) {
+                  return (item as Post).tile(context, updateState);
+                } else if (isTypeEqual<T, Author>()) {
+                  final user = item as Author;
+                  return ListTile(
+                      title: Text(user.name),
+                      onTap: () => user.showUserPage(context));
+                } else if (isTypeEqual<T, Comment>()) {
+                  final comment = item as Comment;
+                  return comment.card(
+                      context,
+                      false,
+                      0,
+                      (c) => c.showParentPost(context)(),
+                      updateState,
+                      null,
+                      false);
+                } else if (isTypeEqual<T, FlaggedPost>()) {
+                  final flag = item as FlaggedPost;
+                  final content = flag.content.tile(context, updateState);
+                  final review = flag.card(context, updateState);
+                  return Column(children: [content, review]);
+                } else if (isTypeEqual<T, FlaggedComment>()) {
+                  final flag = (item as FlaggedComment);
+                  final content = flag.content.card(
+                    context,
+                    false,
+                    0,
+                    (c) => c.showParentPost(context)(),
+                    updateState,
+                    null,
+                    false,
+                  );
+                  final review = flag.card(context, updateState);
+                  return Column(children: [content, review]);
+                } else if (isTypeEqual<T, UserPrefTag>()) {
+                  final tag = item as UserPrefTag;
+                  return tag.tag.card(context, updateState,
+                      up: tag.upvotes, down: tag.downvotes);
+                } else if (isTypeEqual<T, UserPrefPost>()) {
+                  final post = item as UserPrefPost;
+                  return post.post.tile(context, updateState,
+                      up: post.upvotes, down: post.downvotes);
+                } else if (isTypeEqual<T, UserPrefUser>()) {
+                  final user = item as UserPrefUser;
+                  return user.author.card(context, updateState,
+                      up: user.upvotes, down: user.downvotes);
+                } else if (isTypeEqual<T, UserPrefComment>()) {
+                  final comment = (item as UserPrefComment);
+                  return comment.comment.card(
+                      context,
+                      false,
+                      0,
+                      (c) => c.showParentPost(context)(),
+                      updateState,
+                      null,
+                      false,
+                      up: comment.upvotes,
+                      down: comment.downvotes);
+                } else {
+                  return const SizedBox();
+                }
+              },
+            ),
+          );
+          return list;
+        });
+  };
 }

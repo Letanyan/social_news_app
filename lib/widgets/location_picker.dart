@@ -77,9 +77,9 @@ class _LocationCountryPickerPageState extends State<LocationCountryPickerPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        var result = country;
+        var result = [country];
         if (region.isNotEmpty) {
-          result += ",$region";
+          result += [region];
         }
         Navigator.pop(context, result);
         return true;

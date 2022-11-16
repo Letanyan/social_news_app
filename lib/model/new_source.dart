@@ -18,8 +18,7 @@ class NewSource {
   static var host = isDebug
       ? "http://192.168.0.147:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
-  // static const host =
-  // "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
+  // admin: @@:AbstractServer8080
 
   static String buildURL(List<String> path, List<String> args) {
     var result = host;

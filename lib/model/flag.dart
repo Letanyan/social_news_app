@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 
 class FlagDialog extends StatefulWidget {
@@ -157,8 +158,9 @@ class FlaggedPost {
       ],
     );
 
+    final baseColor = Colors.grey[MyTheme.isDark ? 800 : 200]?.withAlpha(192);
     final result = Card(
-      color: handled ? Colors.grey : Colors.white,
+      color: handled ? Colors.green : baseColor,
       child: Column(
         children: [
           Padding(padding: const EdgeInsets.all(8), child: body),
@@ -238,8 +240,7 @@ class FlaggedComment {
       children: [total, report, remove, ignore, ignoreAll],
     );
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = Colors.grey[isDark ? 800 : 200]?.withAlpha(192);
+    final baseColor = Colors.grey[MyTheme.isDark ? 800 : 200]?.withAlpha(192);
     final result = Card(
       color: handled ? Colors.green : baseColor,
       child: Column(

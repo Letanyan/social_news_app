@@ -35,13 +35,14 @@ class _UserContPageState extends State<UserContPage> {
   late TextEditingController controller;
 
   var current = ContentKind.post;
-  var offset = 0;
+  var offset = [0];
   var pageSize = 20;
-  var count = 0;
-  var hasMore = true;
-  var isLoading = false;
-  late final FilterBox filterBox;
-  bool showingFilter = true;
+  var count = [0];
+  var hasMore = [true];
+  var isLoading = [false];
+  late FilterBoxState filterState;
+  bool showingFilter = false;
+  double? filterHeight;
 
   @override
   void initState() {
@@ -49,15 +50,14 @@ class _UserContPageState extends State<UserContPage> {
 
     controller = TextEditingController();
     current = widget.kind;
-    filterBox = FilterBox(
+    filterState = FilterBoxState(
+      current: 0,
       search: "",
-      sorting: sortOrdersIncluding([SortOrder.addedOn]),
+      displaySelector: null,
+      displaySorting: sortOrdersIncluding([SortOrder.addedOn]),
       startDate: DateTime.utc(1970),
       endDate: DateTime.now(),
-      location: "",
-      valueChanged: (p0) {
-        updateFilter(() {});
-      },
+      location: [],
     );
 
     posts = Future(() => []);
@@ -74,7 +74,7 @@ class _UserContPageState extends State<UserContPage> {
       tags = getNewItems<Tag>().then(updateItemsState);
     }
 
-    offset = pageSize;
+    offset[0] = pageSize;
   }
 
   @override
@@ -99,11 +99,12 @@ class _UserContPageState extends State<UserContPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = filterBox.currentState?.start;
-    final ed = filterBox.currentState?.end;
-    final loc = filterBox.currentState?.location;
-    final srt = filterBox.currentState?.order;
-    final src = filterBox.currentState?.search;
+    final sd = filterState.startDate;
+    final ed = filterState.endDate;
+    final loc =
+        filterState.location?.isEmpty == true ? null : filterState.location;
+    final srt = filterState.order;
+    final src = filterState.search?.isEmpty == true ? null : filterState.search;
     if (isTypeEqual<T, Post>()) {
       return NewSource.getUserContPost(
         uid: widget.user.id,
@@ -111,7 +112,7 @@ class _UserContPageState extends State<UserContPage> {
         location: loc,
         startCreated: sd,
         endCreated: ed,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         order: srt,
         search: src,
@@ -121,7 +122,7 @@ class _UserContPageState extends State<UserContPage> {
         uid: widget.user.id,
         startCreated: sd,
         endCreated: ed,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         order: srt,
         search: src,
@@ -153,17 +154,17 @@ class _UserContPageState extends State<UserContPage> {
   }
 
   Future<List<T>> updateItemsState<T>(List<T> value) async {
-    count += value.length;
-    isLoading = false;
+    count[0] += value.length;
+    isLoading[0] = false;
     return value;
   }
 
   void updateFilter(void Function() f) {
     setState(() {
       f();
-      count = 0;
-      offset = 0;
-      isLoading = true;
+      count[0] = 0;
+      offset[0] = 0;
+      isLoading[0] = true;
       if (current == ContentKind.post) {
         posts = getNewItems<Post>().then(updateItemsState);
       } else if (current == ContentKind.comment) {
@@ -173,21 +174,26 @@ class _UserContPageState extends State<UserContPage> {
       } else if (current == ContentKind.tag) {
         tags = getNewItems<Tag>().then(updateItemsState);
       }
-      offset = pageSize;
+      offset[0] = pageSize;
     });
+  }
+
+  void updateFilterState(FilterBoxState state) {
+    filterState = state;
+    updateFilter(() {});
   }
 
   void _loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
     final newPosts = await newItems;
     var oldPosts = await oldItems;
-    offset += newPosts.length;
+    offset[0] += newPosts.length;
     if (newPosts.isEmpty) {
-      hasMore = false;
+      hasMore[0] = false;
     }
     oldPosts.addAll(newPosts);
     setState(() {
-      count = oldPosts.length;
-      isLoading = false;
+      count[0] = oldPosts.length;
+      isLoading[0] = false;
     });
     oldItems = Future(() => oldPosts);
   }
@@ -197,106 +203,77 @@ class _UserContPageState extends State<UserContPage> {
   }
 
   EdgeInsets listViewInsets() {
+    // final h = filterBox.getWidgetSize().height;
+    // if (filterHeight == null && h != 0) {
+    //   filterHeight = h;
+    // }
     return EdgeInsets.only(
-      top: !showingFilter ? 0 : filterBox.getWidgetSize().height,
+      top: !showingFilter ? 0 : filterHeight!,
       bottom: 48,
     );
-  }
-
-  Widget buildList<T>(BuildContext context, Future<List<T>> items) {
-    return FutureBuilder<List<T>>(
-        future: items,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-              return const SizedBox();
-            }
-            final list = ListView.builder(
-              itemCount: count,
-              padding: listViewInsets(),
-              itemBuilder: (context, index) {
-                if (index >= count) {
-                  if (isLoading) {
-                    return const CircularProgressIndicator();
-                  } else if (hasMore) {
-                    if (current == ContentKind.post) {
-                      final newItems = getNewItems<Post>();
-                      _loadMore(newItems, posts);
-                    } else if (current == ContentKind.comment) {
-                      final newItems = getNewItems<Comment>();
-                      _loadMore(newItems, comments);
-                    } else if (current == ContentKind.user) {
-                      final newItems = getNewItems<Author>();
-                      _loadMore(newItems, users);
-                    } else if (current == ContentKind.tag) {
-                      final newItems = getNewItems<Tag>();
-                      _loadMore(newItems, tags);
-                    }
-                    isLoading = true;
-                    return const CircularProgressIndicator();
-                  } else {
-                    return const SizedBox();
-                  }
-                }
-                final item = snapshot.data![index];
-                if (current == ContentKind.post) {
-                  return (item as Post).tile(context, updateState);
-                } else if (current == ContentKind.comment) {
-                  final comment = (item as Comment);
-                  return comment.card(
-                      context,
-                      false,
-                      0,
-                      (c) => c.showParentPost(context)(),
-                      updateState,
-                      null,
-                      false);
-                } else if (current == ContentKind.user) {
-                  final user = item as Author;
-                  return user.card(context, updateState);
-                } else if (current == ContentKind.tag) {
-                  final tag = item as Tag;
-                  return tag.card(context, updateState);
-                } else {
-                  return const SizedBox();
-                }
-              },
-            );
-            return RefreshIndicator(
-              onRefresh: () async {
-                updateFilter(() {});
-              },
-              child: list,
-            );
-          } else if (snapshot.hasError) {
-            return Text("${snapshot.error}");
-          }
-          return const CircularProgressIndicator();
-        });
   }
 
   @override
   Widget build(BuildContext context) {
     late final Widget list;
+    late final Widget sliver;
+
+    final buildList = buildFutureList(
+      context,
+      _loadMore,
+      filterState,
+      count,
+      isLoading,
+      hasMore,
+      getNewItems,
+      updateState,
+      tags,
+      posts,
+      users,
+      comments,
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+    );
 
     if (current == ContentKind.post) {
-      list = buildList(context, posts);
+      list = buildList(posts);
     } else if (current == ContentKind.comment) {
-      list = buildList(context, comments);
+      list = buildList(comments);
     } else if (current == ContentKind.user) {
-      list = buildList(context, users);
+      list = buildList(users);
     } else if (current == ContentKind.tag) {
-      list = buildList(context, tags);
+      list = buildList(tags);
     } else {
       list = const SizedBox();
     }
+    final filterBox = FilterBox(
+      filterKey: GlobalKey(),
+      valueChanged: (state) => updateFilterState(state),
+      state: filterState,
+    );
 
-    var stack = <Widget>[list];
-    stack.add(Visibility(
-      visible: showingFilter,
-      maintainState: true,
-      child: filterBox,
-    ));
+    var stack = <Widget>[];
+    if (showingFilter) {
+      sliver = CustomScrollView(
+        slivers: [
+          list,
+        ],
+      );
+      stack.add(sliver);
+      stack.add(filterBox);
+    } else {
+      sliver = CustomScrollView(
+        slivers: [
+          SliverList(delegate: SliverChildListDelegate([filterBox])),
+          list,
+        ],
+      );
+      stack.add(sliver);
+    }
 
     final page = Stack(children: stack);
 
@@ -309,7 +286,9 @@ class _UserContPageState extends State<UserContPage> {
               showingFilter = !showingFilter;
               updateState();
             },
-            icon: const Icon(Icons.filter_alt_rounded),
+            icon: showingFilter
+                ? const Icon(Icons.filter_alt_rounded)
+                : const Icon(Icons.filter_alt_outlined),
           )
         ],
       ),

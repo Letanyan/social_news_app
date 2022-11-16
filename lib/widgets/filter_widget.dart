@@ -10,43 +10,55 @@ import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
 
 class FilterBoxState {
+  Map<int, String>? displaySelector;
+  List<SortOrder>? displaySorting;
   int current;
-  SortOrder order;
-  DateTime start;
-  DateTime end;
+  SortOrder? order;
+  DateTime? startDate;
+  DateTime? endDate;
   List<String>? location;
   String? search;
 
   FilterBoxState({
+    this.displaySelector,
+    this.displaySorting,
     required this.current,
-    required this.order,
-    required this.start,
-    required this.end,
-    required this.location,
-    required this.search,
-  });
-}
-
-class FilterBox extends StatefulWidget {
-  final Map<int, String>? selector;
-  List<SortOrder>? sorting;
-  DateTime? startDate;
-  DateTime? endDate;
-  String? location;
-  String? search;
-  FilterBoxState? currentState;
-  void Function(FilterBoxState)? valueChanged;
-  final GlobalKey filterKey = GlobalKey();
-  FilterBox({
-    super.key,
-    this.selector,
-    this.sorting,
+    this.order,
     this.startDate,
     this.endDate,
     this.location,
     this.search,
-    this.valueChanged,
-    this.currentState,
+  });
+
+  factory FilterBoxState.zero() {
+    return FilterBoxState(
+      displaySelector: null,
+      displaySorting: null,
+      current: 0,
+      order: null,
+      startDate: null,
+      endDate: null,
+      location: null,
+      search: null,
+    );
+  }
+}
+
+class FilterBox extends StatefulWidget {
+  // final Map<int, String>? selector;
+  // List<SortOrder>? sorting;
+  // DateTime? startDate;
+  // DateTime? endDate;
+  // String? location;
+  // String? search;
+  final FilterBoxState state;
+  final void Function(FilterBoxState)? valueChanged;
+  final GlobalKey filterKey;
+  const FilterBox({
+    super.key,
+    required this.filterKey,
+    required this.valueChanged,
+    required this.state,
   });
 
   Size getWidgetSize() {
@@ -60,86 +72,73 @@ class FilterBox extends StatefulWidget {
 
 class _FilterBoxState extends State<FilterBox> {
   var current = 0;
-  var sortOrder = <SortOrder>[];
-  var location = <String>[];
-  var startDate = <DateTime>[];
-  var endDate = <DateTime>[];
-  var searchString = <String>[];
+  late final Map<int, String>? selector;
+  var sortOrder = <SortOrder?>[];
+  var location = <List<String>?>[];
+  var startDate = <DateTime?>[];
+  var endDate = <DateTime?>[];
+  var searchString = <String?>[];
   var controller = TextEditingController();
-  final GlobalKey filterKey = GlobalKey();
+  var state = FilterBoxState.zero();
 
   @override
   void initState() {
     super.initState();
 
+    final defaultSelector = widget.state.displaySelector;
     final defaultStart = startOfDay(
-        widget.startDate ?? DateTime.now().add(const Duration(days: -7)));
-    final defaultEnd = endOfDay(widget.endDate ?? DateTime.now());
-    final defaultLocation = widget.location ?? "";
-    final defaultSearch = widget.search ?? "";
+        widget.state.startDate ?? DateTime.now().add(const Duration(days: -7)));
+    final defaultEnd = endOfDay(widget.state.endDate ?? DateTime.now());
+    final defaultLocation = widget.state.location ?? [];
+    final defaultSearch = widget.state.search;
+    final defaultOrder = widget.state.order ?? SortOrder.upvotes;
+    current = widget.state.current;
 
-    if (widget.selector == null) {
-      sortOrder = [SortOrder.upvotes];
+    if (widget.state.displaySelector == null) {
+      selector = defaultSelector;
+      sortOrder = [defaultOrder];
       location = [defaultLocation];
       searchString = [defaultSearch];
       startDate = [defaultStart];
       endDate = [defaultEnd];
     } else {
-      for (final _ in widget.selector!.keys) {
-        sortOrder.add(SortOrder.upvotes);
+      selector = defaultSelector;
+      for (final _ in widget.state.displaySelector!.keys) {
+        sortOrder.add(defaultOrder);
         location.add(defaultLocation);
         searchString.add(defaultSearch);
         startDate.add(defaultStart);
         endDate.add(defaultEnd);
       }
     }
-    widget.currentState = FilterBoxState(
-      current: current,
-      order: sortOrder[current],
-      start: startDate[current],
-      end: endDate[current],
-      location: getLocationArg(),
-      search: getSearchString(),
-    );
   }
 
   void updateState() {
-    widget.currentState = FilterBoxState(
+    state = FilterBoxState(
+      displaySelector: selector,
+      displaySorting: widget.state.displaySorting,
       current: current,
       order: sortOrder[current],
-      start: startDate[current],
-      end: endDate[current],
-      location: getLocationArg(),
-      search: getSearchString(),
+      startDate: startDate[current],
+      endDate: endDate[current],
+      location: location[current],
+      search: searchString[current],
     );
     setState(() {});
-    controller.text = searchString[current];
+    controller.text = searchString[current] ?? "";
     if (widget.valueChanged != null) {
-      widget.valueChanged!(widget.currentState!);
-    }
-  }
-
-  List<String>? getLocationArg() {
-    if (location[current] == "") {
-      return null;
-    } else {
-      return location[current].split(",");
-    }
-  }
-
-  String? getSearchString() {
-    if (searchString[current] == "") {
-      return null;
-    } else {
-      return searchString[current];
+      widget.valueChanged!(state);
     }
   }
 
   String getLocationPresentation() {
-    if (location[current] == "") {
+    if (location[current]?.isEmpty == true) {
       return "Everywhere";
     } else {
-      final args = location[current].split(",");
+      final args = location[current];
+      if (args == null) {
+        return "Everywhere";
+      }
       var result = "";
       if (args.isNotEmpty) {
         result += Geo.current.country(args[0]);
@@ -156,9 +155,11 @@ class _FilterBoxState extends State<FilterBox> {
     void Function(void Function()) setState,
   ) {
     return () async {
+      final fallback = DateTime.now();
       final date = await showDatePicker(
           context: context,
-          initialDate: isStartDate ? startDate[current] : endDate[current],
+          initialDate:
+              (isStartDate ? startDate[current] : endDate[current]) ?? fallback,
           firstDate: DateTime.fromMicrosecondsSinceEpoch(0),
           lastDate: endOfDay(DateTime.now()));
       if (date == null) {
@@ -176,7 +177,7 @@ class _FilterBoxState extends State<FilterBox> {
 
   List<Widget> buildSortByTiles(void Function(void Function()) setState) {
     List<Widget> dropMenuItems = [];
-    for (final so in widget.sorting ?? []) {
+    for (final so in widget.state.displaySorting ?? []) {
       dropMenuItems.add(
         ListTile(
           trailing:
@@ -193,11 +194,31 @@ class _FilterBoxState extends State<FilterBox> {
     return dropMenuItems;
   }
 
+  List<Widget> buildCategoryTiles(void Function(void Function()) setState) {
+    List<Widget> dropMenuItems = [];
+    final list = widget.state.displaySelector?.keys ?? [];
+    for (final cat in list) {
+      dropMenuItems.add(
+        ListTile(
+          trailing: current == cat ? const Icon(Icons.check_rounded) : null,
+          title: Text(widget.state.displaySelector?[cat] ?? ""),
+          onTap: () {
+            current = cat;
+            updateState();
+            setState(() {});
+          },
+        ),
+      );
+    }
+    return dropMenuItems;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final fallbackDate = DateTime.now();
     final dateButton = ActionChip(
       label: Text(
-          "${formatDate(startDate[current])} - ${formatDate(endDate[current])}"),
+          "${formatDate(startDate[current] ?? fallbackDate)} - ${formatDate(endDate[current] ?? fallbackDate)}"),
       avatar: const Icon(Icons.calendar_month_rounded),
       onPressed: () {
         showPlatformDialog(
@@ -205,11 +226,13 @@ class _FilterBoxState extends State<FilterBox> {
           builder: (context) {
             return StatefulBuilder(builder: (context, setState) {
               final startTile = ListTile(
-                title: Text("From: ${formatDate(startDate[current])}"),
+                title: Text(
+                    "From: ${formatDate(startDate[current] ?? fallbackDate)}"),
                 onTap: updateDate(true, setState),
               );
               final endTile = ListTile(
-                title: Text("To: ${formatDate(endDate[current])}"),
+                title:
+                    Text("To: ${formatDate(endDate[current] ?? fallbackDate)}"),
                 onTap: updateDate(false, setState),
               );
               final closeDate = ElevatedButton(
@@ -237,7 +260,10 @@ class _FilterBoxState extends State<FilterBox> {
       onPressed: () async {
         String country = "";
         String region = "";
-        final args = location[current].split(",");
+        final args = location[current];
+        if (args == null) {
+          return;
+        }
         if (args.isNotEmpty) {
           country = args[0];
         }
@@ -258,7 +284,8 @@ class _FilterBoxState extends State<FilterBox> {
       },
     );
     final sortDropDown = ActionChip(
-      label: Text(sortOrderPresentation(sortOrder[current])),
+      label:
+          Text(sortOrderPresentation(sortOrder[current] ?? SortOrder.upvotes)),
       avatar: const Icon(Icons.sort_rounded),
       onPressed: () {
         showPlatformDialog(
@@ -283,19 +310,47 @@ class _FilterBoxState extends State<FilterBox> {
         );
       },
     );
+    // final categoryDropDown = ActionChip(
+    //   label: Text(selector[current] ?? ""),
+    //   avatar: const Icon(Icons.category_rounded),
+    //   onPressed: () {
+    //     showPlatformDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return StatefulBuilder(builder: (context, setState) {
+    //           final closeCategory = ElevatedButton(
+    //             onPressed: () => Navigator.pop(context),
+    //             child: const Text("Close"),
+    //           );
+    //           return AlertDialog(
+    //             title: const Text("Sort By"),
+    //             content: SingleChildScrollView(
+    //               child: Column(
+    //                 children: buildCategoryTiles(setState),
+    //               ),
+    //             ),
+    //             actions: [closeCategory],
+    //           );
+    //         });
+    //       },
+    //     );
+    //   },
+    // );
 
     var operatorItems = <Widget>[];
-    if (widget.sorting != null) {
+    // if (widget.state.displaySelector != null) {
+    //   operatorItems.add(const SizedBox(width: 8));
+    //   operatorItems.add(categoryDropDown);
+    // }
+    if (widget.state.displaySorting != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(sortDropDown);
     }
-    if (widget.startDate != null) {
+    if (widget.state.startDate != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(dateButton);
-      // operatorItems.add(startChip);
-      // operatorItems.add(endChip);
     }
-    if (widget.location != null) {
+    if (widget.state.location != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(area);
     }
@@ -310,18 +365,19 @@ class _FilterBoxState extends State<FilterBox> {
     final isDark = MyTheme.isDark;
     final textStyle =
         TextStyle(color: isDark ? Colors.white : Colors.grey[800]);
-    final selectorWidgets = widget.selector?.map(
+    final selectorWidgets = widget.state.displaySelector?.map(
             (key, value) => MapEntry(key, Text(value, style: textStyle))) ??
         <int, Widget>{
           0: Text("Posts", style: textStyle),
           1: Text("Comments", style: textStyle)
         };
     final selector = CupertinoSlidingSegmentedControl<int>(
-      // padding: const EdgeInsets.all(15),
       children: selectorWidgets,
       thumbColor: MyTheme.primary,
       onValueChanged: (int? index) {
-        current = index ?? 0;
+        if (index != null) {
+          current = index;
+        }
         updateState();
       },
       groupValue: current,
@@ -334,13 +390,13 @@ class _FilterBoxState extends State<FilterBox> {
       style: textStyle,
       decoration: InputDecoration(
         border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16))),
+            borderRadius: BorderRadius.all(Radius.circular(8))),
         enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
                 color: isDark
                     ? Colors.grey[400] ?? Colors.white
                     : Colors.grey[600] ?? Colors.black),
-            borderRadius: const BorderRadius.all(Radius.circular(16))),
+            borderRadius: const BorderRadius.all(Radius.circular(8))),
         hintStyle: textStyle,
         hintText: 'Search',
       ),
@@ -353,13 +409,14 @@ class _FilterBoxState extends State<FilterBox> {
 
     var filterItems = <Widget>[];
 
-    if (widget.selector != null) {
+    if (widget.state.displaySelector != null) {
       filterItems.add(const SizedBox(height: 8));
       filterItems.add(selector);
     }
-    if (widget.search != null) {
+    if (widget.state.search != null) {
       filterItems.add(const SizedBox(height: 8));
-      filterItems.add(searchBox);
+      filterItems
+          .add(Padding(padding: const EdgeInsets.all(8), child: searchBox));
     }
     if (operatorItems.isNotEmpty) {
       filterItems.add(const SizedBox(height: 8));
@@ -370,28 +427,29 @@ class _FilterBoxState extends State<FilterBox> {
       mainAxisSize: MainAxisSize.min,
       children: filterItems,
     );
-    const rounding = BorderRadius.all(Radius.circular(16));
-    final cont = Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[isDark ? 800 : 200]?.withAlpha(192),
-        borderRadius: rounding,
-        border: Border.all(color: Colors.grey),
-      ),
-      child: Padding(padding: const EdgeInsets.all(8), child: body),
-    );
+    // const rounding = BorderRadius.all(Radius.circular(16));
+    // final cont = Container(
+    //   decoration: BoxDecoration(
+    //     color: Colors.grey[isDark ? 800 : 200]?.withAlpha(192),
+    //     borderRadius: rounding,
+    //     border: Border.all(color: Colors.grey),
+    //   ),
+    //   child: Padding(padding: const EdgeInsets.all(8), child: body),
+    // );
 
     final filter = BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-      child: cont,
+      child: body,
     );
 
-    final rect = ClipRRect(
-      key: widget.filterKey,
+    final rect = ClipRect(
+      key: widget.key,
       clipBehavior: Clip.antiAlias,
-      borderRadius: rounding,
+      // borderRadius: rounding,
       child: filter,
     );
 
-    return Padding(padding: const EdgeInsets.all(8), child: rect);
+    return rect;
+    // return Padding(padding: const EdgeInsets.all(8), child: rect);
   }
 }

@@ -32,28 +32,27 @@ class _UserPrefPageState extends State<UserPrefPage> {
   late Future<List<UserPrefComment>> comments;
 
   var current = ContentKind.tag;
-  var offset = 0;
+  var offset = [0];
   var pageSize = 20;
-  var count = 0;
-  var hasMore = true;
-  var isLoading = false;
-  late final FilterBox filterBox;
-  bool showingFilter = true;
+  var count = [0];
+  var hasMore = [true];
+  var isLoading = [false];
+  late FilterBoxState filterState;
+  bool showingFilter = false;
+  double? filterHeight;
 
   @override
   void initState() {
     super.initState();
 
     current = widget.prefKind;
-    filterBox = FilterBox(
+    filterState = FilterBoxState(
+      current: 0,
       search: "",
       startDate: DateTime.utc(1970),
       endDate: DateTime.now(),
-      location: widget.prefKind == ContentKind.post ? "" : null,
-      sorting: sortOrdersIncluding([SortOrder.updatedOn]),
-      valueChanged: (p0) {
-        updateFilter(() {});
-      },
+      location: widget.prefKind == ContentKind.post ? [] : null,
+      displaySorting: sortOrdersIncluding([SortOrder.updatedOn]),
     );
 
     tags = Future(() => []);
@@ -70,7 +69,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       comments = getNewItems<UserPrefComment>().then(updateItemsState);
     }
 
-    offset = pageSize;
+    offset[0] = pageSize;
   }
 
   int currentIndex<T>() {
@@ -89,17 +88,18 @@ class _UserPrefPageState extends State<UserPrefPage> {
 
   Future<List<T>> getNewItems<T>() async {
     final idx = currentIndex<T>();
-    final sd = filterBox.currentState?.start;
-    final ed = filterBox.currentState?.end;
-    final loc = filterBox.currentState?.location;
-    final srt = filterBox.currentState?.order;
-    final src = filterBox.currentState?.search;
+    final sd = filterState.startDate;
+    final ed = filterState.endDate;
+    final loc =
+        filterState.location?.isEmpty == true ? null : filterState.location;
+    final srt = filterState.order;
+    final src = filterState.search?.isEmpty == true ? null : filterState.search;
     if (isTypeEqual<T, UserPrefTag>()) {
       return NewSource.getUserPrefTags(
         uid: widget.user.id,
         startVoted: sd,
         endVoted: ed,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         order: srt,
         search: src,
@@ -110,7 +110,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         location: loc,
         startVoted: sd,
         endVoted: ed,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         order: srt,
         search: src,
@@ -120,7 +120,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         uid: widget.user.id,
         startVoted: sd,
         endVoted: ed,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         order: srt,
         search: src,
@@ -130,7 +130,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         uid: widget.user.id,
         startVoted: sd,
         endVoted: ed,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         order: srt,
         search: src,
@@ -141,17 +141,17 @@ class _UserPrefPageState extends State<UserPrefPage> {
   }
 
   Future<List<T>> updateItemsState<T>(List<T> value) async {
-    count += value.length;
-    isLoading = false;
+    count[0] += value.length;
+    isLoading[0] = false;
     return value;
   }
 
   void updateFilter(void Function() f) {
     setState(() {
       f();
-      count = 0;
-      offset = 0;
-      isLoading = true;
+      count[0] = 0;
+      offset[0] = 0;
+      isLoading[0] = true;
       if (current == ContentKind.tag) {
         tags = getNewItems<UserPrefTag>().then(updateItemsState);
       } else if (current == ContentKind.post) {
@@ -161,21 +161,26 @@ class _UserPrefPageState extends State<UserPrefPage> {
       } else if (current == ContentKind.comment) {
         comments = getNewItems<UserPrefComment>().then(updateItemsState);
       }
-      offset = pageSize;
+      offset[0] = pageSize;
     });
   }
 
-  void _loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
+  void updateFilterState(FilterBoxState state) {
+    filterState = state;
+    updateFilter(() {});
+  }
+
+  void loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
     final newPosts = await newItems;
     var oldPosts = await oldItems;
-    offset += newPosts.length;
+    offset[0] += newPosts.length;
     if (newPosts.isEmpty) {
-      hasMore = false;
+      hasMore[0] = false;
     }
     oldPosts.addAll(newPosts);
     setState(() {
-      count = oldPosts.length;
-      isLoading = false;
+      count[0] = oldPosts.length;
+      isLoading[0] = false;
     });
     oldItems = Future(() => oldPosts);
   }
@@ -193,111 +198,77 @@ class _UserPrefPageState extends State<UserPrefPage> {
   }
 
   EdgeInsets listViewInsets() {
+    // final h = filterBox.getWidgetSize().height;
+    // if (filterHeight == null && h != 0) {
+    //   filterHeight = h;
+    // }
     return EdgeInsets.only(
-      top: !showingFilter ? 0 : filterBox.getWidgetSize().height,
+      top: !showingFilter ? 0 : filterHeight!,
       bottom: 48,
     );
-  }
-
-  Widget buildList<T>(BuildContext context, Future<List<T>> items) {
-    return FutureBuilder<List<T>>(
-        future: items,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-              return const SizedBox();
-            }
-            final list = ListView.builder(
-              itemCount: count,
-              padding: listViewInsets(),
-              itemBuilder: (context, index) {
-                if (index >= count) {
-                  if (isLoading) {
-                    return const CircularProgressIndicator();
-                  } else if (hasMore) {
-                    if (current == ContentKind.tag) {
-                      final newItems = getNewItems<UserPrefTag>();
-                      _loadMore(newItems, tags);
-                    } else if (current == ContentKind.post) {
-                      final newItems = getNewItems<UserPrefPost>();
-                      _loadMore(newItems, posts);
-                    } else if (current == ContentKind.user) {
-                      final newItems = getNewItems<UserPrefUser>();
-                      _loadMore(newItems, users);
-                    } else if (current == ContentKind.comment) {
-                      final newItems = getNewItems<UserPrefComment>();
-                      _loadMore(newItems, comments);
-                    }
-                    isLoading = true;
-                    return const CircularProgressIndicator();
-                  } else {
-                    return const SizedBox();
-                  }
-                }
-                final item = snapshot.data![index];
-                if (current == ContentKind.tag) {
-                  final tag = item as UserPrefTag;
-                  return tag.tag.card(context, updateState,
-                      up: tag.upvotes, down: tag.downvotes);
-                } else if (current == ContentKind.post) {
-                  final post = item as UserPrefPost;
-                  return post.post.tile(context, updateState,
-                      up: post.upvotes, down: post.downvotes);
-                } else if (current == ContentKind.user) {
-                  final user = item as UserPrefUser;
-                  return user.author.card(context, updateState,
-                      up: user.upvotes, down: user.downvotes);
-                } else if (current == ContentKind.comment) {
-                  final comment = (item as UserPrefComment);
-                  return comment.comment.card(
-                      context,
-                      false,
-                      0,
-                      (c) => c.showParentPost(context)(),
-                      updateState,
-                      null,
-                      false,
-                      up: comment.upvotes,
-                      down: comment.downvotes);
-                } else {
-                  return const SizedBox();
-                }
-              },
-            );
-            return RefreshIndicator(
-              onRefresh: () async {
-                updateFilter(() {});
-              },
-              child: list,
-            );
-          } else if (snapshot.hasError) {
-            return Text("${snapshot.error}");
-          }
-          return const CircularProgressIndicator();
-        });
   }
 
   @override
   Widget build(BuildContext context) {
     late final Widget list;
-    if (current == ContentKind.tag) {
-      list = buildList(context, tags);
-    } else if (current == ContentKind.post) {
-      list = buildList(context, posts);
-    } else if (current == ContentKind.user) {
-      list = buildList(context, users);
+    late final Widget sliver;
+
+    final buildList = buildFutureList(
+      context,
+      loadMore,
+      filterState,
+      count,
+      isLoading,
+      hasMore,
+      getNewItems,
+      updateState,
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      tags,
+      posts,
+      users,
+      comments,
+    );
+
+    if (current == ContentKind.post) {
+      list = buildList(posts);
     } else if (current == ContentKind.comment) {
-      list = buildList(context, comments);
+      list = buildList(comments);
+    } else if (current == ContentKind.user) {
+      list = buildList(users);
+    } else if (current == ContentKind.tag) {
+      list = buildList(tags);
     } else {
       list = const SizedBox();
     }
+    final filterBox = FilterBox(
+      filterKey: GlobalKey(),
+      valueChanged: (state) => updateFilterState(state),
+      state: filterState,
+    );
 
-    var stack = <Widget>[list];
-    stack.add(Visibility(
-      visible: showingFilter,
-      maintainState: true,
-      child: filterBox,
-    ));
+    var stack = <Widget>[];
+    if (showingFilter) {
+      sliver = CustomScrollView(
+        slivers: [
+          list,
+        ],
+      );
+      stack.add(sliver);
+      stack.add(filterBox);
+    } else {
+      sliver = CustomScrollView(
+        slivers: [
+          SliverList(delegate: SliverChildListDelegate([filterBox])),
+          list,
+        ],
+      );
+      stack.add(sliver);
+    }
     final page = Stack(children: stack);
 
     return Scaffold(
@@ -309,7 +280,9 @@ class _UserPrefPageState extends State<UserPrefPage> {
               showingFilter = !showingFilter;
               updateState();
             },
-            icon: const Icon(Icons.filter_alt_rounded),
+            icon: showingFilter
+                ? const Icon(Icons.filter_alt_rounded)
+                : const Icon(Icons.filter_alt_outlined),
           )
         ],
       ),

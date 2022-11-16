@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/widgets/filter_widget.dart';
 
 class PostsPage extends StatefulWidget {
   final int? userId;
@@ -44,25 +46,20 @@ class PostsPage extends StatefulWidget {
 
 class _PostsPageState extends State<PostsPage> {
   late Future<List<Post>> posts;
-  int offset = 0;
-  int count = 0;
-  int pageSize = 20;
-  bool isLoading = true;
-  bool hasMore = true;
+  var offset = [0];
+  var count = [0];
+  var pageSize = 20;
+  var isLoading = [true];
+  var hasMore = [true];
 
   @override
   void initState() {
     super.initState();
-    posts = loadPosts().then((value) {
-      count += value.length;
-      isLoading = false;
-      return value;
-    });
-
-    offset = pageSize;
+    posts = Future(() => []);
+    updateFilter(() {});
   }
 
-  Future<List<Post>> loadPosts() {
+  Future<List<T>> getNewItems<T>() {
     if (widget.postId == null) {
       return NewSource.getPosts(
         userId: widget.userId,
@@ -72,41 +69,60 @@ class _PostsPageState extends State<PostsPage> {
         upvotes: widget.upvotes,
         downvotes: widget.downvotes,
         order: widget.order,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         start: widget.start,
         end: widget.end,
         startCreated: widget.startCreated,
         endCreated: widget.endCreated,
         forUser: widget.forUser,
-      );
+      ) as Future<List<T>>;
     } else if (widget.forUser != null) {
       return NewSource.getSimilarPost(
         widget.forUser!,
         start: widget.start,
         end: widget.end,
         order: widget.order,
-        offset: offset,
+        offset: offset[0],
         limit: pageSize,
         postId: widget.postId,
-      );
+      ) as Future<List<T>>;
     } else {
       return Future(() => []);
     }
   }
 
-  Future<void> _loadMorePosts() async {
-    final newPosts = await loadPosts();
-    var oldPosts = await posts;
-    offset += newPosts.length;
+  void loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
+    final newPosts = await newItems;
+    var oldPosts = await oldItems;
+    offset[0] += newPosts.length;
     if (newPosts.isEmpty) {
-      hasMore = false;
+      hasMore[0] = false;
     }
     oldPosts.addAll(newPosts);
-    posts = Future(() => oldPosts);
+    count[0] = oldPosts.length;
     setState(() {
-      count = oldPosts.length;
-      isLoading = false;
+      isLoading[0] = false;
+    });
+    oldItems = Future(() => oldPosts);
+  }
+
+  Future<List<T>> updateItemsState<T>(List<T> value) async {
+    count[0] += value.length;
+    isLoading[0] = false;
+    return value;
+  }
+
+  void updateFilter(void Function() f) {
+    setState(() {
+      f();
+      count[0] = 0;
+      isLoading[0] = true;
+      hasMore[0] = true;
+
+      offset[0] = 0;
+      posts = getNewItems<Post>().then(updateItemsState);
+      offset[0] = pageSize;
     });
   }
 
@@ -159,58 +175,93 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final page = FutureBuilder<List<Post>>(
-      future: posts,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-            return const SizedBox();
-          }
-          final list = ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: count + 1,
-            itemBuilder: (context, index) {
-              if (index >= count) {
-                if (isLoading) {
-                  return const CircularProgressIndicator();
-                } else if (hasMore) {
-                  _loadMorePosts();
-                  isLoading = true;
-                  return const CircularProgressIndicator();
-                } else {
-                  return const SizedBox();
-                }
-              }
-              final item = snapshot.data![index];
-              return item.tile(context, updateState);
-              // return item.card(context, false, updateState);
-            },
-          );
-          return RefreshIndicator(
-            onRefresh: () async {
-              if (User.current != null && widget.forUser != null) {
-                var list = <int>[];
-                for (final p in await posts) {
-                  list.add(p.id);
-                }
-                NewSource.refreshUserContRecommendations(
-                    User.current!.id, list);
-              }
-              offset = 0;
-              count = 0;
-              isLoading = true;
-              await _loadMorePosts();
-              hasMore = true;
-              return;
-            },
-            child: list,
-          );
-        } else if (snapshot.hasError) {
-          return Text("${snapshot.error}");
-        }
-        return const CircularProgressIndicator();
-      },
+    // final page = FutureBuilder<List<Post>>(
+    //   future: posts,
+    //   builder: (context, snapshot) {
+    //     if (snapshot.hasData) {
+    //       if (snapshot.data == null || snapshot.data?.isEmpty == true) {
+    //         return const SizedBox();
+    //       }
+    //       final list = ListView.builder(
+    //         physics: const AlwaysScrollableScrollPhysics(),
+    //         itemCount: count[0] + 1,
+    //         itemBuilder: (context, index) {
+    //           if (index >= count[0]) {
+    //             if (isLoading[0]) {
+    //               return const CircularProgressIndicator();
+    //             } else if (hasMore) {
+    //               _loadMorePosts();
+    //               isLoading = true;
+    //               return const CircularProgressIndicator();
+    //             } else {
+    //               return const SizedBox();
+    //             }
+    //           }
+    //           final item = snapshot.data![index];
+    //           return item.tile(context, updateState);
+    //           // return item.card(context, false, updateState);
+    //         },
+    //       );
+    //       return RefreshIndicator(
+    //         onRefresh: () async {
+    //           if (User.current != null && widget.forUser != null) {
+    //             var list = <int>[];
+    //             for (final p in await posts) {
+    //               list.add(p.id);
+    //             }
+    //             NewSource.refreshUserContRecommendations(
+    //                 User.current!.id, list);
+    //           }
+    //           offset = 0;
+    //           count = 0;
+    //           isLoading = true;
+    //           await _loadMorePosts();
+    //           hasMore = true;
+    //           return;
+    //         },
+    //         child: list,
+    //       );
+    //     } else if (snapshot.hasError) {
+    //       return Text("${snapshot.error}");
+    //     }
+    //     return const CircularProgressIndicator();
+    //   },
+    // );
+    late final Widget list;
+    late final Widget sliver;
+    var stack = <Widget>[];
+    final filterState = FilterBoxState.zero();
+
+    final buildList = buildFutureList(
+      context,
+      loadMore,
+      filterState,
+      count,
+      isLoading,
+      hasMore,
+      getNewItems,
+      updateState,
+      Future(() => []),
+      posts,
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
+      Future(() => []),
     );
+
+    list = buildList(posts);
+    sliver = CustomScrollView(
+      slivers: [
+        list,
+      ],
+    );
+    stack.add(sliver);
+
+    final page = Stack(children: stack);
 
     return Scaffold(
       appBar: AppBar(
