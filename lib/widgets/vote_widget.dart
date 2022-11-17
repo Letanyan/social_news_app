@@ -73,7 +73,7 @@ class _VoteWidgetState extends State<VoteWidget> {
     final subtitle = Text("Credits Available: ${User.current!.creditAmount()}");
     final heading = ListTile(title: title, subtitle: subtitle);
 
-    final amountDesciption = Text("$actionDescription Amount");
+    final amountDescription = Text("$actionDescription Amount");
     final amount = Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -98,7 +98,8 @@ class _VoteWidgetState extends State<VoteWidget> {
       content: SingleChildScrollView(
         child: Column(
           children: [
-            amountDesciption,
+            amountDescription,
+            const SizedBox(height: 8),
             amount,
           ],
         ),
@@ -150,44 +151,6 @@ void Function() showVoteDialog(
   };
 }
 
-Widget buildDownvoteButton(
-  BuildContext context,
-  int downvotes,
-  UserVoteKind kind,
-  void Function(BuildContext, int) confirmVote,
-) {
-  return ActionChip(
-    onPressed: showVoteDialog(context, false, kind, confirmVote),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topRight: Radius.circular(16),
-        bottomRight: Radius.circular(16),
-      ),
-    ),
-    avatar: Icon(Icons.back_hand, color: MyTheme.primary, size: 18),
-    label: Text("$downvotes"),
-  );
-}
-
-Widget buildUpvoteButton(
-  BuildContext context,
-  int upvotes,
-  UserVoteKind kind,
-  void Function(BuildContext, int) confirmVote,
-) {
-  return ActionChip(
-    onPressed: showVoteDialog(context, true, kind, confirmVote),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(16),
-        bottomLeft: Radius.circular(16),
-      ),
-    ),
-    avatar: Icon(Icons.speaker, color: MyTheme.primary, size: 18),
-    label: Text("$upvotes"),
-  );
-}
-
 Widget buildDownvoteChip(BuildContext context, int downvotes) {
   return Chip(
     shape: const RoundedRectangleBorder(
@@ -215,5 +178,48 @@ Widget buildUpvoteChip(BuildContext context, int upvotes) {
     avatar: Icon(Icons.speaker, color: MyTheme.primary, size: 12),
     labelStyle: const TextStyle(fontSize: 12),
     label: Text("$upvotes"),
+  );
+}
+
+Widget buildVoteButton(
+  BuildContext context,
+  int votes,
+  bool isUpvote,
+  UserVoteKind kind,
+  void Function(BuildContext, int) confirmVote,
+) {
+  return InkWell(
+    onTap: showVoteDialog(context, false, kind, confirmVote),
+    child: Row(children: [
+      Icon(
+        size: 16,
+        isUpvote ? Icons.speaker : Icons.back_hand,
+      ),
+      Text(" $votes"),
+    ]),
+  );
+}
+
+Widget buildReplyButton(
+    BuildContext context, bool isReplyingTo, void Function() onTap) {
+  return InkWell(
+    onTap: onTap,
+    child: Icon(
+      size: 16,
+      Icons.add_comment_rounded,
+      color: isReplyingTo ? MyTheme.primary : Colors.white,
+    ),
+  );
+}
+
+Widget buildReplyCountButton(BuildContext context, int replyCount,
+    bool highlightedReplies, void Function()? onTap) {
+  return InkWell(
+    onTap: onTap,
+    child: Text(
+      replyCount == 1 ? " $replyCount Reply" : " $replyCount Replies",
+      style:
+          TextStyle(color: highlightedReplies ? MyTheme.primary : Colors.white),
+    ),
   );
 }

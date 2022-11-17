@@ -119,6 +119,7 @@ class Comment {
       void Function(Comment)? onTap,
       VoidCallback updateState,
       Function()? showReplyField,
+      bool isReplyingTo,
       bool highlightedReplies,
       {int? postAuthor,
       int? up,
@@ -148,42 +149,31 @@ class Comment {
         Expanded(child: Align(alignment: Alignment.centerRight, child: date))
       ]),
     );
-    final reply = InkWell(
-      onTap: () {
-        if (showReplyField != null) {
-          showReplyField();
-        }
-      },
-      child: const Icon(size: 16, Icons.add_comment_rounded),
-    );
-    final replyCountChip = InkWell(
-      onTap: onTap == null || replyCount == 0 ? null : () => onTap(this),
-      child: Text(
-        replyCount == 1 ? " $replyCount Reply" : " $replyCount Replies",
-        style: TextStyle(
-            color: highlightedReplies ? MyTheme.primary : Colors.white),
-      ),
+    final reply = buildReplyButton(context, isReplyingTo, () {
+      if (showReplyField != null) {
+        showReplyField();
+      }
+    });
+    final replyCountChip = buildReplyCountButton(
+      context,
+      replyCount,
+      highlightedReplies,
+      onTap == null || replyCount == 0 ? null : () => onTap(this),
     );
     final kind = isReview ? UserVoteKind.review : UserVoteKind.comment;
-    final upvoteButton = InkWell(
-      onTap: showVoteDialog(context, true, kind, updateVote(updateState)),
-      child: Row(children: [
-        const Icon(
-          size: 16,
-          Icons.speaker,
-        ),
-        Text(" $upvotes"),
-      ]),
+    final upvoteButton = buildVoteButton(
+      context,
+      upvotes,
+      true,
+      kind,
+      updateVote(updateState),
     );
-    final downvoteButton = InkWell(
-      onTap: showVoteDialog(context, false, kind, updateVote(updateState)),
-      child: Row(children: [
-        const Icon(
-          size: 16,
-          Icons.back_hand,
-        ),
-        Text(" $downvotes"),
-      ]),
+    final downvoteButton = buildVoteButton(
+      context,
+      downvotes,
+      false,
+      kind,
+      updateVote(updateState),
     );
 
     var buttonRowItems = <Widget>[
@@ -272,23 +262,29 @@ class Comment {
 
     final card = Material(
       child: InkWell(
-        onTap: showReplyField != null ? null : showParentPost(context),
+        onTap: showReplyField != null
+            ? () => showReplyField()
+            : showParentPost(context),
         child: body,
       ),
     );
 
     var indents = <Widget>[];
     for (var i = 0; i < offset; i++) {
-      indents.add(
-        const Padding(
-          padding: EdgeInsets.all(2),
-          child: Icon(Icons.circle, size: 4),
-        ),
+      const div = VerticalDivider(
+        width: 6,
+        thickness: 1,
+        color: Colors.white,
+        indent: 8,
+        endIndent: 8,
       );
+      indents.add(div);
     }
-    return Row(children: [
-      Row(children: indents),
-      Expanded(child: card),
-    ]);
+    return IntrinsicHeight(
+      child: Row(children: [
+        ...indents,
+        Expanded(child: card),
+      ]),
+    );
   }
 }

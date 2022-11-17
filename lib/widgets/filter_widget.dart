@@ -310,38 +310,38 @@ class _FilterBoxState extends State<FilterBox> {
         );
       },
     );
-    // final categoryDropDown = ActionChip(
-    //   label: Text(selector[current] ?? ""),
-    //   avatar: const Icon(Icons.category_rounded),
-    //   onPressed: () {
-    //     showPlatformDialog(
-    //       context: context,
-    //       builder: (context) {
-    //         return StatefulBuilder(builder: (context, setState) {
-    //           final closeCategory = ElevatedButton(
-    //             onPressed: () => Navigator.pop(context),
-    //             child: const Text("Close"),
-    //           );
-    //           return AlertDialog(
-    //             title: const Text("Sort By"),
-    //             content: SingleChildScrollView(
-    //               child: Column(
-    //                 children: buildCategoryTiles(setState),
-    //               ),
-    //             ),
-    //             actions: [closeCategory],
-    //           );
-    //         });
-    //       },
-    //     );
-    //   },
-    // );
+    final categoryDropDown = ActionChip(
+      label: Text(selector?[current] ?? ""),
+      avatar: const Icon(Icons.category_rounded),
+      onPressed: () {
+        showPlatformDialog(
+          context: context,
+          builder: (context) {
+            return StatefulBuilder(builder: (context, setState) {
+              final closeCategory = ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Close"),
+              );
+              return AlertDialog(
+                title: const Text("Sort By"),
+                content: SingleChildScrollView(
+                  child: Column(
+                    children: buildCategoryTiles(setState),
+                  ),
+                ),
+                actions: [closeCategory],
+              );
+            });
+          },
+        );
+      },
+    );
 
     var operatorItems = <Widget>[];
-    // if (widget.state.displaySelector != null) {
-    //   operatorItems.add(const SizedBox(width: 8));
-    //   operatorItems.add(categoryDropDown);
-    // }
+    if (widget.state.displaySelector != null) {
+      operatorItems.add(const SizedBox(width: 8));
+      operatorItems.add(categoryDropDown);
+    }
     if (widget.state.displaySorting != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(sortDropDown);
@@ -365,23 +365,23 @@ class _FilterBoxState extends State<FilterBox> {
     final isDark = MyTheme.isDark;
     final textStyle =
         TextStyle(color: isDark ? Colors.white : Colors.grey[800]);
-    final selectorWidgets = widget.state.displaySelector?.map(
-            (key, value) => MapEntry(key, Text(value, style: textStyle))) ??
-        <int, Widget>{
-          0: Text("Posts", style: textStyle),
-          1: Text("Comments", style: textStyle)
-        };
-    final selector = CupertinoSlidingSegmentedControl<int>(
-      children: selectorWidgets,
-      thumbColor: MyTheme.primary,
-      onValueChanged: (int? index) {
-        if (index != null) {
-          current = index;
-        }
-        updateState();
-      },
-      groupValue: current,
-    );
+    // final selectorWidgets = widget.state.displaySelector?.map(
+    //         (key, value) => MapEntry(key, Text(value, style: textStyle))) ??
+    //     <int, Widget>{
+    //       0: Text("Posts", style: textStyle),
+    //       1: Text("Comments", style: textStyle)
+    //     };
+    // final selector = CupertinoSlidingSegmentedControl<int>(
+    //   children: selectorWidgets,
+    //   thumbColor: MyTheme.primary,
+    //   onValueChanged: (int? index) {
+    //     if (index != null) {
+    //       current = index;
+    //     }
+    //     updateState();
+    //   },
+    //   groupValue: current,
+    // );
 
     final searchBox = TextField(
       keyboardType: TextInputType.text,
@@ -409,17 +409,15 @@ class _FilterBoxState extends State<FilterBox> {
 
     var filterItems = <Widget>[];
 
-    if (widget.state.displaySelector != null) {
-      filterItems.add(const SizedBox(height: 8));
-      filterItems.add(selector);
-    }
+    // if (widget.state.displaySelector != null) {
+    //   filterItems
+    //       .add(Padding(padding: const EdgeInsets.all(8), child: selector));
+    // }
     if (widget.state.search != null) {
-      filterItems.add(const SizedBox(height: 8));
       filterItems
           .add(Padding(padding: const EdgeInsets.all(8), child: searchBox));
     }
     if (operatorItems.isNotEmpty) {
-      filterItems.add(const SizedBox(height: 8));
       filterItems.add(operatorRow);
     }
 

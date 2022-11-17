@@ -589,7 +589,9 @@ class NewSource {
 
   static Future<List<Author>> getUserContUsers(
     int uid,
-    UserContKind kind, {
+    UserContKind kind,
+    int limit,
+    int offset, {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
@@ -602,6 +604,8 @@ class NewSource {
     var args = <String>[];
     addD("start", startDate, args);
     addD("end", endDate, args);
+    addI("limit", limit, args);
+    addI("offset", offset, args);
     addSecret(args);
     final obj = await get(path, args);
     if (obj == null) {
@@ -612,7 +616,9 @@ class NewSource {
 
   static Future<List<Tag>> getUserContTag(
     int uid,
-    UserContKind kind, {
+    UserContKind kind,
+    int limit,
+    int offset, {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
@@ -623,6 +629,8 @@ class NewSource {
     var args = <String>[];
     addD("start", startDate, args);
     addD("end", endDate, args);
+    addI("limit", limit, args);
+    addI("offset", offset, args);
     addSecret(args);
     final obj = await get(path, args);
     if (obj == null) {

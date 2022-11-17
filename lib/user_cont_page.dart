@@ -132,6 +132,8 @@ class _UserContPageState extends State<UserContPage> {
         return NewSource.getUserContUsers(
           widget.user.id,
           UserContKind.userFollow,
+          pageSize,
+          offset[0],
           startDate: sd,
           endDate: ed,
         ) as Future<List<T>>;
@@ -139,6 +141,8 @@ class _UserContPageState extends State<UserContPage> {
         return NewSource.getUserContUsers(
           widget.user.id,
           UserContKind.ignored,
+          pageSize,
+          offset[0],
           startDate: sd,
           endDate: ed,
         ) as Future<List<T>>;
@@ -146,7 +150,8 @@ class _UserContPageState extends State<UserContPage> {
         return Future(() => <T>[]);
       }
     } else if (isTypeEqual<T, Tag>()) {
-      return NewSource.getUserContTag(widget.user.id, UserContKind.tagFollow)
+      return NewSource.getUserContTag(
+              widget.user.id, UserContKind.tagFollow, pageSize, offset[0])
           as Future<List<T>>;
     } else {
       return Future(() => <T>[]);

@@ -302,14 +302,25 @@ class _CommentsPageState extends State<CommentsPage> {
         child: const Text("Reply"),
       ),
     );
+    final cancel = Padding(
+      padding: const EdgeInsets.all(8),
+      child: TextButton(
+        onPressed: () {
+          replyingTo = null;
+          updateState();
+        },
+        child: const Text("Cancel"),
+      ),
+    );
+    final actions = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [send, cancel],
+    );
 
     return Visibility(
       visible: replyingTo != null,
-      child: Container(
-        constraints: const BoxConstraints(maxHeight: 180, minHeight: 45),
-        child: Row(
-          children: [Expanded(child: textField), send],
-        ),
+      child: Row(
+        children: [Expanded(child: textField), actions],
       ),
     );
   }
@@ -349,92 +360,106 @@ class _CommentsPageState extends State<CommentsPage> {
           );
         }).toList();
       },
-      child: Chip(
-        avatar: const Icon(Icons.sort_rounded),
-        label: Text(sortOrderPresentation(sortOrder)),
-      ),
+      child: const Icon(Icons.sort_rounded),
     );
     final previewItems = <Widget>[
       card,
       const SizedBox(height: 8),
-      Stack(children: [
-        Center(child: sel),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
+      Row(
+        children: [
+          Expanded(
+            child: Center(
+              child: sel,
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.only(right: 8),
             child: sort,
           ),
-        ),
-      ]),
+        ],
+      ),
       const SizedBox(height: 4),
     ];
 
     final list = FutureBuilder<List<_IndentedComment>>(
       future: isReview ? reviews : visibleComments,
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-            return Column(children: previewItems);
-          }
-          final list = ListView.builder(
-            itemCount: (isReview ? reviewCount : count) + 1,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Column(children: previewItems);
-              }
-              if (index - 1 >= snapshot.data!.length) {
-                return const SizedBox();
-              }
-              final item = snapshot.data![index - 1];
-              return item.comment.card(
-                context,
-                true,
-                item.indent,
-                (c) {
-                  toggleComments(c.id);
-                  setState(() {});
-                },
-                updateState,
-                () => setState(() {
-                  replyingTo = item.comment;
-                }),
-                visibleReplyIds.contains(item.comment.id),
-                postAuthor: widget.post.creator.id,
-              );
-            },
-          );
-
-          final refresh = RefreshIndicator(
+        if (!snapshot.hasData) {
+          return RefreshIndicator(
             onRefresh: () async {
               loadComments(-1);
               return;
             },
-            child: list,
+            child: Column(children: [
+              ...previewItems,
+              const CircularProgressIndicator(),
+            ]),
           );
-          final replyField = buildReplyField(context);
-
-          final body = Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: refresh),
-              replyField,
-            ],
-          );
-
-          return KeyboardDismissOnTap(dismissOnCapturedTaps: true, child: body);
         }
 
-        return RefreshIndicator(
+        if (snapshot.data == null || snapshot.data?.isEmpty == true) {
+          return SingleChildScrollView(
+              child: Column(children: [
+            ...previewItems,
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Text(
+                "No ${isReview ? "Reviews" : "Comments"}. Reply to be the First!",
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ]));
+        }
+
+        final list = ListView.builder(
+          itemCount: (isReview ? reviewCount : count) + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return SingleChildScrollView(
+                child: Column(children: previewItems),
+              );
+            }
+            if (index - 1 >= snapshot.data!.length) {
+              return const SizedBox();
+            }
+            final item = snapshot.data![index - 1];
+            return item.comment.card(
+              context,
+              true,
+              item.indent,
+              (c) {
+                toggleComments(c.id);
+                setState(() {});
+              },
+              updateState,
+              () => setState(() {
+                replyingTo = item.comment;
+              }),
+              replyingTo?.id == item.comment.id,
+              visibleReplyIds.contains(item.comment.id),
+              postAuthor: widget.post.creator.id,
+            );
+          },
+        );
+
+        final refresh = RefreshIndicator(
           onRefresh: () async {
             loadComments(-1);
             return;
           },
-          child: Column(children: [
-            ...previewItems,
-            const CircularProgressIndicator(),
-          ]),
+          child: list,
         );
+        final replyField = buildReplyField(context);
+
+        final body = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: refresh),
+            replyField,
+          ],
+        );
+
+        return KeyboardDismissOnTap(dismissOnCapturedTaps: true, child: body);
       },
     );
 

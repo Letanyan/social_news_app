@@ -293,6 +293,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       (c) => c.showParentPost(context)(),
                       updateState,
                       null,
+                      false,
                       false);
                 } else if (isTypeEqual<T, FlaggedPost>()) {
                   final flag = item as FlaggedPost;
@@ -308,6 +309,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                     (c) => c.showParentPost(context)(),
                     updateState,
                     null,
+                    false,
                     false,
                   );
                   final review = flag.card(context, updateState);
@@ -333,6 +335,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       (c) => c.showParentPost(context)(),
                       updateState,
                       null,
+                      false,
                       false,
                       up: comment.upvotes,
                       down: comment.downvotes);

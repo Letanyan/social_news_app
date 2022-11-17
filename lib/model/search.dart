@@ -51,7 +51,8 @@ class SearchPageState extends State<SearchPage> {
       3: "Comments"
     };
     final search = widget.isTrending ? null : "";
-    final List<SortOrder> rank = widget.isTrending ? [] : [SortOrder.rank];
+    final List<SortOrder> rank =
+        widget.isTrending ? [] : [SortOrder.createdAt, SortOrder.rank];
     var sortOrder = sortOrdersIncluding(rank);
     final List<String>? location = widget.isTrending ? [] : null;
     final startDate = widget.isTrending
@@ -63,7 +64,7 @@ class SearchPageState extends State<SearchPage> {
       displaySelector: selector,
       displaySorting: sortOrder,
       current: 0,
-      order: widget.isTrending ? SortOrder.upvotes : SortOrder.rank,
+      order: widget.isTrending ? SortOrder.score : SortOrder.rank,
       search: search,
       startDate: startDate,
       endDate: endDate,
@@ -197,12 +198,12 @@ class SearchPageState extends State<SearchPage> {
     if (filterState.current == 1 && !widget.isTrending) {
       filterState.location = filterState.location ?? [];
     }
-    final List<SortOrder> rank = widget.isTrending ? [] : [SortOrder.rank];
+    List<SortOrder> rank = widget.isTrending ? [] : [SortOrder.rank];
     if (filterState.current == 0 || filterState.current == 3) {
-      filterState.displaySorting = sortOrdersIncluding([
-            SortOrder.createdAt,
-          ] +
-          rank);
+      if (!widget.isTrending) {
+        rank.add(SortOrder.createdAt);
+      }
+      filterState.displaySorting = sortOrdersIncluding(rank);
     } else if (filterState.current == 1 || filterState.current == 2) {
       if (!widget.isTrending) {
         filterState.location = null;

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
@@ -157,39 +159,6 @@ class Post {
     return Text(formatDateTime(createdAt));
   }
 
-  Widget buildReply(BuildContext context) {
-    return ActionChip(
-      onPressed: () => Navigator.push(
-          context,
-          route(
-            builder: (context) => CommentReplyPage(post: this),
-          )),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          bottomLeft: Radius.circular(16),
-        ),
-      ),
-      avatar: Icon(Icons.add_comment_rounded, color: MyTheme.primary, size: 18),
-      label: const Text("Reply"),
-    );
-  }
-
-  Widget buildReplyCount(BuildContext context, void Function() updateState) {
-    return ActionChip(
-      onPressed: openComments(context, updateState),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
-      avatar: Icon(Icons.comment, color: MyTheme.primary, size: 18),
-      label: Text(
-          commentCount == 1 ? "$commentCount Reply" : "$commentCount Replies"),
-    );
-  }
-
   PopupMenuItem buildRemove(BuildContext context, VoidCallback updateState) {
     return PopupMenuItem(
       onTap: () {
@@ -214,7 +183,11 @@ class Post {
 
   PopupMenuItem buildReadLater(BuildContext context) {
     return PopupMenuItem(
-      onTap: readLater,
+      onTap: () {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Added to Read Later")));
+        readLater();
+      },
       child: const Text("Read Later"),
     );
   }
@@ -250,7 +223,11 @@ class Post {
 
   PopupMenuItem buildIgnoreUser(BuildContext context) {
     return PopupMenuItem(
-      onTap: ignoreUser,
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Posts From This User Will Be Ignored")));
+        ignoreUser();
+      },
       child: const Text("Ignore User"),
     );
   }
@@ -345,22 +322,29 @@ class Post {
     final resolvedTags = Tag.getTags(tags);
     final tagsRow = Tag.chips(context, resolvedTags);
 
-    final reply = buildReply(context);
-    final replyCount = buildReplyCount(context, updateState);
-    final upvoteButton = buildUpvoteButton(
-        context, upvotes, UserVoteKind.post, updateVote(updateState));
-    final downvoteButton = buildDownvoteButton(
-        context, downvotes, UserVoteKind.post, updateVote(updateState));
+    final reply = buildReplyButton(
+      context,
+      false,
+      () => Navigator.push(
+        context,
+        route(
+          builder: (context) => CommentReplyPage(post: this),
+        ),
+      ),
+    );
+    final replyCount = buildReplyCountButton(
+        context, commentCount, false, openComments(context, updateState));
+    final upvoteButton = buildVoteButton(
+        context, upvotes, true, UserVoteKind.post, updateVote(updateState));
+    final downvoteButton = buildVoteButton(
+        context, downvotes, false, UserVoteKind.post, updateVote(updateState));
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
     if (creator.id == User.current?.id) {
       removePostList.add(removePost);
     }
     final moreButton = PopupMenuButton(
-      child: const Chip(
-        avatar: Icon(Icons.arrow_drop_down),
-        label: Text("More"),
-      ),
+      child: const Icon(Icons.more_horiz),
       itemBuilder: (context) => [
         ...removePostList,
         buildReadLater(context),
@@ -380,25 +364,33 @@ class Post {
     final showSimilar = TextButton(
         onPressed: () => openSimilar(context), child: const Text("Similar"));
 
+    final voteItems = Row(children: [
+      upvoteButton,
+      const SizedBox(width: 8),
+      downvoteButton,
+    ]);
+    final replyItems = Row(
+      children: [
+        reply,
+        replyCount,
+      ],
+    );
+
     final buttonRow = SizedBox(
       width: query.width,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(width: 8),
-            upvoteButton,
-            const SizedBox(width: 1),
-            downvoteButton,
-            const SizedBox(width: 8),
-            reply,
-            const SizedBox(width: 1),
-            replyCount,
-            const SizedBox(width: 8),
-            // showSimilar,
-            moreButton,
-          ],
+        child: SizedBox(
+          width: max(query.width, 320),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              voteItems,
+              replyItems,
+              // showSimilar,
+              moreButton,
+            ],
+          ),
         ),
       ),
     );
@@ -512,12 +504,15 @@ class Post {
     }
     final date = buildDate(context);
     final creatorField = buildCreator(context);
-    final meta = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Padding(padding: const EdgeInsets.all(8), child: creatorField),
-        Padding(padding: const EdgeInsets.all(8), child: date),
-      ],
+    final meta = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(padding: const EdgeInsets.all(8), child: creatorField),
+          Padding(padding: const EdgeInsets.all(8), child: date),
+        ],
+      ),
     );
     final contentBody = Row(
       children: [
@@ -532,24 +527,34 @@ class Post {
       ],
     );
 
-    final reply = buildReply(context);
-    final replyCount = buildReplyCount(context, updateState);
+    final reply = buildReplyButton(
+      context,
+      false,
+      () => Navigator.push(
+        context,
+        route(
+          builder: (context) => CommentReplyPage(post: this),
+        ),
+      ),
+    );
+    final replyCount = buildReplyCountButton(
+        context, commentCount, false, openComments(context, updateState));
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
     if (creator.id == User.current?.id) {
       removePostList.add(removePost);
     }
-    final upvoteButton = buildUpvoteButton(
-        context, upvotes, UserVoteKind.post, updateVote(updateState));
-    final downvoteButton = buildDownvoteButton(
-        context, downvotes, UserVoteKind.post, updateVote(updateState));
+    final upvoteButton = buildVoteButton(
+        context, upvotes, true, UserVoteKind.post, updateVote(updateState));
+    final downvoteButton = buildVoteButton(
+        context, downvotes, false, UserVoteKind.post, updateVote(updateState));
     final voteBox = SizedBox(
       width: 172,
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [upvoteButton, downvoteButton],
+          children: [upvoteButton, const SizedBox(width: 8), downvoteButton],
         ),
       ),
     );
