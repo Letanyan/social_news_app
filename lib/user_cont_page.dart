@@ -41,6 +41,7 @@ class _UserContPageState extends State<UserContPage> {
   var hasMore = [true];
   var isLoading = [false];
   late FilterBoxState filterState;
+  var filterKey = GlobalKey();
   bool showingFilter = false;
   double? filterHeight;
 
@@ -164,6 +165,9 @@ class _UserContPageState extends State<UserContPage> {
   Future<List<T>> updateItemsState<T>(List<T> value) async {
     count[0] += value.length;
     isLoading[0] = false;
+    if (current == ContentKind.post && isTypeEqual<T, Post>()) {
+      User.current?.readLater = (value as List<Post>).map((e) => e.id).toList();
+    }
     return value;
   }
 
@@ -211,10 +215,11 @@ class _UserContPageState extends State<UserContPage> {
   }
 
   EdgeInsets listViewInsets() {
-    // final h = filterBox.getWidgetSize().height;
-    // if (filterHeight == null && h != 0) {
-    //   filterHeight = h;
-    // }
+    final size = filterKey.currentContext?.findRenderObject() as RenderBox?;
+    final h = size?.size.height;
+    if (filterHeight == null && h != 0) {
+      filterHeight = h;
+    }
     return EdgeInsets.only(
       top: !showingFilter ? 0 : filterHeight!,
       bottom: 48,
@@ -223,9 +228,6 @@ class _UserContPageState extends State<UserContPage> {
 
   @override
   Widget build(BuildContext context) {
-    late final Widget list;
-    late final Widget sliver;
-
     final buildList = buildFutureList(
       context,
       _loadMore,
@@ -247,6 +249,7 @@ class _UserContPageState extends State<UserContPage> {
       Future(() => []),
     );
 
+    late final Widget list;
     if (current == ContentKind.post) {
       list = buildList(posts);
     } else if (current == ContentKind.comment) {
@@ -258,36 +261,13 @@ class _UserContPageState extends State<UserContPage> {
     } else {
       list = const SizedBox();
     }
-    final filterBox = FilterBox(
-      filterKey: GlobalKey(),
-      valueChanged: (state) => updateFilterState(state),
-      state: filterState,
+    final page = buildFilteredList(
+      list,
+      filterState,
+      updateFilterState,
+      showingFilter,
+      updateFilter,
     );
-
-    var stack = <Widget>[];
-    if (showingFilter) {
-      sliver = CustomScrollView(
-        slivers: [
-          list,
-        ],
-      );
-      final pull = RefreshIndicator(
-          child: sliver, onRefresh: () async => updateFilter(() {}));
-      stack.add(pull);
-      stack.add(filterBox);
-    } else {
-      sliver = CustomScrollView(
-        slivers: [
-          SliverList(delegate: SliverChildListDelegate([filterBox])),
-          list,
-        ],
-      );
-      final pull = RefreshIndicator(
-          child: sliver, onRefresh: () async => updateFilter(() {}));
-      stack.add(pull);
-    }
-
-    final page = Stack(children: stack);
 
     return Scaffold(
       appBar: AppBar(

@@ -349,3 +349,43 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
         });
   };
 }
+
+Widget buildFilteredList<T>(
+  Widget list,
+  FilterBoxState filterState,
+  void Function(FilterBoxState) updateFilterState,
+  bool showingFilter,
+  void Function(void Function()) updateFilter,
+) {
+  late final Widget sliver;
+  final filterBox = FilterBox(
+    filterKey: GlobalKey(),
+    valueChanged: (state) => updateFilterState(state),
+    state: filterState,
+  );
+
+  var stack = <Widget>[];
+  if (showingFilter) {
+    sliver = CustomScrollView(
+      slivers: [
+        list,
+      ],
+    );
+    final pull = RefreshIndicator(
+        child: sliver, onRefresh: () async => updateFilter(() {}));
+    stack.add(pull);
+    stack.add(filterBox);
+  } else {
+    sliver = CustomScrollView(
+      slivers: [
+        SliverList(delegate: SliverChildListDelegate([filterBox])),
+        list,
+      ],
+    );
+    final pull = RefreshIndicator(
+        child: sliver, onRefresh: () async => updateFilter(() {}));
+    stack.add(pull);
+  }
+
+  return Stack(children: stack);
+}

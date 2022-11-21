@@ -205,10 +205,6 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    late final Widget list;
-    late final Widget sliver;
-    var stack = <Widget>[];
-
     final buildList = buildFutureList(
       context,
       loadMore,
@@ -230,36 +226,14 @@ class _PostsPageState extends State<PostsPage> {
       Future(() => []),
     );
 
-    list = buildList(posts);
-    final filterBox = FilterBox(
-      filterKey: GlobalKey(),
-      valueChanged: (state) => updateFilterState(state),
-      state: filterState,
+    final list = buildList(posts);
+    final page = buildFilteredList(
+      list,
+      filterState,
+      updateFilterState,
+      showingFilter,
+      updateFilter,
     );
-
-    if (showingFilter) {
-      sliver = CustomScrollView(
-        slivers: [
-          list,
-        ],
-      );
-      final pull = RefreshIndicator(
-          child: sliver, onRefresh: () async => updateFilter(() {}));
-      stack.add(pull);
-      stack.add(filterBox);
-    } else {
-      sliver = CustomScrollView(
-        slivers: [
-          SliverList(delegate: SliverChildListDelegate([filterBox])),
-          list,
-        ],
-      );
-      final pull = RefreshIndicator(
-          child: sliver, onRefresh: () async => updateFilter(() {}));
-      stack.add(pull);
-    }
-
-    final page = Stack(children: stack);
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title), actions: [

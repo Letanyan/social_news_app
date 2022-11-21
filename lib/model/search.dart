@@ -231,9 +231,6 @@ class SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    late final Widget list;
-    late final Widget sliver;
-
     final buildList = buildFutureList(
       context,
       loadMore,
@@ -255,6 +252,7 @@ class SearchPageState extends State<SearchPage> {
       Future(() => []),
     );
 
+    late final Widget list;
     if (filterState.current == 0) {
       list = buildList(posts);
     } else if (filterState.current == 1) {
@@ -266,36 +264,14 @@ class SearchPageState extends State<SearchPage> {
     } else {
       list = const SizedBox();
     }
-    final filterBox = FilterBox(
-      filterKey: GlobalKey(),
-      valueChanged: (state) => updateFilterState(state),
-      state: filterState,
+
+    final page = buildFilteredList(
+      list,
+      filterState,
+      updateFilterState,
+      showingFilter,
+      updateFilter,
     );
-
-    var stack = <Widget>[];
-    if (showingFilter) {
-      sliver = CustomScrollView(
-        slivers: [
-          list,
-        ],
-      );
-      final pull = RefreshIndicator(
-          child: sliver, onRefresh: () async => updateFilter(() {}));
-      stack.add(pull);
-      stack.add(filterBox);
-    } else {
-      sliver = CustomScrollView(
-        slivers: [
-          SliverList(delegate: SliverChildListDelegate([filterBox])),
-          list,
-        ],
-      );
-      final pull = RefreshIndicator(
-          child: sliver, onRefresh: () async => updateFilter(() {}));
-      stack.add(pull);
-    }
-
-    final page = Stack(children: stack);
 
     return Scaffold(
       appBar: AppBar(

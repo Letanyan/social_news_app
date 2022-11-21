@@ -1,3 +1,4 @@
+import 'dart:js_util';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -68,20 +69,35 @@ class Post {
   }
 
   void Function() openComments(
-      BuildContext context, void Function() updateState) {
-    final commentsPage = Scaffold(
-      appBar: AppBar(
-        title: const Text("Comments"),
-        actions: [
-          IconButton(
-            onPressed: () => launchURL(sourceUrl ?? ""),
-            icon: const Icon(Icons.open_in_browser_rounded),
-          )
-        ],
-      ),
-      body: CommentsPage(post: this, scrollComments: true),
-    );
+    BuildContext context,
+    void Function() updateState,
+  ) {
     return () {
+      var actions = <Widget>[];
+      if (sourceUrl != null) {
+        actions.add(IconButton(
+          onPressed: () => launchURL(sourceUrl ?? ""),
+          icon: const Icon(Icons.open_in_browser_rounded),
+        ));
+      }
+      if (User.current?.readLater.contains(id) ?? false) {
+        actions.add(IconButton(
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Post Marked as Read")));
+            markAsRead();
+          },
+          icon: const Icon(Icons.mark_chat_read),
+        ));
+      }
+
+      final commentsPage = Scaffold(
+        appBar: AppBar(
+          title: const Text("Comments"),
+          actions: actions,
+        ),
+        body: CommentsPage(post: this, scrollComments: true),
+      );
       if (User.current != null) {
         NewSource.addUserCont(
             uid: User.current!.id, kind: UserContKind.viewed, pid: id);
@@ -173,10 +189,23 @@ class Post {
     );
   }
 
+  Future<void> markAsRead() async {
+    if (User.current == null) {
+      return;
+    }
+    User.current?.readLater.removeWhere((element) => element == id);
+    await NewSource.deleteUserCont(
+      User.current!.id,
+      id,
+      UserContKind.readLater,
+    );
+  }
+
   Future<void> readLater() async {
     if (User.current == null) {
       return;
     }
+    User.current?.readLater.add(id);
     await NewSource.addUserCont(
       uid: User.current!.id,
       kind: UserContKind.readLater,
@@ -196,19 +225,19 @@ class Post {
   }
 
   Widget buildReadLaterSlide(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: () => readLater(),
-        child: Material(
-          color: Colors.blue,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.watch_later_outlined),
-              Text(textAlign: TextAlign.center, "Read Later")
-            ],
-          ),
-        ),
+    return CustomSlidableAction(
+      onPressed: (context) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Added to Read Later")));
+        readLater();
+      },
+      backgroundColor: Colors.blue,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.watch_later_outlined),
+          Text(textAlign: TextAlign.center, "Read Later")
+        ],
       ),
     );
   }
@@ -236,19 +265,19 @@ class Post {
   }
 
   Widget buildIgnoreUserSlide(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: () => ignoreUser(),
-        child: Material(
-          color: Colors.orange,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.block),
-              Text(textAlign: TextAlign.center, "Ignore User")
-            ],
-          ),
-        ),
+    return CustomSlidableAction(
+      onPressed: (context) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Posts From This User Will Be Ignored")));
+        ignoreUser();
+      },
+      backgroundColor: Colors.orange,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.block),
+          Text(textAlign: TextAlign.center, "Ignore User")
+        ],
       ),
     );
   }
@@ -268,19 +297,15 @@ class Post {
   }
 
   Widget buildReportSlide(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: () => report(context),
-        child: Material(
-          color: Colors.red,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.flag),
-              Text(textAlign: TextAlign.center, "Report")
-            ],
-          ),
-        ),
+    return CustomSlidableAction(
+      onPressed: (context) => report(context),
+      backgroundColor: Colors.red,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.flag),
+          Text(textAlign: TextAlign.center, "Report")
+        ],
       ),
     );
   }
@@ -474,6 +499,9 @@ class Post {
       }
     } else {
       title = const Text("Title"); // FIXME: get first line as title
+    }
+    if (urls.isNotEmpty && urls.first.start == 0) {
+      sourceUrl = content.substring(urls.first.start, urls.first.end);
     }
     const imageWidth = 164.0;
     Widget? image;

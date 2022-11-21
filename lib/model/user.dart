@@ -21,6 +21,7 @@ class User {
   List<Author> following;
   List<Author> ignored;
   List<Tag> favourites;
+  List<int> readLater;
   String secret;
 
   bool publicViews;
@@ -114,6 +115,7 @@ class User {
   })  : following = [],
         ignored = [],
         favourites = [],
+        readLater = [],
         secret = "";
 
   factory User.fromJson(Map<String, dynamic> json) {
