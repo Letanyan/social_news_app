@@ -170,16 +170,17 @@ List<T> jsonArrayTo<T>(
   return result;
 }
 
-PageRoute route({required Widget Function(BuildContext) builder}) {
+PageRoute route(
+    {required Widget Function(BuildContext) builder, RouteSettings? settings}) {
   try {
     if (Platform.isIOS) {
-      return CupertinoPageRoute(builder: builder);
+      return CupertinoPageRoute(builder: builder, settings: settings);
     } else if (Platform.isAndroid) {
-      return MaterialPageRoute(builder: builder);
+      return MaterialPageRoute(builder: builder, settings: settings);
     }
-    return MaterialPageRoute(builder: builder);
+    return MaterialPageRoute(builder: builder, settings: settings);
   } catch (e) {
-    return MaterialPageRoute(builder: builder);
+    return MaterialPageRoute(builder: builder, settings: settings);
   }
 }
 
@@ -290,6 +291,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       context,
                       false,
                       0,
+                      null,
                       (c) => c.showParentPost(context)(),
                       updateState,
                       null,
@@ -306,6 +308,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                     context,
                     false,
                     0,
+                    null,
                     (c) => c.showParentPost(context)(),
                     updateState,
                     null,
@@ -332,6 +335,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       context,
                       false,
                       0,
+                      null,
                       (c) => c.showParentPost(context)(),
                       updateState,
                       null,

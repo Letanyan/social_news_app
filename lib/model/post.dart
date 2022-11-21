@@ -20,7 +20,7 @@ import 'package:social_news_app/widgets/vote_widget.dart';
 class Post {
   final int id;
   final Author creator;
-  final String content;
+  String content;
   final List<int> tags;
   final DateTime createdAt;
   final List<String> location;
@@ -28,6 +28,7 @@ class Post {
   int downvotes;
   final int commentCount;
   bool trashed;
+  bool edited;
   num score;
   num cred;
   num rank;
@@ -45,6 +46,7 @@ class Post {
     required this.downvotes,
     required this.commentCount,
     required this.trashed,
+    required this.edited,
     required this.score,
     required this.cred,
     required this.rank,
@@ -62,6 +64,7 @@ class Post {
       downvotes: json["Downvotes"],
       commentCount: json["CommentCount"],
       trashed: json["Trashed"],
+      edited: json["Edited"],
       score: json["Score"],
       cred: json["Cred"],
       rank: json["Rank"],
@@ -175,7 +178,7 @@ class Post {
   }
 
   Widget buildDate(BuildContext context) {
-    return Text(formatDateTime(createdAt));
+    return Text(formatDateTime(createdAt) + (edited ? " edited" : ""));
   }
 
   PopupMenuItem buildRemove(BuildContext context, VoidCallback updateState) {
@@ -310,6 +313,14 @@ class Post {
     );
   }
 
+  PopupMenuItem buildEdit(BuildContext context, void Function() updateState) {
+    return PopupMenuItem(
+      value: 3517,
+      onTap: () {},
+      child: const Text("Edit"),
+    );
+  }
+
   Widget card(BuildContext context, VoidCallback updateState,
       {int? up, int? down}) {
     if (trashed) {
@@ -360,7 +371,7 @@ class Post {
       () => Navigator.push(
         context,
         route(
-          builder: (context) => CommentReplyPage(post: this),
+          builder: (context) => CommentReplyPage(post: this, isEdit: false),
         ),
       ),
     );
@@ -371,16 +382,27 @@ class Post {
     final downvoteButton = buildVoteButton(
         context, downvotes, false, UserVoteKind.post, updateVote(updateState));
     final removePost = buildRemove(context, updateState);
-    final removePostList = <PopupMenuItem>[];
+    final userActionsList = <PopupMenuItem>[];
     if (creator.id == User.current?.id) {
-      removePostList.add(removePost);
+      userActionsList.add(removePost);
+      userActionsList.add(buildEdit(context, updateState));
     }
     final moreButton = Padding(
       padding: const EdgeInsets.all(8),
       child: PopupMenuButton(
         child: const Icon(Icons.more_horiz),
+        onSelected: (value) {
+          if (value == 3517) {
+            final page = CommentReplyPage(post: this, isEdit: true);
+            Navigator.of(context)
+                .push(
+                  route(builder: (context) => page),
+                )
+                .then((value) => updateState());
+          }
+        },
         itemBuilder: (context) => [
-          ...removePostList,
+          ...userActionsList,
           buildReadLater(context),
           buildIgnoreUser(context),
           buildReport(context),
@@ -567,7 +589,7 @@ class Post {
       () => Navigator.push(
         context,
         route(
-          builder: (context) => CommentReplyPage(post: this),
+          builder: (context) => CommentReplyPage(post: this, isEdit: false),
         ),
       ),
     );
@@ -582,31 +604,6 @@ class Post {
         context, upvotes, true, UserVoteKind.post, updateVote(updateState));
     final downvoteButton = buildVoteButton(
         context, downvotes, false, UserVoteKind.post, updateVote(updateState));
-    final voteBox = SizedBox(
-      width: 172,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [upvoteButton, downvoteButton],
-        ),
-      ),
-    );
-    // final buttonRow = SizedBox(
-    //   width: MediaQuery.of(context).size.width,
-    //   child: SingleChildScrollView(
-    //     scrollDirection: Axis.horizontal,
-    //     child: Row(
-    //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //       children: [
-    //         voteBox,
-    //         reply,
-    //         replyCount,
-    //         meta,
-    //       ],
-    //     ),
-    //   ),
-    // );
     final buttonRow = Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [

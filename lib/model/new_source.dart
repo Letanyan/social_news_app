@@ -320,6 +320,57 @@ class NewSource {
     }
   }
 
+  static Future<bool> updateComment(
+      int postId, int commentId, String content) async {
+    if (User.current == null) {
+      throw userNotSignedIn;
+    }
+
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(
+        ["update", "posts", "$postId", "comments", "$commentId"],
+        args,
+        {
+          "userId": User.current!.id,
+          "content": content,
+        });
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return true;
+    }
+  }
+
+  static Future<bool> updatePost(int postId, String content) async {
+    if (User.current == null) {
+      throw userNotSignedIn;
+    }
+
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(
+        ["update", "posts", "$postId"],
+        args,
+        {
+          "userId": User.current!.id,
+          "content": content,
+        });
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return true;
+    }
+  }
+
   //----------------------------------------------------------------------------
   // Delete
   //----------------------------------------------------------------------------

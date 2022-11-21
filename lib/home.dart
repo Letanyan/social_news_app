@@ -89,11 +89,11 @@ class HomeViewState extends State<HomeView>
                 forUser: User.current?.id);
 
           case 1:
-            return SearchPage(title: "Trending", isTrending: true);
+            return const SearchPage(title: "Trending", isTrending: true);
           case 2:
-            return const CommentReplyPage();
+            return const CommentReplyPage(isEdit: false);
           case 3:
-            return SearchPage(title: "Search", isTrending: false);
+            return const SearchPage(title: "Search", isTrending: false);
           case 4:
             return AccountPage(
                 homeView: this,

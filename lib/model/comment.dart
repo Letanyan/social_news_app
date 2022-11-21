@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
@@ -14,12 +15,13 @@ class Comment {
   final int postId;
   final Author author;
   final int replyId;
-  final String content;
+  String content;
   final DateTime createdAt;
   int upvotes;
   int downvotes;
-  final int replyCount;
+  int replyCount;
   bool trashed;
+  bool edited;
   bool isReview;
   num score;
   num cred;
@@ -36,6 +38,7 @@ class Comment {
     required this.downvotes,
     required this.replyCount,
     required this.trashed,
+    required this.edited,
     required this.isReview,
     required this.score,
     required this.cred,
@@ -56,6 +59,7 @@ class Comment {
       downvotes: json["Downvotes"],
       replyCount: json["ReplyCount"],
       trashed: json["Trashed"],
+      edited: json["Edited"],
       isReview: json["IsReview"],
       score: json["Score"],
       cred: json["Cred"],
@@ -142,6 +146,7 @@ class Comment {
       BuildContext context,
       bool showReply,
       int offset,
+      int? replyCount,
       void Function(Comment)? onTap,
       VoidCallback updateState,
       Function()? showReplyField,
@@ -159,7 +164,7 @@ class Comment {
     );
     final creator = buildCreator(context);
     final date = Text(
-      formatDateTime(createdAt),
+      formatDateTime(createdAt) + (edited ? " edited" : ""),
       style: const TextStyle(color: Colors.grey),
     );
     final meta = Padding(
@@ -176,7 +181,7 @@ class Comment {
     });
     final replyCountChip = buildReplyCountButton(
       context,
-      replyCount,
+      replyCount ?? this.replyCount,
       highlightedReplies,
       onTap == null || replyCount == 0 ? null : () => onTap(this),
     );
@@ -213,25 +218,37 @@ class Comment {
 
     final removeComment = PopupMenuItem(
       onTap: () {
-        NewSource.deleteComment(postId, id).then((value) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text("Removed")));
-          trashed = true;
-          updateState();
-          return value;
-        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Removed")));
+        trashed = true;
+        updateState();
+        NewSource.deleteComment(postId, id);
       },
       child: const Text("Remove"),
     );
-    final removeCommentList = <PopupMenuItem>[];
+    final editComment = PopupMenuItem(
+      value: 3517,
+      onTap: () {},
+      child: const Text("Edit"),
+    );
+    final userActionsList = <PopupMenuItem>[];
     if (author.id == User.current?.id ||
         (User.current?.id == postAuthor && postAuthor != null)) {
-      removeCommentList.add(removeComment);
+      userActionsList.add(removeComment);
+      userActionsList.add(editComment);
     }
 
     final moreButton = PopupMenuButton(
+      onSelected: (value) {
+        final page = CommentReplyPage(comment: this, isEdit: true);
+        Navigator.of(context)
+            .push(
+              route(builder: (context) => page),
+            )
+            .then((value) => updateState());
+      },
       itemBuilder: (context) => [
-        ...removeCommentList,
+        ...userActionsList,
         PopupMenuItem(
           onTap: () {
             showPlatformDialog(
@@ -295,8 +312,8 @@ class Comment {
         width: 6,
         thickness: 1,
         color: Colors.white,
-        indent: 8,
-        endIndent: 8,
+        indent: 0,
+        endIndent: 0,
       );
       indents.add(div);
     }

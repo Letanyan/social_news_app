@@ -28,7 +28,8 @@ class _IndentedComment {
 }
 
 class _CommentsPageState extends State<CommentsPage> {
-  late Future<Map<int, List<Comment>>> comments;
+  late Map<int, List<Comment>> comments;
+  late List<Comment> allCommentsLoaded;
   late Future<List<Comment>> allComments;
   late Future<List<_IndentedComment>> visibleComments;
   late Future<List<_IndentedComment>> reviews;
@@ -70,7 +71,7 @@ class _CommentsPageState extends State<CommentsPage> {
       if (User.current == null) {
         return;
       }
-      NewSource.watchPost(User.current!.id, widget.post.id, 1);
+      // NewSource.watchPost(User.current!.id, widget.post.id, 1);
     });
   }
 
@@ -92,7 +93,7 @@ class _CommentsPageState extends State<CommentsPage> {
     // sortComments uses the keys from comments to decide which comments to
     // show. So we include the 0 key here so the top level comments are shown
     // after sorting.
-    comments = Future(() => <int, List<Comment>>{0: []});
+    comments = <int, List<Comment>>{0: []};
 
     visibleComments = Future(() => <_IndentedComment>[]);
     reviews = Future(() => []);
@@ -107,17 +108,16 @@ class _CommentsPageState extends State<CommentsPage> {
       isReview: true,
     );
     reviewCount = raw.length;
-    reviews = Future(
-        () => raw.map((e) => _IndentedComment(e, 0)).toList(growable: false));
+    reviews = Future(() => raw.map((e) => _IndentedComment(e, 0)).toList());
   }
 
-  Future<void> flattenComments(Map<int, List<Comment>> result) async {
+  void flattenComments() {
     var path = <int>[0];
     var pathCount = <int>[0];
     var indents = <_IndentedComment>[];
     loop:
     for (var i = 0; i < count; i++) {
-      var currentReplies = result[path.last];
+      var currentReplies = comments[path.last];
       while (
           currentReplies == null || pathCount.last >= currentReplies.length) {
         path.removeLast();
@@ -126,11 +126,14 @@ class _CommentsPageState extends State<CommentsPage> {
           continue loop;
         }
         pathCount[pathCount.length - 1] += 1;
-        currentReplies = result[path.last];
+        currentReplies = comments[path.last];
       }
-      final item = result[path.last]![pathCount.last];
+      var item = comments[path.last]![pathCount.last];
+      item.replyCount = comments[item.id]
+              ?.fold(0, (p, e) => (p ?? 0) + (e.trashed ? 0 : 1)) ??
+          item.replyCount;
       final indent = path.length - 1;
-      if (result[item.id] != null) {
+      if (comments[item.id] != null) {
         path.add(item.id);
         pathCount.add(0);
       } else {
@@ -139,47 +142,44 @@ class _CommentsPageState extends State<CommentsPage> {
       indents.add(_IndentedComment(item, indent));
     }
 
-    comments = Future(() => result);
     visibleComments = Future(() => indents).then((value) {
       setState(() {});
       return value;
     });
   }
 
-  Future<void> showComments(int replyId) async {
+  void showComments(int replyId) {
     var list = <Comment>[];
-    for (final c in await allComments) {
+    final oldCount = comments[replyId]?.length ?? 0;
+    for (final c in allCommentsLoaded) {
       if (c.replyId == replyId) {
         list.add(c);
       }
     }
-    var result = await comments;
-    result[replyId] = list;
-    count += list.length;
-    await flattenComments(result);
+    comments[replyId] = list;
+    count += list.length - oldCount;
+    flattenComments();
   }
 
-  Future<void> hideComments(int replyId) async {
-    var result = await comments;
-    final len = result[replyId]?.length ?? 0;
-    result.remove(replyId);
+  void hideComments(int replyId) {
+    final len = comments[replyId]?.length ?? 0;
+    comments.remove(replyId);
     count -= len;
-    await flattenComments(result);
+    flattenComments();
   }
 
-  Future<void> toggleComments(int replyId) async {
-    final result = await comments;
-    if (result.containsKey(replyId)) {
+  void toggleComments(int replyId) {
+    if (comments.containsKey(replyId)) {
       visibleReplyIds.remove(replyId);
-      await hideComments(replyId);
+      hideComments(replyId);
     } else {
       visibleReplyIds.add(replyId);
-      await showComments(replyId);
+      showComments(replyId);
     }
   }
 
   Future<void> sortComments() async {
-    var keys = await comments;
+    var keys = comments;
     var source = await allComments;
 
     source.sort((a, b) {
@@ -207,21 +207,22 @@ class _CommentsPageState extends State<CommentsPage> {
       }
     });
     allComments = Future(() => source);
+    allCommentsLoaded = source.map((e) => e).toList();
 
-    var result = <int, List<Comment>>{};
+    comments = <int, List<Comment>>{};
     count = 0;
     for (final c in await allComments) {
       if (keys.keys.contains(c.replyId)) {
-        if (result.containsKey(c.replyId)) {
-          result[c.replyId]?.add(c);
+        if (comments.containsKey(c.replyId)) {
+          comments[c.replyId]?.add(c);
         } else {
-          result[c.replyId] = [c];
+          comments[c.replyId] = [c];
         }
         count += 1;
       }
     }
 
-    await flattenComments(result);
+    flattenComments();
   }
 
   Future<void> sortReview() async {
@@ -260,7 +261,10 @@ class _CommentsPageState extends State<CommentsPage> {
   }
 
   void updateState() {
-    setState(() {});
+    setState(() {
+      visibleComments = visibleComments;
+      reviews = reviews;
+    });
   }
 
   void replyToComment() async {
@@ -275,12 +279,17 @@ class _CommentsPageState extends State<CommentsPage> {
       controller.text,
       false,
     );
-    var all = await allComments;
-    all.add(result);
-    allComments = Future(() => all);
+    for (var comment in allCommentsLoaded) {
+      if (comment.id == replyId) {
+        comment.replyCount += 1;
+      }
+    }
+    allCommentsLoaded.add(result);
+    allComments = Future(() => allCommentsLoaded);
     showComments(replyId);
     replyingTo = null;
-    updateState();
+    controller.text = "";
+    // updateState();
   }
 
   Widget buildReplyField(BuildContext context) {
@@ -367,11 +376,7 @@ class _CommentsPageState extends State<CommentsPage> {
       const SizedBox(height: 8),
       Row(
         children: [
-          Expanded(
-            child: Center(
-              child: sel,
-            ),
-          ),
+          Expanded(child: Center(child: sel)),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: sort,
@@ -423,10 +428,17 @@ class _CommentsPageState extends State<CommentsPage> {
               return const SizedBox();
             }
             final item = snapshot.data![index - 1];
+            var calcReplyCount = 0;
+            for (final c in allCommentsLoaded) {
+              if (!c.trashed && c.replyId == item.comment.id) {
+                calcReplyCount += 1;
+              }
+            }
             return item.comment.card(
               context,
               true,
               item.indent,
+              calcReplyCount,
               (c) {
                 toggleComments(c.id);
                 setState(() {});
