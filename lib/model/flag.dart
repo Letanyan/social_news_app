@@ -146,6 +146,34 @@ class FlaggedPost {
       onPressed: () => handleFlag(context, FlagHandle.ignoreAll, updateState),
       child: const Text("Ignore All"),
     );
+    final block1 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block1, updateState),
+      child: const Text("Block 1 Day"),
+    );
+    final block2 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block2, updateState),
+      child: const Text("Block 2 Days"),
+    );
+    final block7 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block7, updateState),
+      child: const Text("Block 1 Week"),
+    );
+    final block14 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block14, updateState),
+      child: const Text("Block 2 Weeks"),
+    );
+    final block21 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block21, updateState),
+      child: const Text("Block 3 Weeks"),
+    );
+    final block28 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block28, updateState),
+      child: const Text("Block 4 Weeks"),
+    );
+    final perm = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.perm, updateState),
+      child: const Text("Permanent"),
+    );
 
     final buttonRow = Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -157,6 +185,21 @@ class FlaggedPost {
         ignoreAll,
       ],
     );
+    final bansRow = SizedBox(
+      height: 48,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+          block1,
+          block2,
+          block7,
+          block14,
+          block21,
+          block28,
+          perm
+        ]),
+      ),
+    );
 
     final baseColor = Colors.grey[MyTheme.isDark ? 800 : 200]?.withAlpha(192);
     final result = Card(
@@ -166,6 +209,8 @@ class FlaggedPost {
           Padding(padding: const EdgeInsets.all(8), child: body),
           const Divider(height: 1),
           Padding(padding: const EdgeInsets.all(8), child: buttonRow),
+          const Divider(height: 1),
+          Padding(padding: const EdgeInsets.all(8), child: bansRow),
         ],
       ),
     );
@@ -234,10 +279,42 @@ class FlaggedComment {
       onPressed: () => handleFlag(context, FlagHandle.ignoreAll, updateState),
       child: const Text("Ignore All"),
     );
+    final block1 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block1, updateState),
+      child: const Text("Block 1 Day"),
+    );
+    final block2 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block2, updateState),
+      child: const Text("Block 2 Days"),
+    );
+    final block7 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block7, updateState),
+      child: const Text("Block 1 Week"),
+    );
+    final block14 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block14, updateState),
+      child: const Text("Block 2 Weeks"),
+    );
+    final block21 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block21, updateState),
+      child: const Text("Block 3 Weeks"),
+    );
+    final block28 = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.block28, updateState),
+      child: const Text("Block 4 Weeks"),
+    );
+    final perm = ElevatedButton(
+      onPressed: () => handleFlag(context, FlagHandle.perm, updateState),
+      child: const Text("Permanent"),
+    );
 
     final buttonRow = Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [total, report, remove, ignore, ignoreAll],
+    );
+    final bansRow = ListView(
+      scrollDirection: Axis.horizontal,
+      children: [block1, block2, block7, block14, block21, block28, perm],
     );
 
     final baseColor = Colors.grey[MyTheme.isDark ? 800 : 200]?.withAlpha(192);
@@ -248,6 +325,8 @@ class FlaggedComment {
           Padding(padding: const EdgeInsets.all(8), child: body),
           const Divider(height: 1),
           Padding(padding: const EdgeInsets.all(8), child: buttonRow),
+          const Divider(height: 1),
+          Padding(padding: const EdgeInsets.all(8), child: bansRow),
         ],
       ),
     );

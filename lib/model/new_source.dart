@@ -44,7 +44,8 @@ class NewSource {
     dynamic responseJson;
     try {
       final query = buildURL(path, args);
-      final response = await http.get(Uri.parse(query));
+      final url = Uri.parse(query);
+      final response = await http.get(url);
       responseJson = json.decode(response.body);
     } catch (e) {
       return null;
@@ -57,8 +58,8 @@ class NewSource {
     dynamic responseJson;
     try {
       final query = buildURL(path, args);
-      final response =
-          await http.post(Uri.parse(query), body: json.encode(body));
+      final url = Uri.parse(query);
+      final response = await http.post(url, body: json.encode(body));
       responseJson = json.decode(response.body);
     } catch (e) {
       return null;
@@ -76,6 +77,15 @@ class NewSource {
       return null;
     }
     return responseJson;
+  }
+
+  static Future<http.Response?> head(String url) async {
+    try {
+      final response = await http.head(Uri.parse(url));
+      return response;
+    } catch (e) {
+      return null;
+    }
   }
 
   static List<T> handlePayload<T>(
@@ -1327,6 +1337,13 @@ enum FlagHandle {
   ignoreAll,
   remove,
   report,
+  block1,
+  block2,
+  block7,
+  block14,
+  block21,
+  block28,
+  perm,
 }
 
 enum SortOrder {
@@ -1403,13 +1420,13 @@ String sortOrderPresentation(SortOrder so) {
     case SortOrder.controversial:
       return "Controversial";
     case SortOrder.createdAt:
-      return "New";
+      return "Newly Created";
     case SortOrder.updatedAt:
-      return "Recent";
+      return "Recently Updated";
     case SortOrder.updatedOn:
-      return "Recent";
+      return "Recently Updated";
     case SortOrder.addedOn:
-      return "Recent";
+      return "Recently Added";
     case SortOrder.rank:
       return "Relevance";
   }
@@ -1454,6 +1471,20 @@ String flagHandleKind(FlagHandle handle) {
       return "report";
     case FlagHandle.remove:
       return "remove";
+    case FlagHandle.block1:
+      return "block1";
+    case FlagHandle.block2:
+      return "block2";
+    case FlagHandle.block7:
+      return "block7";
+    case FlagHandle.block14:
+      return "block14";
+    case FlagHandle.block21:
+      return "block21";
+    case FlagHandle.block28:
+      return "block28";
+    case FlagHandle.perm:
+      return "perm";
   }
 }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comment_reply.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/iap.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/posts_page.dart';
@@ -31,8 +33,9 @@ class HomeViewState extends State<HomeView>
     super.initState();
 
     // IAPConnection.instance = TestIAPConnection();
-    IAPConnection.instance =
-        !kIsWeb ? InAppPurchase.instance : TestIAPConnection();
+    IAPConnection.instance = !kIsWeb && (Platform.isAndroid || Platform.isIOS)
+        ? InAppPurchase.instance
+        : TestIAPConnection();
     final purchaseUpdated = IAPConnection.instance.purchaseStream;
     subscription = purchaseUpdated.listen((purchaseDetailsList) {
       handlePurchases(purchaseDetailsList);
@@ -103,6 +106,7 @@ class HomeViewState extends State<HomeView>
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,

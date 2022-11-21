@@ -136,20 +136,23 @@ class Post {
     final theme = Theme.of(context).textTheme;
     return InkWell(
       onTap: () => creator.showUserPage(context),
-      child: RichText(
-        text: TextSpan(
-          text: "${creator.name} ",
-          style: theme.bodyText1,
-          children: [
-            TextSpan(
-              text: "${creator.calculateScore()} ",
-              style: const TextStyle(color: Colors.grey),
-            ),
-            TextSpan(
-              text: "(${creator.calculateCred()})",
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
+      child: Padding(
+        padding: EdgeInsets.all(4),
+        child: RichText(
+          text: TextSpan(
+            text: "${creator.name} ",
+            style: theme.bodyText1,
+            children: [
+              TextSpan(
+                text: "${creator.calculateScore()} ",
+                style: const TextStyle(color: Colors.grey),
+              ),
+              TextSpan(
+                text: "(${creator.calculateCred()})",
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -306,7 +309,11 @@ class Post {
     }
 
     final query = MediaQuery.of(context).size;
-    final size = <String, dynamic>{"w": query.width, "h": query.height};
+    final size = <String, dynamic>{
+      "w": query.width,
+      "h": query.height,
+      "img": creator.isAgent
+    };
     final body = RichText(text: parser.parse(newContent, size));
 
     final creatorField = buildCreator(context);
@@ -343,14 +350,17 @@ class Post {
     if (creator.id == User.current?.id) {
       removePostList.add(removePost);
     }
-    final moreButton = PopupMenuButton(
-      child: const Icon(Icons.more_horiz),
-      itemBuilder: (context) => [
-        ...removePostList,
-        buildReadLater(context),
-        buildIgnoreUser(context),
-        buildReport(context),
-      ],
+    final moreButton = Padding(
+      padding: const EdgeInsets.all(8),
+      child: PopupMenuButton(
+        child: const Icon(Icons.more_horiz),
+        itemBuilder: (context) => [
+          ...removePostList,
+          buildReadLater(context),
+          buildIgnoreUser(context),
+          buildReport(context),
+        ],
+      ),
     );
 
     var reviewItems = <Widget>[];
@@ -366,7 +376,6 @@ class Post {
 
     final voteItems = Row(children: [
       upvoteButton,
-      const SizedBox(width: 8),
       downvoteButton,
     ]);
     final replyItems = Row(
@@ -407,11 +416,11 @@ class Post {
       tagsRow,
     ];
     if (id != -1) {
-      items.add(const Divider());
+      items.add(const Divider(thickness: 2));
       items.add(buttonRow);
     }
     if (reviewItems.isNotEmpty) {
-      items.add(const Divider());
+      items.add(const Divider(thickness: 2));
       items.add(
         Padding(
           padding: const EdgeInsets.all(8),
@@ -422,6 +431,7 @@ class Post {
         ),
       );
     }
+    items.add(const Divider(thickness: 2));
 
     final post = Column(
       children: items,
@@ -469,8 +479,7 @@ class Post {
     Widget? image;
     for (final match in urls) {
       final url = content.substring(match.start, match.end);
-      if (url.endsWith(".png") || url.endsWith(".jpg")) {
-        // FIXME: handle all image urls
+      if (Parser.canLoadImage(url, creator.isAgent)) {
         final img = ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           clipBehavior: Clip.antiAlias,
@@ -519,10 +528,7 @@ class Post {
         image ?? const SizedBox(),
         Expanded(
             child: Column(
-          children: [
-            Padding(padding: const EdgeInsets.all(8), child: title),
-            meta
-          ],
+          children: [Padding(padding: const EdgeInsets.all(8), child: title)],
         )),
       ],
     );
@@ -554,23 +560,32 @@ class Post {
         padding: const EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [upvoteButton, const SizedBox(width: 8), downvoteButton],
+          children: [upvoteButton, downvoteButton],
         ),
       ),
     );
-    final buttonRow = SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            voteBox,
-            reply,
-            replyCount,
-          ],
-        ),
-      ),
+    // final buttonRow = SizedBox(
+    //   width: MediaQuery.of(context).size.width,
+    //   child: SingleChildScrollView(
+    //     scrollDirection: Axis.horizontal,
+    //     child: Row(
+    //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //       children: [
+    //         voteBox,
+    //         reply,
+    //         replyCount,
+    //         meta,
+    //       ],
+    //     ),
+    //   ),
+    // );
+    final buttonRow = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Row(children: [upvoteButton, downvoteButton]),
+        Row(children: [reply, replyCount]),
+        Flexible(child: meta),
+      ],
     );
 
     late Widget personal;
@@ -591,7 +606,12 @@ class Post {
       child: InkWell(
         onTap: openComments(context, updateState),
         child: Column(
-          children: [contentBody, buttonRow, personal],
+          children: [
+            const Divider(),
+            contentBody,
+            buttonRow,
+            personal,
+          ],
         ),
       ),
     );

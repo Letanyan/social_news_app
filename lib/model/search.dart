@@ -279,7 +279,9 @@ class SearchPageState extends State<SearchPage> {
           list,
         ],
       );
-      stack.add(sliver);
+      final pull = RefreshIndicator(
+          child: sliver, onRefresh: () async => updateFilter(() {}));
+      stack.add(pull);
       stack.add(filterBox);
     } else {
       sliver = CustomScrollView(
@@ -288,7 +290,9 @@ class SearchPageState extends State<SearchPage> {
           list,
         ],
       );
-      stack.add(sliver);
+      final pull = RefreshIndicator(
+          child: sliver, onRefresh: () async => updateFilter(() {}));
+      stack.add(pull);
     }
 
     final page = Stack(children: stack);

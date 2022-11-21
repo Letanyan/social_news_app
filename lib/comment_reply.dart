@@ -135,7 +135,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     } else if (widget.post != null) {
       preview = widget.post!.card(context, updateState);
       final sel = CupertinoSlidingSegmentedControl(
-        children: const {false: Text("Comment"), true: Text("Review")},
+        children: const {false: Text("Comment"), true: Text("Critique")},
         groupValue: isReview,
         onValueChanged: (value) {
           isReview = value ?? false;
@@ -159,7 +159,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
           hintText: isCreation
               ? "Create Post"
               : isReview
-                  ? "Review Post"
+                  ? "Critique Post"
                   : "Enter a Reply",
         ));
 

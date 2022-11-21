@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/whitelist.dart';
 
 abstract class RegexPatterns {
   static final email =
@@ -198,6 +200,37 @@ class Parser {
     return TextSpan(style: rawStyle, children: result);
   }
 
+  static bool canLoadImage(String s, bool isAgent) {
+    var canLoadImage = isAgent;
+
+    if (!canLoadImage) {
+      final path = Uri.tryParse(s) ?? Uri();
+      final gin = path.origin;
+      canLoadImage = Whitelist.imageUrls.contains(gin);
+    }
+
+    bool validPath = s.endsWith(".jpg") ||
+        s.endsWith(".jpeg") ||
+        s.endsWith(".png") ||
+        s.endsWith(".bmp") ||
+        s.endsWith(".wbmp") ||
+        s.endsWith(".gif");
+
+    /*
+    // cant handle async
+    if (!validPath) {
+      final response = await NewSource.head(s);
+      final c = response?.headers["content-type"];
+      validPath = c == "image/gif" ||
+          c == "image/jpeg" ||
+          c == "image/jpg" ||
+          c == "image/png";
+    }
+    */
+
+    return canLoadImage && validPath;
+  }
+
   static Parser url = Parser(
       mappings: [ParserMapping.url(ParserMapping.defaultMap)],
       defaultMap: ParserMapping.defaultMap);
@@ -208,8 +241,7 @@ class Parser {
         ParserMapping.email(ParserMapping.defaultMap),
         ParserMapping.url(
           (s, c) {
-            // FIXME: Check header if url is image
-            if (s.endsWith(".jpg") || s.endsWith(".png")) {
+            if (canLoadImage(s, (c["img"] as bool?) ?? false)) {
               final m = min(c["w"] as double, c["h"] as double);
               final img = Image.network(
                 s,

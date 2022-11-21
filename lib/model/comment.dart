@@ -82,6 +82,32 @@ class Comment {
     };
   }
 
+  Widget buildCreator(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: () => author.showUserPage(context),
+      child: Padding(
+        padding: EdgeInsets.all(4),
+        child: RichText(
+          text: TextSpan(
+            text: "${author.name} ",
+            style: theme.bodyText1,
+            children: [
+              TextSpan(
+                text: "${author.calculateScore()} ",
+                style: const TextStyle(color: Colors.grey),
+              ),
+              TextSpan(
+                text: "(${author.calculateCred()})",
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void Function(BuildContext, int) updateVote(VoidCallback updateState) {
     return (BuildContext context, int amount) {
       if (User.current == null) {
@@ -131,13 +157,7 @@ class Comment {
       padding: const EdgeInsets.all(8),
       child: Align(alignment: Alignment.centerLeft, child: Text(content)),
     );
-    final creator = InkWell(
-      onTap: () => author.showUserPage(context),
-      child: Text(
-        author.name,
-        style: const TextStyle(color: Colors.grey),
-      ),
-    );
+    final creator = buildCreator(context);
     final date = Text(
       formatDateTime(createdAt),
       style: const TextStyle(color: Colors.grey),

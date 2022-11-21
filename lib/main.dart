@@ -1,7 +1,8 @@
-
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/model/geo.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/theme.dart';
 
 void main() async {
@@ -29,6 +30,7 @@ class MainAppState extends State<MainApp> {
     return MaterialApp(
       title: 'New Source',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.mode == ThemeMode.light

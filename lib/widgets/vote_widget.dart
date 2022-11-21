@@ -189,14 +189,17 @@ Widget buildVoteButton(
   void Function(BuildContext, int) confirmVote,
 ) {
   return InkWell(
-    onTap: showVoteDialog(context, false, kind, confirmVote),
-    child: Row(children: [
-      Icon(
-        size: 16,
-        isUpvote ? Icons.speaker : Icons.back_hand,
-      ),
-      Text(" $votes"),
-    ]),
+    onTap: showVoteDialog(context, isUpvote, kind, confirmVote),
+    child: Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(children: [
+        Icon(
+          size: 16,
+          isUpvote ? Icons.speaker : Icons.back_hand,
+        ),
+        Text(" $votes"),
+      ]),
+    ),
   );
 }
 
@@ -204,10 +207,17 @@ Widget buildReplyButton(
     BuildContext context, bool isReplyingTo, void Function() onTap) {
   return InkWell(
     onTap: onTap,
-    child: Icon(
-      size: 16,
-      Icons.add_comment_rounded,
-      color: isReplyingTo ? MyTheme.primary : Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(8),
+      child: Icon(
+        size: 16,
+        Icons.add_comment_rounded,
+        color: isReplyingTo
+            ? MyTheme.primary
+            : MyTheme.isDark
+                ? Colors.white
+                : Colors.black,
+      ),
     ),
   );
 }
@@ -216,10 +226,17 @@ Widget buildReplyCountButton(BuildContext context, int replyCount,
     bool highlightedReplies, void Function()? onTap) {
   return InkWell(
     onTap: onTap,
-    child: Text(
-      replyCount == 1 ? " $replyCount Reply" : " $replyCount Replies",
-      style:
-          TextStyle(color: highlightedReplies ? MyTheme.primary : Colors.white),
+    child: Padding(
+      padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
+      child: Text(
+        replyCount == 1 ? " $replyCount Reply" : " $replyCount Replies",
+        style: TextStyle(
+            color: highlightedReplies
+                ? MyTheme.primary
+                : MyTheme.isDark
+                    ? Colors.white
+                    : Colors.black),
+      ),
     ),
   );
 }

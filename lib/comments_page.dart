@@ -330,7 +330,7 @@ class _CommentsPageState extends State<CommentsPage> {
     final card = widget.post.card(context, updateState);
     final sel = CupertinoSlidingSegmentedControl(
       key: selectorKey,
-      children: const {false: Text("Comments"), true: Text("Reviews")},
+      children: const {false: Text("Discussion"), true: Text("Critique")},
       groupValue: isReview,
       onValueChanged: (value) {
         final didChange = value != isReview && value != null;

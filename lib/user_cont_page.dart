@@ -54,7 +54,10 @@ class _UserContPageState extends State<UserContPage> {
       current: 0,
       search: "",
       displaySelector: null,
-      displaySorting: sortOrdersIncluding([SortOrder.addedOn]),
+      displaySorting: sortOrdersIncluding([
+        SortOrder.addedOn,
+        ...(widget.kind == ContentKind.post ? [SortOrder.createdAt] : []),
+      ]),
       startDate: DateTime.utc(1970),
       endDate: DateTime.now(),
       location: [],
@@ -268,7 +271,9 @@ class _UserContPageState extends State<UserContPage> {
           list,
         ],
       );
-      stack.add(sliver);
+      final pull = RefreshIndicator(
+          child: sliver, onRefresh: () async => updateFilter(() {}));
+      stack.add(pull);
       stack.add(filterBox);
     } else {
       sliver = CustomScrollView(
@@ -277,7 +282,9 @@ class _UserContPageState extends State<UserContPage> {
           list,
         ],
       );
-      stack.add(sliver);
+      final pull = RefreshIndicator(
+          child: sliver, onRefresh: () async => updateFilter(() {}));
+      stack.add(pull);
     }
 
     final page = Stack(children: stack);

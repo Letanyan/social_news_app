@@ -44,6 +44,8 @@ class PostsPage extends StatefulWidget {
   State<PostsPage> createState() => _PostsPageState();
 }
 
+enum _PostsPageKind { similar, forYou, basic }
+
 class _PostsPageState extends State<PostsPage> {
   late Future<List<Post>> posts;
   var offset = [0];
@@ -51,16 +53,50 @@ class _PostsPageState extends State<PostsPage> {
   var pageSize = 20;
   var isLoading = [true];
   var hasMore = [true];
+  late FilterBoxState filterState;
+  var showingFilter = false;
+  var filterKey = GlobalKey();
+  double? filterHeight;
+  late final _PostsPageKind pageKind;
 
   @override
   void initState() {
     super.initState();
     posts = Future(() => []);
+    if (widget.forUser != 0) {
+      if (widget.postId == null) {
+        pageKind = _PostsPageKind.forYou;
+      } else {
+        pageKind = _PostsPageKind.similar;
+      }
+    } else {
+      pageKind = _PostsPageKind.basic;
+    }
+
+    filterState = FilterBoxState(
+      displaySorting: sortOrdersIncluding([SortOrder.createdAt]),
+      current: 0,
+      order: SortOrder.score,
+      search: "",
+    );
+
     updateFilter(() {});
   }
 
   Future<List<T>> getNewItems<T>() {
-    if (widget.postId == null) {
+    final src = filterState.search?.isEmpty == true ? null : filterState.search;
+    final so = filterState.order;
+    if (pageKind == _PostsPageKind.similar) {
+      return NewSource.getSimilarPost(
+        widget.forUser!,
+        start: widget.start,
+        end: widget.end,
+        order: so,
+        offset: offset[0],
+        limit: pageSize,
+        postId: widget.postId,
+      ) as Future<List<T>>;
+    } else {
       return NewSource.getPosts(
         userId: widget.userId,
         origin: widget.origin,
@@ -68,27 +104,16 @@ class _PostsPageState extends State<PostsPage> {
         popularIn: widget.popularIn,
         upvotes: widget.upvotes,
         downvotes: widget.downvotes,
-        order: widget.order,
+        order: so,
         offset: offset[0],
         limit: pageSize,
         start: widget.start,
         end: widget.end,
         startCreated: widget.startCreated,
         endCreated: widget.endCreated,
+        search: src,
         forUser: widget.forUser,
       ) as Future<List<T>>;
-    } else if (widget.forUser != null) {
-      return NewSource.getSimilarPost(
-        widget.forUser!,
-        start: widget.start,
-        end: widget.end,
-        order: widget.order,
-        offset: offset[0],
-        limit: pageSize,
-        postId: widget.postId,
-      ) as Future<List<T>>;
-    } else {
-      return Future(() => []);
     }
   }
 
@@ -124,6 +149,11 @@ class _PostsPageState extends State<PostsPage> {
       posts = getNewItems<Post>().then(updateItemsState);
       offset[0] = pageSize;
     });
+  }
+
+  void updateFilterState(FilterBoxState state) {
+    filterState = state;
+    updateFilter(() {});
   }
 
   void updateState() {
@@ -175,62 +205,9 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final page = FutureBuilder<List<Post>>(
-    //   future: posts,
-    //   builder: (context, snapshot) {
-    //     if (snapshot.hasData) {
-    //       if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-    //         return const SizedBox();
-    //       }
-    //       final list = ListView.builder(
-    //         physics: const AlwaysScrollableScrollPhysics(),
-    //         itemCount: count[0] + 1,
-    //         itemBuilder: (context, index) {
-    //           if (index >= count[0]) {
-    //             if (isLoading[0]) {
-    //               return const CircularProgressIndicator();
-    //             } else if (hasMore) {
-    //               _loadMorePosts();
-    //               isLoading = true;
-    //               return const CircularProgressIndicator();
-    //             } else {
-    //               return const SizedBox();
-    //             }
-    //           }
-    //           final item = snapshot.data![index];
-    //           return item.tile(context, updateState);
-    //           // return item.card(context, false, updateState);
-    //         },
-    //       );
-    //       return RefreshIndicator(
-    //         onRefresh: () async {
-    //           if (User.current != null && widget.forUser != null) {
-    //             var list = <int>[];
-    //             for (final p in await posts) {
-    //               list.add(p.id);
-    //             }
-    //             NewSource.refreshUserContRecommendations(
-    //                 User.current!.id, list);
-    //           }
-    //           offset = 0;
-    //           count = 0;
-    //           isLoading = true;
-    //           await _loadMorePosts();
-    //           hasMore = true;
-    //           return;
-    //         },
-    //         child: list,
-    //       );
-    //     } else if (snapshot.hasError) {
-    //       return Text("${snapshot.error}");
-    //     }
-    //     return const CircularProgressIndicator();
-    //   },
-    // );
     late final Widget list;
     late final Widget sliver;
     var stack = <Widget>[];
-    final filterState = FilterBoxState.zero();
 
     final buildList = buildFutureList(
       context,
@@ -254,20 +231,49 @@ class _PostsPageState extends State<PostsPage> {
     );
 
     list = buildList(posts);
-    sliver = CustomScrollView(
-      slivers: [
-        list,
-      ],
+    final filterBox = FilterBox(
+      filterKey: GlobalKey(),
+      valueChanged: (state) => updateFilterState(state),
+      state: filterState,
     );
-    stack.add(sliver);
+
+    if (showingFilter) {
+      sliver = CustomScrollView(
+        slivers: [
+          list,
+        ],
+      );
+      final pull = RefreshIndicator(
+          child: sliver, onRefresh: () async => updateFilter(() {}));
+      stack.add(pull);
+      stack.add(filterBox);
+    } else {
+      sliver = CustomScrollView(
+        slivers: [
+          SliverList(delegate: SliverChildListDelegate([filterBox])),
+          list,
+        ],
+      );
+      final pull = RefreshIndicator(
+          child: sliver, onRefresh: () async => updateFilter(() {}));
+      stack.add(pull);
+    }
 
     final page = Stack(children: stack);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: buildTagFollow(),
-      ),
+      appBar: AppBar(title: Text(widget.title), actions: [
+        ...buildTagFollow(),
+        IconButton(
+          onPressed: () {
+            showingFilter = !showingFilter;
+            updateState();
+          },
+          icon: showingFilter
+              ? const Icon(Icons.filter_alt_rounded)
+              : const Icon(Icons.filter_alt_outlined),
+        ),
+      ]),
       body: page,
     );
   }

@@ -180,6 +180,7 @@ class User {
       upvotes: upvotes,
       downvotes: downvotes,
       investment: investment,
+      isAgent: email.isEmpty,
       score: 0,
       cred: 0,
       rank: 0,
@@ -204,6 +205,7 @@ class Author {
   final int upvotes;
   final int downvotes;
   final int investment;
+  final bool isAgent;
   final num score;
   final num cred;
   final num rank;
@@ -215,6 +217,7 @@ class Author {
     required this.upvotes,
     required this.downvotes,
     required this.investment,
+    required this.isAgent,
     required this.score,
     required this.cred,
     required this.rank,
@@ -228,6 +231,7 @@ class Author {
       upvotes: 0,
       downvotes: 0,
       investment: 0,
+      isAgent: false,
       score: 0,
       cred: 0,
       rank: 0,
@@ -242,6 +246,7 @@ class Author {
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
       investment: json["Investment"],
+      isAgent: json["IsAgent"],
       score: double.parse(json["Score"].toString()),
       cred: double.parse(json["Cred"].toString()),
       rank: double.parse(json["Rank"].toString()),
