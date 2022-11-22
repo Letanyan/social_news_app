@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/account_page.dart';
+import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/tag.dart';
@@ -56,6 +57,8 @@ class User {
     pref.remove("user:register");
     pref.remove("user:validation");
     pref.remove("user:secret");
+    pref.remove("theme:color");
+    pref.remove("theme:mode");
   }
 
   static Future<User> fromStore() async {
@@ -124,7 +127,7 @@ class User {
       name: json["Name"],
       email: json["Email"],
       password: json["Password"],
-      registerDate: DateTime.parse(json["RegisterDate"]),
+      registerDate: DateTime.parse(json["RegisterDate"]).toLocal(),
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
       credits: json["Credits"],
@@ -149,7 +152,7 @@ class User {
       name: obj["Name"],
       email: obj["Email"],
       password: obj["Password"],
-      registerDate: DateTime.parse(obj["RegisterDate"]),
+      registerDate: DateTime.parse(obj["RegisterDate"]).toLocal(),
       upvotes: obj["Upvotes"],
       downvotes: obj["Downvotes"],
       credits: obj["Credits"],
@@ -244,7 +247,7 @@ class Author {
     return Author(
       id: json["ID"],
       name: json["Name"],
-      registerDate: DateTime.parse(json["RegisterDate"]),
+      registerDate: DateTime.parse(json["RegisterDate"]).toLocal(),
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
       investment: json["Investment"],
@@ -283,7 +286,7 @@ class Author {
     );
   }
 
-  Widget followButton(Function() updateState) {
+  Widget followButton(BuildContext context, Function() updateState) {
     final isFollowing = User.current?.following
             .firstWhere((u) => u.id == id,
                 orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
@@ -294,17 +297,19 @@ class Author {
                 orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
             .id !=
         User.current?.id;
-    final actionText = isIgnored
-        ? "Don't Ignore"
-        : isFollowing
-            ? "Unfollow"
-            : "Follow";
+    final actionText = User.current == null
+        ? "Sign In"
+        : isIgnored
+            ? "Don't Ignore"
+            : isFollowing
+                ? "Unfollow"
+                : "Follow";
     final action = TextButton(
       onPressed: () async {
         if (User.current == null) {
-          return;
-        }
-        if (isIgnored) {
+          Navigator.pop(context);
+          Navigator.push(context, route(builder: (c) => const MainApp()));
+        } else if (isIgnored) {
           User.current?.ignored.removeWhere((u) => u.id == id);
           NewSource.deleteUserCont(User.current!.id, id, UserContKind.ignored);
         } else if (isFollowing) {
@@ -331,7 +336,7 @@ class Author {
       onTap: () => showUserPage(context),
       child: RichText(
         text: TextSpan(
-          text: "${name} ",
+          text: "$name ",
           style: theme.bodyText1,
           children: [
             TextSpan(
@@ -353,7 +358,7 @@ class Author {
     final title = Text(name);
     final upChip = buildUpvoteChip(context, upvotes);
     final downChip = buildDownvoteChip(context, downvotes);
-    final follow = followButton(updateState);
+    final follow = followButton(context, updateState);
     final votes = FittedBox(
         fit: BoxFit.contain, child: Row(children: [upChip, downChip]));
 

@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/mod_packages/sign_button.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -107,21 +109,70 @@ class _SignUpPageState extends State<SignUpPage> {
       obscureText: true,
       decoration: const InputDecoration(labelText: "Re-enter Password"),
     );
-
-    final create = ElevatedButton(
+    var create = SignInButton(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      buttonType: MyTheme.isDark ? ButtonType.account : ButtonType.accountDark,
       onPressed: () async => signUp(context),
-      child: const Text("Create Account"),
     );
 
-    final list = ListView(children: [
-      username,
-      email,
-      const SizedBox(height: 16),
-      password,
-      passwordValidate,
-      const SizedBox(height: 32),
-      create,
-    ]);
+    final usernameRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 0, maxWidth: 320),
+          child: username,
+        ),
+      ],
+    );
+    final emailRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 0, maxWidth: 320),
+          child: email,
+        ),
+      ],
+    );
+    final passwordRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 0, maxWidth: 320),
+          child: password,
+        ),
+      ],
+    );
+    final passwordValidateRow = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 0, maxWidth: 320),
+          child: passwordValidate,
+        ),
+      ],
+    );
+
+    final body = Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        emailRow,
+        usernameRow,
+        const SizedBox(height: 8),
+        passwordRow,
+        passwordValidateRow,
+        const SizedBox(height: 16),
+        create,
+      ],
+    );
+
+    final list = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Flexible(flex: 25, child: SizedBox()),
+        Flexible(flex: 75, child: body),
+      ],
+    );
 
     return Padding(padding: const EdgeInsets.all(8), child: list);
   }

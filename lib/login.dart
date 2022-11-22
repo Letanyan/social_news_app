@@ -166,7 +166,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _getIndicator() {
     if (isLoading) {
-      return const CircularProgressIndicator();
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [CircularProgressIndicator()],
+      );
     } else {
       return const SizedBox();
     }
@@ -210,7 +213,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ],
     );
-
     var signInWithApple = SignInButton(
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(8))),
@@ -239,6 +241,16 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+    final createAccount = TextButton(
+      onPressed: gotoSignUpPage,
+      child: Text(
+        "Create Account",
+        style: TextStyle(
+          color: MyTheme.isDark ? Colors.grey[200] : Colors.grey[800],
+          fontSize: 12,
+        ),
+      ),
+    );
     var anon = TextButton(
       onPressed: signInAnon,
       child: Text(
@@ -254,11 +266,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              emailRow,
-              passwordRow,
-              const SizedBox(height: 16),
-              Center(child: signInWithEmail),
-              Center(child: forgot),
+              signInWithGoogle,
+              const SizedBox(height: 8),
+              signInWithApple,
             ],
           ),
         ),
@@ -266,14 +276,18 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              signInWithGoogle,
+              emailRow,
+              passwordRow,
+              const SizedBox(height: 16),
+              Center(child: signInWithEmail),
               const SizedBox(height: 8),
-              signInWithApple,
+              Center(child: createAccount),
+              Center(child: forgot),
             ],
           ),
         ),
         Padding(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: anon,
         ),
       ],

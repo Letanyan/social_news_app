@@ -137,6 +137,9 @@ class _AccountPageState extends State<AccountPage> {
         },
         child: col,
       );
+    } else if (User.current == null) {
+      subtitle = null;
+      action = widget.user.followButton(context, () => setState(() {}));
     } else {
       subtitle = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,10 +148,11 @@ class _AccountPageState extends State<AccountPage> {
           Text("Credibility: ${widget.user.calculateCred()}"),
         ],
       );
-      action = widget.user.followButton(() => setState(() {}));
+      action = widget.user.followButton(context, () => setState(() {}));
     }
+    final display = widget.user.name.isEmpty ? "Anonymous" : widget.user.name;
     final name = ListTile(
-      title: Text(widget.user.name),
+      title: Text(display),
       subtitle: subtitle,
       trailing: action,
     );

@@ -33,9 +33,7 @@ class MainAppState extends State<MainApp> {
       scrollBehavior: MyCustomScrollBehavior(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
-        brightness: MyTheme.mode == ThemeMode.light
-            ? Brightness.light
-            : Brightness.dark,
+        brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,
       ),
       home: Scaffold(
         appBar: AppBar(

@@ -270,6 +270,12 @@ class NewSource {
     if (User.current == null) {
       throw userNotSignedIn;
     }
+    if (isReview && content.length > 10000) {
+      throw contentLengthTooLong;
+    }
+    if (!isReview && content.length > 1000) {
+      throw contentLengthTooLong;
+    }
 
     var args = <String>[];
     addSecret(args);
@@ -297,6 +303,9 @@ class NewSource {
   static Future<Post> createPost(String content) async {
     if (User.current == null) {
       throw userNotSignedIn;
+    }
+    if (content.length > 10000) {
+      throw contentLengthTooLong;
     }
 
     var args = <String>[];
@@ -1303,6 +1312,7 @@ NSError err(String message) {
 
 final unknownError = err("An unknown error has occurred");
 final userNotSignedIn = err("No user appears to be signed in");
+final contentLengthTooLong = err("Message length too long");
 
 void addS(String name, String? value, List<String> args) {
   if (value != null) {

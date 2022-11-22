@@ -176,12 +176,16 @@ class SignInButton extends StatelessWidget {
     btnDisabledColor ??= Theme.of(context).disabledColor.withOpacity(0.12);
     btnDisabledTextColor ??= Theme.of(context).disabledColor.withOpacity(0.38);
 
-    if (buttonType == ButtonType.email || buttonType == ButtonType.emailDark) {
+    if (buttonType == ButtonType.email ||
+        buttonType == ButtonType.emailDark ||
+        buttonType == ButtonType.account ||
+        buttonType == ButtonType.accountDark) {
       _image = Icon(
         Icons.email,
-        color: buttonType == ButtonType.email
-            ? Colors.grey[800]
-            : Colors.grey[300],
+        color:
+            buttonType == ButtonType.email || buttonType == ButtonType.account
+                ? Colors.grey[800]
+                : Colors.grey[300],
         size: _imageSize,
       );
     } else {
@@ -314,7 +318,19 @@ class SignInButton extends StatelessWidget {
       case ButtonType.emailDark:
         btnText ??= 'Sign in with Email';
         btnTextColor ??= Colors.white;
-        btnColor ??= Colors.black;
+        btnColor ??= Colors.grey[800];
+        break;
+
+      case ButtonType.account:
+        btnText ??= 'Create Account';
+        btnTextColor ??= Colors.black;
+        btnColor ??= Colors.white;
+        break;
+
+      case ButtonType.accountDark:
+        btnText ??= 'Create Account';
+        btnTextColor ??= Colors.white;
+        btnColor ??= Colors.grey[800];
         break;
 
       case ButtonType.mail:
@@ -373,6 +389,8 @@ enum ButtonType {
   tumblr,
   email,
   emailDark,
+  account,
+  accountDark,
   mail,
   reddit,
   yahoo,

@@ -59,7 +59,7 @@ class _UserContPageState extends State<UserContPage> {
         SortOrder.addedOn,
         ...(widget.kind == ContentKind.post ? [SortOrder.createdAt] : []),
       ]),
-      startDate: DateTime.utc(1970),
+      startDate: DateTime(2022),
       endDate: DateTime.now(),
       location: [],
     );
@@ -165,7 +165,10 @@ class _UserContPageState extends State<UserContPage> {
   Future<List<T>> updateItemsState<T>(List<T> value) async {
     count[0] += value.length;
     isLoading[0] = false;
-    if (current == ContentKind.post && isTypeEqual<T, Post>()) {
+    if (current == ContentKind.post &&
+        isTypeEqual<T, Post>() &&
+        widget.playlist == UserContKind.readLater &&
+        widget.user.id == User.current?.id) {
       User.current?.readLater = (value as List<Post>).map((e) => e.id).toList();
     }
     return value;

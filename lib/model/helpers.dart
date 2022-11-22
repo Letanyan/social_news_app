@@ -38,7 +38,6 @@ Future<void> launchURL(String url) async {
 
 String formatDate(DateTime date) {
   final today = DateTime.now();
-  date = date.toLocal();
   final sameYear = today.year == date.year;
   final sameMonth = today.month == date.month;
   final sameDay = today.day == date.day;
@@ -64,7 +63,6 @@ String formatDate(DateTime date) {
 
 String formatDateTime(DateTime date) {
   final today = DateTime.now();
-  date = date.toLocal();
 
   final sameYear = today.day - date.day < 365;
   final sameMonth = today.day - date.day < 30;
@@ -237,7 +235,10 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
               (context, index) {
                 if (index >= count[filterState.current]) {
                   if (isLoading[filterState.current]) {
-                    return const CircularProgressIndicator();
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [CircularProgressIndicator()],
+                    );
                   } else if (hasMore[filterState.current]) {
                     final newItems = getNewItems<T>();
                     if (isTypeEqual<T, Tag>()) {
@@ -262,7 +263,10 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       loadMore(newItems, prefComments);
                     }
                     isLoading[filterState.current] = true;
-                    return const CircularProgressIndicator();
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [CircularProgressIndicator()],
+                    );
                   } else {
                     return const SizedBox();
                   }

@@ -26,7 +26,7 @@ class NewsAgent {
       id: json["ID"],
       name: json["Name"],
       origin: json["Origin"],
-      lastUpdated: DateTime.parse(json["LastUpdate"]),
+      lastUpdated: DateTime.parse(json["LastUpdate"]).toLocal(),
       subs: (json['Subs'] as List).map((item) => item as String).toList(),
     );
   }

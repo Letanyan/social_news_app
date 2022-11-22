@@ -55,7 +55,7 @@ class MyTheme {
   static var current = light;
 
   static var primary = Colors.pink;
-  static var mode = ThemeMode.dark;
+  static var mode = ThemeMode.system;
   static get isDark =>
       MyTheme.mode == ThemeMode.dark ||
       (MyTheme.mode == ThemeMode.system && SystemTheme.isDarkMode);

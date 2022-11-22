@@ -323,7 +323,7 @@ class _FilterBoxState extends State<FilterBox> {
                 child: const Text("Close"),
               );
               return AlertDialog(
-                title: const Text("Sort By"),
+                title: const Text("Category"),
                 content: SingleChildScrollView(
                   child: Column(
                     children: buildCategoryTiles(setState),

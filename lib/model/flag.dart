@@ -110,7 +110,7 @@ class FlaggedPost {
       content: Post.fromJson(json["Content"]),
       kind: FlagReason.values[json["Kind"]],
       reason: json["Reason"],
-      createdAt: DateTime.parse(json["CreatedAt"]),
+      createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
       count: json["Count"],
     );
   }
@@ -243,7 +243,7 @@ class FlaggedComment {
       content: Comment.fromJson(json["Content"]),
       kind: FlagReason.values[json["Kind"]],
       reason: json["Reason"],
-      createdAt: DateTime.parse(json["CreatedAt"]),
+      createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
       count: json["Count"],
     );
   }

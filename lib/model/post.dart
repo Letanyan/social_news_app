@@ -58,7 +58,7 @@ class Post {
       creator: Author.fromJson(json["Author"]),
       content: json["Content"],
       tags: List<int>.from(json["Tags"]),
-      createdAt: DateTime.parse(json["CreatedAt"]),
+      createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
       location: List<String>.from(json["Location"]),
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
@@ -84,6 +84,7 @@ class Post {
         ));
       }
       if (User.current?.readLater.contains(id) ?? false) {
+        print(User.current?.readLater);
         actions.add(IconButton(
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +108,10 @@ class Post {
       }
       Navigator.push(
         context,
-        route(builder: (context) => commentsPage),
+        route(
+          builder: (context) => commentsPage,
+          settings: const RouteSettings(name: "temp"),
+        ),
       ).then((value) => updateState());
     };
   }

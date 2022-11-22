@@ -50,7 +50,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
     filterState = FilterBoxState(
       current: 0,
       search: "",
-      startDate: DateTime.utc(1970),
+      startDate: DateTime(2022),
       endDate: DateTime.now(),
       location: widget.prefKind == ContentKind.post ? [] : null,
       displaySorting: sortOrdersIncluding([SortOrder.updatedOn]),

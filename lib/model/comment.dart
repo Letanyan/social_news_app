@@ -54,7 +54,7 @@ class Comment {
           : Author.fromJson(json["Author"]),
       replyId: json["ReplyID"],
       content: json["Content"],
-      createdAt: DateTime.parse(json["CreatedAt"]),
+      createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
       replyCount: json["ReplyCount"],

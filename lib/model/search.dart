@@ -57,7 +57,7 @@ class SearchPageState extends State<SearchPage> {
     final List<String>? location = widget.isTrending ? [] : null;
     final startDate = widget.isTrending
         ? DateTime.now().add(const Duration(days: -7))
-        : DateTime.utc(2020);
+        : DateTime(2022);
     final endDate = DateTime.now();
 
     filterState = FilterBoxState(

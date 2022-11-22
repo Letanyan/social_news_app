@@ -71,7 +71,11 @@ class _CommentsPageState extends State<CommentsPage> {
       if (User.current == null) {
         return;
       }
-      // NewSource.watchPost(User.current!.id, widget.post.id, 1);
+      final isTop = ModalRoute.of(context)?.isCurrent ?? false;
+      if (!isTop) {
+        return;
+      }
+      NewSource.watchPost(User.current!.id, widget.post.id, 1);
     });
   }
 
@@ -273,23 +277,27 @@ class _CommentsPageState extends State<CommentsPage> {
     }
     final postId = replyingTo!.postId;
     final replyId = replyingTo!.id;
-    final result = await NewSource.createComment(
-      postId,
-      replyId,
-      controller.text,
-      false,
-    );
-    for (var comment in allCommentsLoaded) {
-      if (comment.id == replyId) {
-        comment.replyCount += 1;
+    try {
+      final result = await NewSource.createComment(
+        postId,
+        replyId,
+        controller.text,
+        false,
+      );
+      for (var comment in allCommentsLoaded) {
+        if (comment.id == replyId) {
+          comment.replyCount += 1;
+        }
       }
+      allCommentsLoaded.add(result);
+      allComments = Future(() => allCommentsLoaded);
+      showComments(replyId);
+      replyingTo = null;
+      controller.text = "";
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
-    allCommentsLoaded.add(result);
-    allComments = Future(() => allCommentsLoaded);
-    showComments(replyId);
-    replyingTo = null;
-    controller.text = "";
-    // updateState();
   }
 
   Widget buildReplyField(BuildContext context) {
@@ -397,7 +405,10 @@ class _CommentsPageState extends State<CommentsPage> {
             },
             child: Column(children: [
               ...previewItems,
-              const CircularProgressIndicator(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [CircularProgressIndicator()],
+              ),
             ]),
           );
         }

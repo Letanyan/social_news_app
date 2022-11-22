@@ -53,39 +53,45 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
 
   void replyToComment() {
     // TODO: Show progress indicator
-    if (widget.isEdit) {
-      if (widget.comment != null) {
-        Navigator.pop(context);
-        widget.comment?.content = controller.text;
-        widget.comment?.edited = true;
-        NewSource.updateComment(
-          widget.comment!.postId,
-          widget.comment!.id,
-          controller.text,
-        );
-      } else if (widget.post != null) {
-        int count = 0;
-        Navigator.popUntil(context, (route) => count++ >= 2);
-        widget.post?.content = controller.text;
-        widget.post?.edited = true;
-        NewSource.updatePost(widget.post!.id, controller.text);
-      }
-    } else {
-      if (widget.comment != null) {
-        Navigator.pop(context);
-        NewSource.createComment(
-          widget.comment!.postId,
-          widget.comment!.id,
-          controller.text,
-          isReview,
-        );
-      } else if (widget.post != null) {
-        Navigator.pop(context);
-        NewSource.createComment(widget.post!.id, 0, controller.text, isReview);
+    try {
+      if (widget.isEdit) {
+        if (widget.comment != null) {
+          Navigator.pop(context);
+          widget.comment?.content = controller.text;
+          widget.comment?.edited = true;
+          NewSource.updateComment(
+            widget.comment!.postId,
+            widget.comment!.id,
+            controller.text,
+          );
+        } else if (widget.post != null) {
+          int count = 0;
+          Navigator.popUntil(context, (route) => count++ >= 2);
+          widget.post?.content = controller.text;
+          widget.post?.edited = true;
+          NewSource.updatePost(widget.post!.id, controller.text);
+        }
       } else {
-        Navigator.pop(context, "posted");
-        NewSource.createPost(controller.text);
+        if (widget.comment != null) {
+          Navigator.pop(context);
+          NewSource.createComment(
+            widget.comment!.postId,
+            widget.comment!.id,
+            controller.text,
+            isReview,
+          );
+        } else if (widget.post != null) {
+          Navigator.pop(context);
+          NewSource.createComment(
+              widget.post!.id, 0, controller.text, isReview);
+        } else {
+          Navigator.pop(context, "posted");
+          NewSource.createPost(controller.text);
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
