@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/scheduler.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
@@ -170,7 +173,8 @@ class NewSource {
 
     final obj = await post(path, args, {"userId": User.current!.id});
     if (obj == null) {
-      throw unknownError;
+      User.current = null;
+      return false;
     }
 
     if (obj["success"] == false) {
@@ -896,7 +900,7 @@ class NewSource {
       DateTime? start,
       DateTime? end,
       int? forUser,
-      bool? isReview,
+      int? isReview,
       String? search}) async {
     var args = <String>[];
     addI("uid", userId, args);
@@ -913,7 +917,7 @@ class NewSource {
     addD("startCreated", startCreated, args);
     addD("endCreated", endCreated, args);
     addI("for", forUser, args);
-    addI("isReview", isReview == true ? 1 : 0, args);
+    addI("isReview", isReview, args);
     addS("search", search, args);
 
     final obj = await get(["posts", "comments"], args);
@@ -927,6 +931,43 @@ class NewSource {
   //----------------------------------------------------------------------------
   // Vote
   //----------------------------------------------------------------------------
+  static Future<List<String>> getCurrentLocation() async {
+    try {
+      if (!(Platform.isAndroid || Platform.isIOS)) {
+        return [];
+      }
+      var enabled = await Geolocator.isLocationServiceEnabled();
+      if (!enabled) {
+        return [];
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return [];
+        }
+      }
+      final loc = await Geolocator.getCurrentPosition();
+      final places =
+          await placemarkFromCoordinates(loc.latitude, loc.longitude);
+      if (places.isNotEmpty) {
+        final place = places[0];
+        var result = <String>[];
+        if (place.isoCountryCode != null) {
+          result.add(place.isoCountryCode!);
+          if (place.administrativeArea != null) {
+            result.add(place.administrativeArea!);
+          }
+        }
+        return result;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
   static Future<int> voteForPost({
     required int postId,
     required int userId,
@@ -934,8 +975,13 @@ class NewSource {
   }) async {
     var args = <String>[];
     addSecret(args);
-    final obj = await post(
-        ["posts", "$postId"], args, {"uid": userId, "amount": amount});
+    final location = await getCurrentLocation();
+    final body = {
+      "uid": userId,
+      "amount": amount,
+      "location": location,
+    };
+    final obj = await post(["posts", "$postId"], args, body);
     if (obj == null) {
       throw unknownError;
     }
@@ -955,8 +1001,14 @@ class NewSource {
   }) async {
     var args = <String>[];
     addSecret(args);
-    final obj = await post(["posts", "$postId", "comments", "$commentId"], args,
-        {"uid": userId, "amount": amount});
+    final path = ["posts", "$postId", "comments", "$commentId"];
+    final location = await getCurrentLocation();
+    final body = {
+      "uid": userId,
+      "amount": amount,
+      "location": location,
+    };
+    final obj = await post(path, args, body);
     if (obj == null) {
       throw unknownError;
     }

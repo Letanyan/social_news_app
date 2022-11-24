@@ -144,7 +144,7 @@ class _FilterBoxState extends State<FilterBox> {
         result += Geo.current.country(args[0]);
       }
       if (args.length > 1) {
-        result += ", ${Geo.current.region(args[0], args[1])}";
+        result += ", ${args[1]}";
       }
       return result;
     }
@@ -342,6 +342,10 @@ class _FilterBoxState extends State<FilterBox> {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(categoryDropDown);
     }
+    if (widget.state.location != null) {
+      operatorItems.add(const SizedBox(width: 8));
+      operatorItems.add(area);
+    }
     if (widget.state.displaySorting != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(sortDropDown);
@@ -349,10 +353,6 @@ class _FilterBoxState extends State<FilterBox> {
     if (widget.state.startDate != null) {
       operatorItems.add(const SizedBox(width: 8));
       operatorItems.add(dateButton);
-    }
-    if (widget.state.location != null) {
-      operatorItems.add(const SizedBox(width: 8));
-      operatorItems.add(area);
     }
     final operatorRow = SizedBox(
       height: 48,

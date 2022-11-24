@@ -202,14 +202,13 @@ class Parser {
 
   static bool canLoadImage(String s, bool isAgent) {
     var canLoadImage = isAgent;
-
+    final path = Uri.tryParse(s) ?? Uri();
     if (!canLoadImage) {
-      final path = Uri.tryParse(s) ?? Uri();
       final gin = path.origin;
       canLoadImage = Whitelist.imageUrls.contains(gin);
     }
 
-    bool validPath = s.endsWith(".jpg") ||
+    bool validPath = path.path.endsWith(".jpg") ||
         s.endsWith(".jpeg") ||
         s.endsWith(".png") ||
         s.endsWith(".bmp") ||

@@ -65,7 +65,10 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
           );
         }
         return AlertDialog(
-          content: const CircularProgressIndicator(),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [CircularProgressIndicator()],
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),

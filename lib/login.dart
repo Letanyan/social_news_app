@@ -164,17 +164,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Widget _getIndicator() {
-    if (isLoading) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [CircularProgressIndicator()],
-      );
-    } else {
-      return const SizedBox();
-    }
-  }
-
   void gotoSignUpPage() {
     final page = Scaffold(
       appBar: AppBar(title: const Text("Create Account")),

@@ -74,10 +74,12 @@ class _PostsPageState extends State<PostsPage> {
     }
 
     filterState = FilterBoxState(
-      displaySorting: sortOrdersIncluding([SortOrder.createdAt]),
+      displaySorting: widget.forUser == null
+          ? sortOrdersIncluding([SortOrder.createdAt])
+          : null,
       current: 0,
       order: SortOrder.score,
-      search: "",
+      search: widget.forUser == null ? "" : null,
     );
 
     updateFilter(() {});

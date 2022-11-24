@@ -32,7 +32,8 @@ class _CommentsPageState extends State<CommentsPage> {
   late List<Comment> allCommentsLoaded;
   late Future<List<Comment>> allComments;
   late Future<List<_IndentedComment>> visibleComments;
-  late Future<List<_IndentedComment>> reviews;
+  List<_IndentedComment>? reviews;
+  late Future<List<_IndentedComment>> visibleReviews;
   late HashSet<int> visibleReplyIds;
   final selectorKey = GlobalKey();
   Timer? timer;
@@ -50,7 +51,6 @@ class _CommentsPageState extends State<CommentsPage> {
   void initState() {
     super.initState();
     loadComments(-1);
-    loadReviews();
     replyingTo = null;
     visibleReplyIds = HashSet();
     var keyboardVisibilityController = KeyboardVisibilityController();
@@ -91,7 +91,7 @@ class _CommentsPageState extends State<CommentsPage> {
       postId: widget.post.id,
       replyId: commentId,
       order: SortOrder.createdAt,
-      isReview: false,
+      isReview: -1,
     );
 
     // sortComments uses the keys from comments to decide which comments to
@@ -99,20 +99,20 @@ class _CommentsPageState extends State<CommentsPage> {
     // after sorting.
     comments = <int, List<Comment>>{0: []};
 
-    visibleComments = Future(() => <_IndentedComment>[]);
-    reviews = Future(() => []);
+    visibleComments = Future(() => []);
+    visibleReviews = Future(() => []);
     sortComments();
   }
 
-  Future<void> loadReviews() async {
+  Future<void> _loadReviews() async {
     final raw = await NewSource.getComments(
       postId: widget.post.id,
       replyId: 0,
       order: SortOrder.createdAt,
-      isReview: true,
+      isReview: -1,
     );
     reviewCount = raw.length;
-    reviews = Future(() => raw.map((e) => _IndentedComment(e, 0)).toList());
+    reviews = raw.map((e) => _IndentedComment(e, 0)).toList();
   }
 
   void flattenComments() {
@@ -214,9 +214,12 @@ class _CommentsPageState extends State<CommentsPage> {
     allCommentsLoaded = source.map((e) => e).toList();
 
     comments = <int, List<Comment>>{};
+    reviews = [];
     count = 0;
-    for (final c in await allComments) {
-      if (keys.keys.contains(c.replyId)) {
+    for (final c in allCommentsLoaded) {
+      if (c.isReview) {
+        reviews?.add(_IndentedComment(c, 0));
+      } else if (keys.keys.contains(c.replyId)) {
         if (comments.containsKey(c.replyId)) {
           comments[c.replyId]?.add(c);
         } else {
@@ -225,48 +228,16 @@ class _CommentsPageState extends State<CommentsPage> {
         count += 1;
       }
     }
+    reviewCount = reviews?.length ?? 0;
+    visibleReviews = Future(() => reviews ?? []);
 
     flattenComments();
-  }
-
-  Future<void> sortReview() async {
-    var result = await reviews;
-    result.sort(
-      (x, y) {
-        final a = x.comment;
-        final b = y.comment;
-        switch (sortOrder) {
-          case SortOrder.addedOn:
-            return a.createdAt.compareTo(b.createdAt);
-          case SortOrder.score:
-            return -a.score.compareTo(b.score);
-          case SortOrder.cred:
-            return -a.cred.compareTo(b.cred);
-          case SortOrder.upvotes:
-            return -a.upvotes.compareTo(b.upvotes);
-          case SortOrder.downvotes:
-            return -a.downvotes.compareTo(b.downvotes);
-          case SortOrder.controversial:
-            return -controversial(a.cred).compareTo(controversial(b.cred));
-          case SortOrder.createdAt:
-            return a.createdAt.compareTo(b.createdAt);
-          case SortOrder.updatedAt:
-            return a.createdAt.compareTo(b.createdAt);
-          case SortOrder.updatedOn:
-            return a.createdAt.compareTo(b.createdAt);
-          case SortOrder.rank:
-            return a.rank.compareTo(b.rank);
-        }
-      },
-    );
-
-    reviews = Future(() => result);
-    setState(() {});
   }
 
   void updateState() {
     setState(() {
       visibleComments = visibleComments;
+      visibleReviews = visibleReviews;
       reviews = reviews;
     });
   }
@@ -395,7 +366,7 @@ class _CommentsPageState extends State<CommentsPage> {
     ];
 
     final list = FutureBuilder<List<_IndentedComment>>(
-      future: isReview ? reviews : visibleComments,
+      future: isReview ? visibleReviews : visibleComments,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return RefreshIndicator(
@@ -420,7 +391,9 @@ class _CommentsPageState extends State<CommentsPage> {
             Padding(
               padding: const EdgeInsets.all(32),
               child: Text(
-                "No ${isReview ? "Reviews" : "Comments"}. Reply to be the First!",
+                isReview
+                    ? "No Critiques. Be the First to Evaluate the Post."
+                    : "No Comments. Be the First to Start the Discussion.",
                 style: const TextStyle(fontSize: 16),
               ),
             ),
