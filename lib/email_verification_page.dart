@@ -61,12 +61,22 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       resend,
     ]);
 
-    return Scaffold(
+    final page = Scaffold(
       appBar: AppBar(
         title: const Text("Email Verification"),
         automaticallyImplyLeading: false,
       ),
       body: Padding(padding: const EdgeInsets.all(16), child: body),
+    );
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      scrollBehavior: MyCustomScrollBehavior(),
+      theme: ThemeData(
+        primarySwatch: MyTheme.primary,
+        brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,
+      ),
+      home: page,
     );
   }
 }

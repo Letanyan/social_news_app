@@ -1122,6 +1122,34 @@ class NewSource {
     }
   }
 
+  static Future<Map<String, int>> onboardAgents() async {
+    final path = ["onboard", "agents"];
+    final obj = await get(path, []);
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == true) {
+      return (obj["payload"] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as int));
+    } else {
+      return {};
+    }
+  }
+
+  static Future<Map<String, int>> onboardTags() async {
+    final path = ["onboard", "tags"];
+    final obj = await get(path, []);
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == true) {
+      return (obj["payload"] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as int));
+    } else {
+      return {};
+    }
+  }
+
   static Future<bool> refreshUserContRecommendations(
       int uid, List<int> pids) async {
     final path = ["users", "$uid", "content", "recommendations"];
