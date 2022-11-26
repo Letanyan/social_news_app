@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -11,10 +12,10 @@ import 'package:social_news_app/model/user.dart';
 
 class CommentsPage extends StatefulWidget {
   final Post post;
-  final bool scrollComments;
+  final Comment? scrollComments;
 
   const CommentsPage(
-      {super.key, required this.post, this.scrollComments = false});
+      {super.key, required this.post, required this.scrollComments});
 
   @override
   State<CommentsPage> createState() => _CommentsPageState();
@@ -44,7 +45,10 @@ class _CommentsPageState extends State<CommentsPage> {
   SortOrder sortOrder = SortOrder.upvotes;
 
   final controller = TextEditingController();
+  final scroller = ItemScrollController();
+  int? commentIndex;
   Comment? replyingTo;
+  Comment? scrollToComment;
   late StreamSubscription<bool> keyboardSubscription;
 
   @override
@@ -52,6 +56,8 @@ class _CommentsPageState extends State<CommentsPage> {
     super.initState();
     loadComments(-1);
     replyingTo = null;
+    scrollToComment = widget.scrollComments;
+    isReview = widget.scrollComments?.isReview ?? false;
     visibleReplyIds = HashSet();
     var keyboardVisibilityController = KeyboardVisibilityController();
     keyboardSubscription =
@@ -61,11 +67,6 @@ class _CommentsPageState extends State<CommentsPage> {
         updateState();
       }
     });
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   if (widget.scrollComments && selectorKey.currentContext != null) {
-    //     Scrollable.ensureVisible(selectorKey.currentContext!);
-    //   }
-    // });
 
     timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (User.current == null) {
@@ -82,6 +83,7 @@ class _CommentsPageState extends State<CommentsPage> {
   @override
   void dispose() {
     keyboardSubscription.cancel();
+    controller.dispose();
     timer?.cancel();
     super.dispose();
   }
@@ -102,17 +104,6 @@ class _CommentsPageState extends State<CommentsPage> {
     visibleComments = Future(() => []);
     visibleReviews = Future(() => []);
     sortComments();
-  }
-
-  Future<void> _loadReviews() async {
-    final raw = await NewSource.getComments(
-      postId: widget.post.id,
-      replyId: 0,
-      order: SortOrder.createdAt,
-      isReview: -1,
-    );
-    reviewCount = raw.length;
-    reviews = raw.map((e) => _IndentedComment(e, 0)).toList();
   }
 
   void flattenComments() {
@@ -212,6 +203,18 @@ class _CommentsPageState extends State<CommentsPage> {
     });
     allComments = Future(() => source);
     allCommentsLoaded = source.map((e) => e).toList();
+
+    // Add the comment chain to the comment selected by the user from scrollToComment
+    var chain = scrollToComment?.replyId;
+    while (chain != null && chain != 0) {
+      comments[chain] = [];
+      for (final c in allCommentsLoaded) {
+        if (c.id == chain) {
+          chain = c.replyId;
+          break;
+        }
+      }
+    }
 
     comments = <int, List<Comment>>{};
     reviews = [];
@@ -386,22 +389,26 @@ class _CommentsPageState extends State<CommentsPage> {
 
         if (snapshot.data == null || snapshot.data?.isEmpty == true) {
           return SingleChildScrollView(
-              child: Column(children: [
-            ...previewItems,
-            Padding(
-              padding: const EdgeInsets.all(32),
-              child: Text(
-                isReview
-                    ? "No Critiques. Be the First to Evaluate the Post."
-                    : "No Comments. Be the First to Start the Discussion.",
-                style: const TextStyle(fontSize: 16),
-              ),
+            child: Column(
+              children: [
+                ...previewItems,
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    isReview
+                        ? "No Critiques. Be the First to Evaluate the Post."
+                        : "No Comments. Be the First to Start the Discussion.",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
             ),
-          ]));
+          );
         }
 
-        final list = ListView.builder(
+        final list = ScrollablePositionedList.builder(
           itemCount: (isReview ? reviewCount : count) + 1,
+          itemScrollController: scroller,
           itemBuilder: (context, index) {
             if (index == 0) {
               return SingleChildScrollView(
@@ -411,12 +418,27 @@ class _CommentsPageState extends State<CommentsPage> {
             if (index - 1 >= snapshot.data!.length) {
               return const SizedBox();
             }
+
+            if (index == (isReview ? reviewCount : count)) {
+              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                if (commentIndex != null && scrollToComment != null) {
+                  scrollToComment = null;
+                  scroller.scrollTo(
+                    index: commentIndex!,
+                    duration: const Duration(milliseconds: 150),
+                  );
+                }
+              });
+            }
             final item = snapshot.data![index - 1];
             var calcReplyCount = 0;
             for (final c in allCommentsLoaded) {
               if (!c.trashed && c.replyId == item.comment.id) {
                 calcReplyCount += 1;
               }
+            }
+            if (item.comment.id == scrollToComment?.id) {
+              commentIndex = index;
             }
             return item.comment.card(
               context,
@@ -434,6 +456,7 @@ class _CommentsPageState extends State<CommentsPage> {
               replyingTo?.id == item.comment.id,
               visibleReplyIds.contains(item.comment.id),
               postAuthor: widget.post.creator.id,
+              scrolledTo: scrollToComment?.id == item.comment.id,
             );
           },
         );
@@ -454,7 +477,6 @@ class _CommentsPageState extends State<CommentsPage> {
             replyField,
           ],
         );
-
         return KeyboardDismissOnTap(dismissOnCapturedTaps: true, child: body);
       },
     );

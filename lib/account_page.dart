@@ -52,10 +52,15 @@ class _AccountPageState extends State<AccountPage> {
     };
   }
 
-  void Function() showUserContPage(
-      BuildContext context, ContentKind kind, UserContKind playlist) {
+  void Function() showUserContPage(BuildContext context, ContentKind kind,
+      UserContKind playlist, bool isReview) {
     return () {
-      final String title = contentKindToString(kind);
+      late final String title;
+      if (kind == ContentKind.comment && isReview) {
+        title = "Critiques";
+      } else {
+        title = contentKindToString(kind);
+      }
 
       final body = UserContPage(
         title: title,
@@ -63,6 +68,7 @@ class _AccountPageState extends State<AccountPage> {
         kind: kind,
         playlist: playlist,
         user: widget.user,
+        isReview: isReview,
       );
 
       Navigator.push(context, route(builder: (context) => body))
@@ -159,29 +165,66 @@ class _AccountPageState extends State<AccountPage> {
 
     final userPosts = ListTile(
         title: const Text("Posts"),
-        onTap:
-            showUserContPage(context, ContentKind.post, UserContKind.created));
-    final userComments = ListTile(
-        title: const Text("Comments"),
         onTap: showUserContPage(
-            context, ContentKind.comment, UserContKind.created));
+          context,
+          ContentKind.post,
+          UserContKind.created,
+          false,
+        ));
+    final userComments = ListTile(
+      title: const Text("Comments"),
+      onTap: showUserContPage(
+        context,
+        ContentKind.comment,
+        UserContKind.created,
+        false,
+      ),
+    );
+    final userReviews = ListTile(
+      title: const Text("Critiques"),
+      onTap: showUserContPage(
+        context,
+        ContentKind.comment,
+        UserContKind.created,
+        true,
+      ),
+    );
 
     final viewed = ListTile(
-        title: const Text("Viewed"),
-        onTap:
-            showUserContPage(context, ContentKind.post, UserContKind.viewed));
+      title: const Text("Viewed"),
+      onTap: showUserContPage(
+        context,
+        ContentKind.post,
+        UserContKind.viewed,
+        false,
+      ),
+    );
     final readLater = ListTile(
-        title: const Text("Read Later"),
-        onTap: showUserContPage(
-            context, ContentKind.post, UserContKind.readLater));
+      title: const Text("Read Later"),
+      onTap: showUserContPage(
+        context,
+        ContentKind.post,
+        UserContKind.readLater,
+        false,
+      ),
+    );
     final following = ListTile(
       title: const Text("Users Following"),
-      onTap:
-          showUserContPage(context, ContentKind.user, UserContKind.userFollow),
+      onTap: showUserContPage(
+        context,
+        ContentKind.user,
+        UserContKind.userFollow,
+        false,
+      ),
     );
     final ignored = ListTile(
       title: const Text("Ignored"),
-      onTap: showUserContPage(context, ContentKind.user, UserContKind.ignored),
+      onTap: showUserContPage(
+        context,
+        ContentKind.user,
+        UserContKind.ignored,
+        false,
+      ),
     );
     final favourites = ListTile(
       title: const Text("Tags Following"),
@@ -189,6 +232,7 @@ class _AccountPageState extends State<AccountPage> {
         context,
         ContentKind.tag,
         UserContKind.tagFollow,
+        false,
       ),
     );
 
@@ -246,6 +290,7 @@ class _AccountPageState extends State<AccountPage> {
       const Divider(thickness: 1),
       userPosts,
       userComments,
+      userReviews,
       const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Collections")),
       const Divider(thickness: 1),

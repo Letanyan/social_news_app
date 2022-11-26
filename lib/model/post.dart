@@ -99,7 +99,7 @@ class Post {
           title: const Text("Comments"),
           actions: actions,
         ),
-        body: CommentsPage(post: this, scrollComments: true),
+        body: CommentsPage(post: this, scrollComments: null),
       );
       if (User.current != null) {
         NewSource.addUserCont(
@@ -181,7 +181,7 @@ class Post {
   }
 
   Widget buildDate(BuildContext context) {
-    return Text(formatDateTime(createdAt) + (edited ? " edited" : ""));
+    return Text(formatDateTime(createdAt) + (edited ? " • edited" : ""));
   }
 
   PopupMenuItem buildRemove(BuildContext context, VoidCallback updateState) {
@@ -378,8 +378,8 @@ class Post {
         ),
       ),
     );
-    final replyCount = buildReplyCountButton(
-        context, commentCount, false, openComments(context, updateState));
+    final replyCount =
+        buildReplyCountButton(context, commentCount, false, null);
     final upvoteButton = buildVoteButton(
         context, upvotes, true, UserVoteKind.post, updateVote(updateState));
     final downvoteButton = buildVoteButton(
@@ -523,7 +523,7 @@ class Post {
         );
       }
     } else {
-      title = const Text("Title"); // FIXME: get first line as title
+      title = Text(content.substring(0, min(30, content.length)));
     }
     if (urls.isNotEmpty && urls.first.start == 0) {
       sourceUrl = content.substring(urls.first.start, urls.first.end);

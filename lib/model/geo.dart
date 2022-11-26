@@ -1,13 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
+import 'package:social_news_app/model/new_source.dart';
 
 class Geo {
   final Map<String, Map<String, String>> regions;
   final Map<String, String> countryMap;
   final List<String> countryNames;
+  final String myCountry;
+  final String myRegion;
 
-  Geo(this.regions, this.countryMap)
+  Geo(this.regions, this.countryMap, this.myCountry, this.myRegion)
       : countryNames = Geo.mapCountryNames(regions, countryMap);
 
   static Future<Geo> fromFile(String regionPath, String countryPath) async {
@@ -22,7 +25,12 @@ class Geo {
         (value as Map)
             .map((key, value) => MapEntry(key as String, value as String))));
     final mc = c.map((key, value) => MapEntry(key as String, value as String));
-    return Geo(mr, mc);
+
+    final myLocation = await NewSource.getCurrentLocation();
+    final myCountry = myLocation.isNotEmpty ? myLocation[0] : "";
+    final myRegion = myLocation.length > 1 ? myLocation[1] : "";
+
+    return Geo(mr, mc, myCountry, myRegion);
   }
 
   static late Geo current;
@@ -31,7 +39,13 @@ class Geo {
   }
 
   List<String> countryCodes() {
-    return regions.keys.toList();
+    var result = regions.keys.toList();
+    result.sort((a, b) {
+      if (a == myCountry) return -1;
+      if (b == myCountry) return 1;
+      return country(a).compareTo(country(b));
+    });
+    return result;
   }
 
   String country(String code) {
@@ -53,7 +67,15 @@ class Geo {
   }
 
   List<String> regionCodes(String country) {
-    return regions[country]?.keys.toList() ?? [];
+    var result = regions[country]?.keys.toList() ?? [];
+    result.sort((a, b) {
+      final x = region(country, a);
+      final y = region(country, b);
+      if (x == myRegion) return -1;
+      if (y == myRegion) return 1;
+      return x.compareTo(y);
+    });
+    return result;
   }
 
   String region(String country, String code) {

@@ -6,6 +6,7 @@ import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -76,7 +77,7 @@ class Comment {
       final post = NewSource.getPost(postId).then(((value) {
         final page = Scaffold(
           appBar: AppBar(title: const Text("Comments")),
-          body: CommentsPage(post: value),
+          body: CommentsPage(post: value, scrollComments: this),
         );
         Navigator.push(
           context,
@@ -143,28 +144,48 @@ class Comment {
   }
 
   Widget card(
-      BuildContext context,
-      bool showReply,
-      int offset,
-      int? replyCount,
-      void Function(Comment)? onTap,
-      VoidCallback updateState,
-      Function()? showReplyField,
-      bool isReplyingTo,
-      bool highlightedReplies,
-      {int? postAuthor,
-      int? up,
-      int? down}) {
+    BuildContext context,
+    bool showReply,
+    int offset,
+    int? replyCount,
+    void Function(Comment)? onTap,
+    VoidCallback updateState,
+    Function()? showReplyField,
+    bool isReplyingTo,
+    bool highlightedReplies, {
+    int? postAuthor,
+    int? up,
+    int? down,
+    bool? scrolledTo,
+  }) {
     if (trashed) {
       return const SizedBox();
     }
-    final text = Padding(
-      padding: const EdgeInsets.all(8),
-      child: Align(alignment: Alignment.centerLeft, child: Text(content)),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultStyle = TextStyle(
+      color: isDark ? Colors.white : Colors.black,
+      fontFamily: "Helvetica",
+      fontWeight: FontWeight.normal,
     );
+    final parser = Parser.basic(defaultStyle);
+    final urlParser = ParserMapping.url(ParserMapping.defaultMap);
+    final firstUrl = urlParser.pattern.firstMatch(content);
+    late String newContent;
+    if (firstUrl != null && firstUrl.start == 0) {
+      newContent = content.substring(firstUrl.end);
+    } else {
+      newContent = content;
+    }
+    final query = MediaQuery.of(context).size;
+    final size = <String, dynamic>{
+      "w": query.width,
+      "h": query.height,
+      "img": author.isAgent
+    };
+    final text = RichText(text: parser.parse(newContent, size));
     final creator = buildCreator(context);
     final date = Text(
-      formatDateTime(createdAt) + (edited ? " edited" : ""),
+      formatDateTime(createdAt) + (edited ? " • edited" : ""),
       style: const TextStyle(color: Colors.grey),
     );
     final meta = Padding(
@@ -298,6 +319,7 @@ class Comment {
     final body = Column(children: items);
 
     final card = Material(
+      color: scrolledTo == true ? MyTheme.primary.withAlpha(20) : null,
       child: InkWell(
         onTap: showReplyField != null
             ? () => showReplyField()

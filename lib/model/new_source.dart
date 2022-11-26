@@ -207,7 +207,7 @@ class NewSource {
       case "google_play":
         path = ["auth", "google-iap"];
         break;
-      case "apple_app_store": // FIXME: get real name
+      case "apple_app_store":
         path = ["auth", "apple-iap"];
         break;
       default:
@@ -641,6 +641,7 @@ class NewSource {
     required int limit,
     required int offset,
     String? search,
+    bool? isReview,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -651,7 +652,7 @@ class NewSource {
     addS("search", search, args);
     addD("start", startCreated, args);
     addD("end", endCreated, args);
-    // FIXME: Allow search for isReview
+    addS("isReview", isReview == true ? "1" : "0", args);
 
     final obj = await get(["users", "$uid", "content", "comments"], args);
     if (obj == null) {

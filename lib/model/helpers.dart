@@ -226,8 +226,14 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
           }
 
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
+            const empty = Center(
+              child: Text(
+                "No Posts",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            );
             return const SliverList(
-                delegate: SliverChildListDelegate.fixed([]));
+                delegate: SliverChildListDelegate.fixed([empty]));
           }
 
           final list = SliverList(

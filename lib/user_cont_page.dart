@@ -12,6 +12,7 @@ class UserContPage extends StatefulWidget {
   final bool showSearch;
   final ContentKind kind;
   final UserContKind playlist;
+  final bool isReview;
   final Author user;
   final String title;
 
@@ -21,6 +22,7 @@ class UserContPage extends StatefulWidget {
       required this.showSearch,
       required this.kind,
       required this.playlist,
+      required this.isReview,
       required this.user});
 
   @override
@@ -130,6 +132,7 @@ class _UserContPageState extends State<UserContPage> {
         limit: pageSize,
         order: srt,
         search: src,
+        isReview: widget.isReview,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, Author>()) {
       if (widget.playlist == UserContKind.userFollow) {

@@ -68,9 +68,19 @@ class _LocationCountryPickerPageState extends State<LocationCountryPickerPage> {
     if (region.isNotEmpty) {
       title += ", ${Geo.current.region(country, region)}";
     }
+    var unselect = TextButton(
+      onPressed: () {
+        setState(() {
+          country = "";
+          region = "";
+        });
+      },
+      child: const Text("Unselect"),
+    );
     var body = Scaffold(
       appBar: AppBar(
         title: Text(title),
+        actions: country.isNotEmpty ? [unselect] : [],
       ),
       body: list,
     );
@@ -128,9 +138,19 @@ class _LocationRegionPickerPageState extends State<LocationRegionPickerPage> {
           );
         }));
 
+    var unselect = TextButton(
+      onPressed: () => setState(() => region = ""),
+      child: const Text("Unselect"),
+    );
+
     var body = Scaffold(
       appBar: AppBar(
-        title: Text(Geo.current.region(country, region)),
+        title: Text(
+          region.isEmpty
+              ? Geo.current.country(country)
+              : Geo.current.region(country, region),
+        ),
+        actions: region.isNotEmpty ? [unselect] : [],
       ),
       body: list,
     );
