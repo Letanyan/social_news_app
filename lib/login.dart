@@ -16,6 +16,7 @@ import 'package:social_news_app/mod_packages/sign_button.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
+import 'package:social_news_app/onboard.dart';
 import 'package:social_news_app/sign_up.dart';
 
 import 'model/user.dart';
@@ -59,19 +60,17 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = false;
     });
     if (User.current != null) {
+      late Widget page;
       if (User.current?.validationKey != 0) {
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          route(builder: (context) => const EmailVerificationPage()),
-        );
+        page = const EmailVerificationPage();
       } else {
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          route(builder: (context) => const HomeView()),
-        );
+        page = const HomeView();
       }
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        route(builder: (context) => page),
+      );
     }
   }
 
@@ -119,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.pop(context);
     Navigator.push(
       context,
-      route(builder: (context) => const HomeView()),
+      route(builder: (context) => const Onboard()),
     );
   }
 
@@ -173,6 +172,21 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.push(context, route(builder: (c) => page));
   }
 
+  void resetPassword() async {
+    final email = emailController.text == ""
+        ? "letanyan.a@gmail.com"
+        : emailController.text;
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text("Please provide an email address in the above field.")));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password Reset Link Sent")));
+    await NewSource.sendPasswordResetLink(email);
+  }
+
   @override
   Widget build(BuildContext context) {
     var email = TextField(
@@ -221,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
       onPressed: signIn,
     );
     var forgot = TextButton(
-      onPressed: signIn,
+      onPressed: resetPassword,
       child: Text(
         "Forgot Password",
         style: TextStyle(

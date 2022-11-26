@@ -388,7 +388,7 @@ class _CommentsPageState extends State<CommentsPage> {
         }
 
         if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-          return SingleChildScrollView(
+          final empty = SingleChildScrollView(
             child: Column(
               children: [
                 ...previewItems,
@@ -403,6 +403,13 @@ class _CommentsPageState extends State<CommentsPage> {
                 ),
               ],
             ),
+          );
+          return RefreshIndicator(
+            onRefresh: () async {
+              loadComments(-1);
+              return;
+            },
+            child: empty,
           );
         }
 

@@ -8,6 +8,7 @@ import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/onboard.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -77,7 +78,7 @@ class _SignUpPageState extends State<SignUpPage> {
         if (User.current?.validationKey != 0) {
           Navigator.push(
             context,
-            route(builder: (context) => const EmailVerificationPage()),
+            route(builder: (context) => const Onboard()),
           );
         } else {
           Navigator.push(

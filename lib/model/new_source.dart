@@ -185,6 +185,19 @@ class NewSource {
     }
   }
 
+  static Future<int> sendPasswordResetLink(String email) async {
+    final obj = await post(["auth", "password-reset"], [], {"email": email});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
+      return obj["payload"];
+    }
+  }
+
   static Future<int> sendVerificationLink(
       int uid, String email, int key) async {
     final obj = await post(["auth", "verification", "users", "$uid"], [],
@@ -1084,6 +1097,31 @@ class NewSource {
     }
   }
 
+  static Future<bool> onboardCurrentUser(
+    List<int> tags,
+    List<int> users,
+  ) async {
+    if (User.current == null) {
+      return false;
+    }
+    final path = ["users", "${User.current!.id}", "content", "onboard"];
+    final obj = await post(path, [], {"tags": tags, "users": users});
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == true) {
+      final json = obj["payload"];
+      final t = jsonArrayTo(json["tags"], Tag.fromJson);
+      final u = jsonArrayTo(json["following"], Author.fromJson);
+      User.current?.following = u;
+      User.current?.favourites = t;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   static Future<bool> refreshUserContRecommendations(
       int uid, List<int> pids) async {
     final path = ["users", "$uid", "content", "recommendations"];
@@ -1191,7 +1229,9 @@ class NewSource {
     String reason,
   ) async {
     var path = ["flags"];
-    final obj = await post(path, [], {
+    var args = <String>[];
+    addSecret(args);
+    final obj = await post(path, args, {
       "uid": uid,
       "pid": pid,
       "sid": sid,
@@ -1216,6 +1256,7 @@ class NewSource {
     addI("kind", kind.index, args);
     addI("limit", limit, args);
     addI("offset", offset, args);
+    addSecret(args);
 
     final obj = await get(path, args);
     if (obj == null) {
@@ -1232,6 +1273,7 @@ class NewSource {
     addI("kind", kind.index, args);
     addI("limit", limit, args);
     addI("offset", offset, args);
+    addSecret(args);
 
     final obj = await get(path, args);
     if (obj == null) {
@@ -1244,6 +1286,8 @@ class NewSource {
   static Future<bool> handleFlag(
       int id, int pid, int sid, FlagHandle action) async {
     var path = ["trash", "flags", "$id"];
+    var args = <String>[];
+    addSecret(args);
     final obj = await post(
         path, [], {"pid": pid, "sid": sid, "action": flagHandleKind(action)});
     if (obj == null) {

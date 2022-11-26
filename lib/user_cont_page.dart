@@ -183,6 +183,7 @@ class _UserContPageState extends State<UserContPage> {
       count[0] = 0;
       offset[0] = 0;
       isLoading[0] = true;
+      hasMore[0] = true;
       if (current == ContentKind.post) {
         posts = getNewItems<Post>().then(updateItemsState);
       } else if (current == ContentKind.comment) {

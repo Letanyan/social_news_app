@@ -78,7 +78,7 @@ class _PostsPageState extends State<PostsPage> {
           ? sortOrdersIncluding([SortOrder.createdAt])
           : null,
       current: 0,
-      order: SortOrder.score,
+      order: widget.forUser == null ? SortOrder.createdAt : SortOrder.score,
       search: widget.forUser == null ? "" : null,
     );
 

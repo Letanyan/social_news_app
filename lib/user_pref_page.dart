@@ -153,6 +153,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       count[0] = 0;
       offset[0] = 0;
       isLoading[0] = true;
+      hasMore[0] = true;
       if (current == ContentKind.tag) {
         tags = getNewItems<UserPrefTag>().then(updateItemsState);
       } else if (current == ContentKind.post) {

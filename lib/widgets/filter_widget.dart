@@ -365,23 +365,6 @@ class _FilterBoxState extends State<FilterBox> {
     final isDark = MyTheme.isDark;
     final textStyle =
         TextStyle(color: isDark ? Colors.white : Colors.grey[800]);
-    // final selectorWidgets = widget.state.displaySelector?.map(
-    //         (key, value) => MapEntry(key, Text(value, style: textStyle))) ??
-    //     <int, Widget>{
-    //       0: Text("Posts", style: textStyle),
-    //       1: Text("Comments", style: textStyle)
-    //     };
-    // final selector = CupertinoSlidingSegmentedControl<int>(
-    //   children: selectorWidgets,
-    //   thumbColor: MyTheme.primary,
-    //   onValueChanged: (int? index) {
-    //     if (index != null) {
-    //       current = index;
-    //     }
-    //     updateState();
-    //   },
-    //   groupValue: current,
-    // );
 
     final searchBox = TextField(
       keyboardType: TextInputType.text,
