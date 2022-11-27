@@ -83,7 +83,6 @@ class Post {
         ));
       }
       if (User.current?.readLater.contains(id) ?? false) {
-        print(User.current?.readLater);
         actions.add(IconButton(
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -511,7 +510,7 @@ class Post {
         style: const TextStyle(fontSize: 18),
       );
     } else if (lines.isNotEmpty) {
-      if (urls.isNotEmpty && urls.first.start == 0) {
+      if (urls.isNotEmpty && urls.first.start == 0 && lines.length > 1) {
         title = Text(
           lines[1],
           style: const TextStyle(fontSize: 18),

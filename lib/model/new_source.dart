@@ -317,7 +317,7 @@ class NewSource {
     }
   }
 
-  static Future<Post> createPost(String content) async {
+  static Future<Post> createPost(String content, bool isPreview) async {
     if (User.current == null) {
       throw userNotSignedIn;
     }
@@ -328,12 +328,15 @@ class NewSource {
     var args = <String>[];
     addSecret(args);
 
+    final loc = await getCurrentLocation();
     final obj = await post(
         ["posts"],
         args,
         {
           "userId": User.current!.id,
           "content": content,
+          "location": loc,
+          "isPreview": isPreview,
         });
     if (obj == null) {
       throw unknownError;

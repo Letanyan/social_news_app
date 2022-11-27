@@ -27,6 +27,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
   bool isReview = false;
   late StreamSubscription<bool> keyboardSubscription;
   double bottomOffset = 48;
+  Post? toBePosted;
 
   @override
   void initState() {
@@ -84,9 +85,9 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
           Navigator.pop(context);
           NewSource.createComment(
               widget.post!.id, 0, controller.text, isReview);
-        } else {
+        } else if (toBePosted != null) {
           Navigator.pop(context, "posted");
-          NewSource.createPost(controller.text);
+          NewSource.createPost(toBePosted!.content, false);
         }
       }
     } catch (e) {
@@ -338,18 +339,49 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       final makePost =
           TextButton(onPressed: replyToComment, child: const Text("Post"));
 
+      late Uri? url;
+      try {
+        url = Uri.parse(content.trim());
+      } catch (e) {
+        url = null;
+      }
+      late Widget preview;
+      if (url != null) {
+        preview = FutureBuilder(
+            future: NewSource.createPost(url.toString(), true),
+            builder: ((context, snapshot) {
+              if (!snapshot.hasData) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    CircularProgressIndicator(),
+                  ],
+                );
+              }
+              if (snapshot.data == null) {
+                return const ListTile(title: Text("An Error Occurred"));
+              }
+              toBePosted = snapshot.data!;
+              return snapshot.data!.card(context, () {});
+            }));
+      } else {
+        toBePosted = previewPost;
+        preview = previewPost.card(context, () {});
+      }
+
       final page = Scaffold(
         appBar: AppBar(
           title: const Text("Preview"),
           actions: [makePost],
         ),
-        body: ListView(children: [previewPost.card(context, () {})]),
+        body: ListView(children: [preview]),
       );
 
       Navigator.push(context, route(builder: (context) => page)).then((value) {
         if (value == "posted") {
           controller.text = "";
         }
+        toBePosted = null;
       });
     };
   }

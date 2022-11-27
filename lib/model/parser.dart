@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/whitelist.dart';
 
 abstract class RegexPatterns {
@@ -205,15 +206,16 @@ class Parser {
     final path = Uri.tryParse(s) ?? Uri();
     if (!canLoadImage) {
       final gin = path.origin;
-      canLoadImage = Whitelist.imageUrls.contains(gin);
+      canLoadImage = MyTheme.safe || Whitelist.imageUrls.contains(gin);
     }
 
-    bool validPath = path.path.endsWith(".jpg") ||
-        s.endsWith(".jpeg") ||
-        s.endsWith(".png") ||
-        s.endsWith(".bmp") ||
-        s.endsWith(".wbmp") ||
-        s.endsWith(".gif");
+    final t = path.path;
+    bool validPath = t.endsWith(".jpg") ||
+        t.endsWith(".jpeg") ||
+        t.endsWith(".png") ||
+        t.endsWith(".bmp") ||
+        t.endsWith(".wbmp") ||
+        t.endsWith(".gif");
 
     /*
     // cant handle async

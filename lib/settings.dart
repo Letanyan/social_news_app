@@ -114,6 +114,20 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget buildSafeMode(BuildContext context, bool safe) {
+    return SwitchListTile(
+      title: const Text("Preview image from only 'safe' sources"),
+      value: MyTheme.safe,
+      onChanged: (safe) {
+        setState(() {
+          MyTheme.safe = safe;
+        });
+        SharedPreferences.getInstance()
+            .then((value) => value.setBool("theme:safe", safe));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView(children: [
@@ -169,6 +183,10 @@ class _SettingsPageState extends State<SettingsPage> {
       buildThemeMode(context, ThemeMode.system, 0),
       buildThemeMode(context, ThemeMode.dark, 1),
       buildThemeMode(context, ThemeMode.light, 2),
+      const Divider(thickness: 1),
+      const Padding(padding: EdgeInsets.all(8), child: Text("Safe Mode")),
+      const Divider(thickness: 1),
+      buildSafeMode(context, MyTheme.safe),
       const Divider(thickness: 1),
       const Padding(padding: EdgeInsets.all(8), child: Text("Permissions")),
       const Divider(thickness: 1),

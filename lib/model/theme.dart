@@ -56,6 +56,7 @@ class MyTheme {
 
   static var primary = Colors.pink;
   static var mode = ThemeMode.system;
+  static var safe = true;
   static get isDark =>
       MyTheme.mode == ThemeMode.dark ||
       (MyTheme.mode == ThemeMode.system && SystemTheme.isDarkMode);
@@ -64,6 +65,7 @@ class MyTheme {
     SharedPreferences.getInstance().then((value) {
       final color = value.getInt("theme:color") ?? 1;
       final mode = value.getInt("theme:mode") ?? 1;
+      MyTheme.safe = value.getBool("theme:safe") ?? true;
 
       switch (color) {
         case 0:
