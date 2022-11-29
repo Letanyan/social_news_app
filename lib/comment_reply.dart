@@ -6,6 +6,7 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
+import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
@@ -52,42 +53,45 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     super.dispose();
   }
 
-  void replyToComment() {
+  void replyToComment() async {
     // TODO: Show progress indicator
     try {
       if (widget.isEdit) {
         if (widget.comment != null) {
-          Navigator.pop(context);
+          // Navigator.pop(context);
           widget.comment?.content = controller.text;
           widget.comment?.edited = true;
-          NewSource.updateComment(
+          await NewSource.updateComment(
             widget.comment!.postId,
             widget.comment!.id,
             controller.text,
-          );
+          ).then((value) => Navigator.pop(context));
         } else if (widget.post != null) {
           int count = 0;
-          Navigator.popUntil(context, (route) => count++ >= 2);
+          // Navigator.popUntil(context, (route) => count++ >= 2);
           widget.post?.content = controller.text;
           widget.post?.edited = true;
-          NewSource.updatePost(widget.post!.id, controller.text);
+          await NewSource.updatePost(widget.post!.id, controller.text).then(
+              (value) => Navigator.popUntil(context, (route) => count++ >= 2));
         }
       } else {
         if (widget.comment != null) {
-          Navigator.pop(context);
-          NewSource.createComment(
+          // Navigator.pop(context);
+          await NewSource.createComment(
             widget.comment!.postId,
             widget.comment!.id,
             controller.text,
             isReview,
-          );
+          ).then((value) => Navigator.pop(context));
         } else if (widget.post != null) {
-          Navigator.pop(context);
-          NewSource.createComment(
-              widget.post!.id, 0, controller.text, isReview);
+          // Navigator.pop(context);
+          await NewSource.createComment(
+                  widget.post!.id, 0, controller.text, isReview)
+              .then((value) => Navigator.pop(context));
         } else if (toBePosted != null) {
-          Navigator.pop(context, "posted");
-          NewSource.createPost(toBePosted!.content, false);
+          // Navigator.pop(context, "posted");
+          await NewSource.createPost(toBePosted!.content, false)
+              .then((value) => Navigator.pop(context, "posted"));
         }
       }
     } catch (e) {
@@ -339,16 +343,14 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       final makePost =
           TextButton(onPressed: replyToComment, child: const Text("Post"));
 
-      late Uri? url;
-      try {
-        url = Uri.parse(content.trim());
-      } catch (e) {
-        url = null;
-      }
+      final trimContent = content.trim();
+      final urls = RegexPatterns.url.allMatches(trimContent);
       late Widget preview;
-      if (url != null) {
+      if (urls.isNotEmpty &&
+          urls.first.start == 0 &&
+          urls.first.end == trimContent.length) {
         preview = FutureBuilder(
-            future: NewSource.createPost(url.toString(), true),
+            future: NewSource.createPost(trimContent, true),
             builder: ((context, snapshot) {
               if (!snapshot.hasData) {
                 return Row(

@@ -81,6 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget buildColorSwatch(
       BuildContext context, MaterialColor color, int index) {
+    final size = color == MyTheme.primary ? 48.0 : 32.0;
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -90,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
         SharedPreferences.getInstance()
             .then((value) => value.setInt("theme:color", index));
       },
-      child: Container(width: 32, height: 32, color: color),
+      child: Container(width: size, height: size, color: color),
     );
   }
 
@@ -154,30 +155,32 @@ class _SettingsPageState extends State<SettingsPage> {
       const Padding(padding: EdgeInsets.all(8), child: Text("Theme")),
       const Divider(thickness: 1),
       SizedBox(
-        height: 32,
-        child: ListView(
+        height: 48,
+        child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          children: [
-            buildColorSwatch(context, Colors.purple, 0),
-            buildColorSwatch(context, Colors.pink, 1),
-            buildColorSwatch(context, Colors.red, 2),
-            buildColorSwatch(context, Colors.deepOrange, 3),
-            buildColorSwatch(context, Colors.orange, 4),
-            buildColorSwatch(context, Colors.amber, 5),
-            buildColorSwatch(context, Colors.lime, 6),
-            buildColorSwatch(context, Colors.lightGreen, 7),
-            buildColorSwatch(context, Colors.green, 8),
-            buildColorSwatch(context, Colors.teal, 9),
-            buildColorSwatch(context, Colors.deepPurple, 10),
-            buildColorSwatch(context, Colors.indigo, 11),
-            buildColorSwatch(context, Colors.blue, 12),
-            buildColorSwatch(context, Colors.lightBlue, 13),
-            buildColorSwatch(context, Colors.cyan, 14),
-            buildColorSwatch(context, Colors.brown, 15),
-            buildColorSwatch(context, Colors.blueGrey, 16),
-            buildColorSwatch(context, Colors.grey, 17),
-          ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              buildColorSwatch(context, Colors.purple, 0),
+              buildColorSwatch(context, Colors.pink, 1),
+              buildColorSwatch(context, Colors.red, 2),
+              buildColorSwatch(context, Colors.deepOrange, 3),
+              buildColorSwatch(context, Colors.orange, 4),
+              buildColorSwatch(context, Colors.amber, 5),
+              buildColorSwatch(context, Colors.lime, 6),
+              buildColorSwatch(context, Colors.lightGreen, 7),
+              buildColorSwatch(context, Colors.green, 8),
+              buildColorSwatch(context, Colors.teal, 9),
+              buildColorSwatch(context, Colors.deepPurple, 10),
+              buildColorSwatch(context, Colors.indigo, 11),
+              buildColorSwatch(context, Colors.blue, 12),
+              buildColorSwatch(context, Colors.lightBlue, 13),
+              buildColorSwatch(context, Colors.cyan, 14),
+              buildColorSwatch(context, Colors.brown, 15),
+              buildColorSwatch(context, Colors.blueGrey, 16),
+              buildColorSwatch(context, Colors.grey, 17),
+            ],
+          ),
         ),
       ),
       buildThemeMode(context, ThemeMode.system, 0),

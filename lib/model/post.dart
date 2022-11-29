@@ -14,6 +14,7 @@ import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
+import 'package:social_news_app/widgets/particle_widget.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Post {
@@ -33,6 +34,7 @@ class Post {
   num rank;
 
   String? sourceUrl;
+  int animated;
 
   Post({
     required this.id,
@@ -49,7 +51,8 @@ class Post {
     required this.score,
     required this.cred,
     required this.rank,
-  }) : sourceUrl = null;
+  })  : sourceUrl = null,
+        animated = 0;
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
@@ -136,6 +139,7 @@ class Post {
       } else {
         downvotes += -amount;
       }
+      animated = amount;
       updateState();
       try {
         NewSource.voteForPost(
@@ -455,11 +459,12 @@ class Post {
 
     var items = <Widget>[
       Padding(
-          padding: const EdgeInsets.all(8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: body,
-          )),
+        padding: const EdgeInsets.all(8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: body,
+        ),
+      ),
       const Divider(),
       Padding(padding: const EdgeInsets.all(0), child: meta),
       tagsRow,
@@ -486,8 +491,11 @@ class Post {
       children: items,
     );
 
+    final particle = ParticleWidget(animated: animated, child: post);
+    animated = 0;
+
     final card = Material(
-      child: post,
+      child: particle,
     );
 
     return card;
@@ -498,7 +506,6 @@ class Post {
     if (trashed) {
       return const SizedBox();
     }
-
     final urls = RegexPatterns.url.allMatches(content);
     final headline = RegexPatterns.h1.firstMatch(content);
     final lines = content.split("\n");
@@ -643,6 +650,9 @@ class Post {
       ),
     );
 
+    final animatedTile = ParticleWidget(animated: animated, child: tile);
+    animated = 0;
+
     return Slidable(
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
@@ -653,7 +663,7 @@ class Post {
           buildReadLaterSlide(context),
         ],
       ),
-      child: tile,
+      child: animatedTile,
     );
   }
 }

@@ -228,7 +228,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
             const empty = Center(
               child: Text(
-                "No Posts",
+                "No Results",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             );

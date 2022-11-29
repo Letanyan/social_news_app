@@ -54,6 +54,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       endDate: DateTime.now(),
       location: widget.prefKind == ContentKind.post ? [] : null,
       displaySorting: sortOrdersIncluding([SortOrder.updatedOn]),
+      order: SortOrder.updatedOn,
     );
 
     tags = Future(() => []);

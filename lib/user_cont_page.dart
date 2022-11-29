@@ -63,6 +63,7 @@ class _UserContPageState extends State<UserContPage> {
       ]),
       startDate: DateTime(2022),
       endDate: DateTime.now(),
+      order: SortOrder.addedOn,
       location: [],
     );
 

@@ -1042,7 +1042,6 @@ class NewSource {
     addSecret(args);
     final obj =
         await post(["users", "$uid", "watch", "$pid"], args, {"time": amount});
-    print("watch $pid");
     if (obj == null) {
       throw unknownError;
     }

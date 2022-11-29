@@ -318,59 +318,58 @@ class _CommentsPageState extends State<CommentsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final card = widget.post.card(context, updateState);
-    final sel = CupertinoSlidingSegmentedControl(
-      key: selectorKey,
-      children: const {false: Text("Discussion"), true: Text("Critique")},
-      groupValue: isReview,
-      onValueChanged: (value) {
-        final didChange = value != isReview && value != null;
-        isReview = value ?? false;
-        if (didChange) {
-          updateState();
-        }
-      },
-    );
-    final sort = PopupMenuButton(
-      itemBuilder: (context) {
-        final sortItems = <SortOrder>[
-          SortOrder.score,
-          SortOrder.createdAt,
-          SortOrder.upvotes,
-          SortOrder.downvotes,
-          SortOrder.cred,
-          SortOrder.controversial,
-        ];
-        return sortItems.map((e) {
-          return PopupMenuItem(
-            child: Text(sortOrderPresentation(e)),
-            onTap: () {
-              sortOrder = e;
-              sortComments();
-            },
-          );
-        }).toList();
-      },
-      child: const Icon(Icons.sort_rounded),
-    );
-    final previewItems = <Widget>[
-      card,
-      const SizedBox(height: 8),
-      Row(
-        children: [
-          Expanded(child: Center(child: sel)),
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: sort,
-          ),
-        ],
-      ),
-      const SizedBox(height: 4),
-    ];
-
     final list = FutureBuilder<List<_IndentedComment>>(
       future: isReview ? visibleReviews : visibleComments,
       builder: (context, snapshot) {
+        final card = widget.post.card(context, updateState);
+        final sel = CupertinoSlidingSegmentedControl(
+          key: selectorKey,
+          children: const {false: Text("Discussion"), true: Text("Critique")},
+          groupValue: isReview,
+          onValueChanged: (value) {
+            final didChange = value != isReview && value != null;
+            isReview = value ?? false;
+            if (didChange) {
+              updateState();
+            }
+          },
+        );
+        final sort = PopupMenuButton(
+          itemBuilder: (context) {
+            final sortItems = <SortOrder>[
+              SortOrder.score,
+              SortOrder.createdAt,
+              SortOrder.upvotes,
+              SortOrder.downvotes,
+              SortOrder.cred,
+              SortOrder.controversial,
+            ];
+            return sortItems.map((e) {
+              return PopupMenuItem(
+                child: Text(sortOrderPresentation(e)),
+                onTap: () {
+                  sortOrder = e;
+                  sortComments();
+                },
+              );
+            }).toList();
+          },
+          child: const Icon(Icons.sort_rounded),
+        );
+        final previewItems = <Widget>[
+          card,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: Center(child: sel)),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: sort,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+        ];
         if (!snapshot.hasData) {
           return RefreshIndicator(
             onRefresh: () async {

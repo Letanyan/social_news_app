@@ -46,7 +46,7 @@ class PostsPage extends StatefulWidget {
 
 enum _PostsPageKind { similar, forYou, basic }
 
-class _PostsPageState extends State<PostsPage> {
+class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   late Future<List<Post>> posts;
   var offset = [0];
   var count = [0];
@@ -78,7 +78,9 @@ class _PostsPageState extends State<PostsPage> {
           ? sortOrdersIncluding([SortOrder.createdAt])
           : null,
       current: 0,
-      order: widget.forUser == null ? SortOrder.createdAt : SortOrder.score,
+      order: widget.forUser == null
+          ? (widget.order ?? SortOrder.createdAt)
+          : SortOrder.score,
       search: widget.forUser == null ? "" : null,
     );
 
