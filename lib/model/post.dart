@@ -28,7 +28,7 @@ class Post {
   int downvotes;
   final int commentCount;
   bool trashed;
-  bool edited;
+  DateTime edited;
   num score;
   num cred;
   num rank;
@@ -66,7 +66,7 @@ class Post {
       downvotes: json["Downvotes"],
       commentCount: json["CommentCount"],
       trashed: json["Trashed"],
-      edited: json["Edited"],
+      edited: DateTime.parse(json["Edited"]).toLocal(),
       score: json["Score"],
       cred: json["Cred"],
       rank: json["Rank"],
@@ -184,7 +184,11 @@ class Post {
   }
 
   Widget buildDate(BuildContext context) {
-    return Text(formatDateTime(createdAt) + (edited ? " • edited" : ""));
+    if (edited.isAfter(createdAt)) {
+      return Text("edited ${formatDateTime(edited)}");
+    } else {
+      return Text(formatDateTime(createdAt));
+    }
   }
 
   PopupMenuItem buildRemove(BuildContext context, VoidCallback updateState) {
@@ -535,15 +539,22 @@ class Post {
       sourceUrl = content.substring(urls.first.start, urls.first.end);
     }
     const imageWidth = 164.0;
-    Widget? image;
-    for (final match in urls) {
-      final url = content.substring(match.start, match.end);
-      if (Parser.canLoadImage(url, creator.isAgent)) {
-        final img = ClipRRect(
+    final image = FutureBuilder(
+      future: Parser.canLoadImageFromHeaderRegExps(
+        urls,
+        content,
+        creator.isAgent,
+      ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox();
+        }
+        final url = snapshot.data;
+        final clipped = ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           clipBehavior: Clip.antiAlias,
           child: Image.network(
-            url,
+            url!,
             width: imageWidth,
             fit: BoxFit.fill,
             loadingBuilder: (context, child, loadingProgress) {
@@ -566,10 +577,9 @@ class Post {
             },
           ),
         );
-        image = Padding(padding: const EdgeInsets.all(4), child: img);
-        break;
-      }
-    }
+        return Padding(padding: const EdgeInsets.all(4), child: clipped);
+      },
+    );
     final date = buildDate(context);
     final creatorField = buildCreator(context);
     final meta = SingleChildScrollView(
@@ -584,7 +594,7 @@ class Post {
     );
     final contentBody = Row(
       children: [
-        image ?? const SizedBox(),
+        image,
         Expanded(
             child: Column(
           children: [Padding(padding: const EdgeInsets.all(8), child: title)],

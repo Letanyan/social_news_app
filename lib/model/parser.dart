@@ -232,6 +232,60 @@ class Parser {
     return canLoadImage && validPath;
   }
 
+  static Future<bool> canLoadImageFromHeader(String s, bool isAgent) async {
+    var canLoadImage = isAgent;
+    final path = Uri.tryParse(s) ?? Uri();
+    if (!canLoadImage) {
+      final gin = path.origin;
+      canLoadImage = MyTheme.safe || Whitelist.imageUrls.contains(gin);
+    }
+
+    final t = path.path;
+    bool validPath = t.endsWith(".jpg") ||
+        t.endsWith(".jpeg") ||
+        t.endsWith(".png") ||
+        t.endsWith(".bmp") ||
+        t.endsWith(".wbmp") ||
+        t.endsWith(".gif");
+
+    if (!validPath) {
+      final response = await NewSource.head(s);
+      final c = response?.headers["content-type"];
+      validPath = c == "image/gif" ||
+          c == "image/jpeg" ||
+          c == "image/jpg" ||
+          c == "image/png";
+    }
+
+    return canLoadImage && validPath;
+  }
+
+  static Future<String?> canLoadImageFromHeaders(
+    List<String> headers,
+    bool isAgent,
+  ) async {
+    for (final s in headers) {
+      if (await canLoadImageFromHeader(s, isAgent)) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  static Future<String?> canLoadImageFromHeaderRegExps(
+    Iterable<RegExpMatch> headers,
+    String content,
+    bool isAgent,
+  ) async {
+    for (final match in headers) {
+      final s = content.substring(match.start, match.end);
+      if (await canLoadImageFromHeader(s, isAgent)) {
+        return s;
+      }
+    }
+    return null;
+  }
+
   static Parser url = Parser(
       mappings: [ParserMapping.url(ParserMapping.defaultMap)],
       defaultMap: ParserMapping.defaultMap);
@@ -242,38 +296,41 @@ class Parser {
         ParserMapping.email(ParserMapping.defaultMap),
         ParserMapping.url(
           (s, c) {
-            if (canLoadImage(s, (c["img"] as bool?) ?? false)) {
-              final m = min(c["w"] as double, c["h"] as double);
-              final img = Image.network(
-                s,
-                width: m * 0.75,
-                errorBuilder: (context, error, stackTrace) =>
-                    SizedBox(width: m * 0.75),
-              );
-              final clip = ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                clipBehavior: Clip.antiAlias,
-                child: img,
-              );
-              return WidgetSpan(
-                child: Padding(
+            final future = FutureBuilder(
+              future: canLoadImageFromHeader(s, c["img"] as bool? ?? false),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data == false) {
+                  var newStyle =
+                      const TextStyle(decoration: TextDecoration.underline);
+                  if (c["style"] is TextStyle) {
+                    newStyle = merge(c["style"], newStyle);
+                  }
+                  final text = Text(s, style: newStyle);
+                  final well = InkWell(
+                    child: text,
+                    onTap: () => launchURL(s),
+                  );
+                  return well;
+                }
+                final m = min(c["w"] as double, c["h"] as double);
+                final img = Image.network(
+                  s,
+                  width: m * 0.75,
+                  errorBuilder: (context, error, stackTrace) =>
+                      SizedBox(width: m * 0.75),
+                );
+                final clip = ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  clipBehavior: Clip.antiAlias,
+                  child: img,
+                );
+                return Padding(
                   padding: const EdgeInsets.all(8),
                   child: Center(child: clip),
-                ),
-              );
-            } else {
-              var newStyle =
-                  const TextStyle(decoration: TextDecoration.underline);
-              if (c["style"] is TextStyle) {
-                newStyle = merge(c["style"], newStyle);
-              }
-              final text = Text(s, style: newStyle);
-              final well = InkWell(
-                child: text,
-                onTap: () => launchURL(s),
-              );
-              return WidgetSpan(child: well);
-            }
+                );
+              },
+            );
+            return WidgetSpan(child: future);
           },
         ),
         ParserMapping.hashtag((s, c) {

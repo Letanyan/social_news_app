@@ -22,7 +22,7 @@ class Comment {
   int downvotes;
   int replyCount;
   bool trashed;
-  bool edited;
+  DateTime edited;
   bool isReview;
   num score;
   num cred;
@@ -60,7 +60,7 @@ class Comment {
       downvotes: json["Downvotes"],
       replyCount: json["ReplyCount"],
       trashed: json["Trashed"],
-      edited: json["Edited"],
+      edited: DateTime.parse(json["Edited"]).toLocal(),
       isReview: json["IsReview"],
       score: json["Score"],
       cred: json["Cred"],
@@ -185,7 +185,9 @@ class Comment {
     final text = RichText(text: parser.parse(newContent, size));
     final creator = buildCreator(context);
     final date = Text(
-      formatDateTime(createdAt) + (edited ? " • edited" : ""),
+      edited.isAfter(createdAt)
+          ? "edited ${formatDateTime(edited)}"
+          : formatDateTime(createdAt),
       style: const TextStyle(color: Colors.grey),
     );
     final meta = Padding(

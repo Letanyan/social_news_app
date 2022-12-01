@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comment_reply.dart';
@@ -27,6 +28,8 @@ class HomeViewState extends State<HomeView>
   int tabIndex = 0;
 
   late StreamSubscription<List<PurchaseDetails>> subscription;
+  late final StreamSubscription<StreakMessage> streakSubscription;
+  StreakMessage? streakAmount;
 
   @override
   void initState() {
@@ -47,11 +50,18 @@ class HomeViewState extends State<HomeView>
     }, onError: (error) {
       print(error);
     });
+
+    streakSubscription = User.streakMessage.stream.listen((event) {
+      setState(() {
+        streakAmount = event;
+      });
+    });
   }
 
   @override
   void dispose() {
     subscription.cancel();
+    streakSubscription.cancel();
     super.dispose();
   }
 
@@ -106,6 +116,26 @@ class HomeViewState extends State<HomeView>
         return const SizedBox();
       },
     );
+
+    if (streakAmount != null /*&& streakAmount?.current != 0*/) {
+      final amount = streakAmount!.current;
+      final nextAmount = streakAmount!.next;
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        showPlatformDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Added $amount Credits"),
+            content: Text(
+                "$amount Credits added for daily login. Login again tomorrow for an additional $nextAmount credits."),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("Got It"))
+            ],
+          ),
+        );
+      });
+    }
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

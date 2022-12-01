@@ -60,7 +60,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         if (widget.comment != null) {
           // Navigator.pop(context);
           widget.comment?.content = controller.text;
-          widget.comment?.edited = true;
+          widget.comment?.edited = DateTime.now();
           await NewSource.updateComment(
             widget.comment!.postId,
             widget.comment!.id,
@@ -70,7 +70,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
           int count = 0;
           // Navigator.popUntil(context, (route) => count++ >= 2);
           widget.post?.content = controller.text;
-          widget.post?.edited = true;
+          widget.post?.edited = DateTime.now();
           await NewSource.updatePost(widget.post!.id, controller.text).then(
               (value) => Navigator.popUntil(context, (route) => count++ >= 2));
         }
@@ -322,19 +322,19 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
             const SnackBar(content: Text("You must sign in to make a post")));
         return;
       }
-
+      final currentTime = DateTime.now();
       final previewPost = Post(
         id: -1,
         creator: User.current!.toAuthor(),
         content: content,
         tags: [],
-        createdAt: DateTime.now(),
+        createdAt: currentTime,
         location: [],
         upvotes: 0,
         downvotes: 0,
         commentCount: 0,
         trashed: false,
-        edited: false,
+        edited: currentTime,
         score: 0,
         cred: 0,
         rank: 0,

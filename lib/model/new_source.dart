@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
@@ -420,6 +422,9 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
+      final current = obj["payload"]["streak"];
+      final next = obj["payload"]["user"]["Streak"];
+      User.streakMessage.add(StreakMessage(current, next));
       return User.fromSecretJson(obj["payload"]);
     }
   }
@@ -1696,4 +1701,11 @@ num controversial(num cred) {
     return 9e90;
   }
   return 1 / diff;
+}
+
+class StreakMessage {
+  final int current;
+  final int next;
+
+  const StreakMessage(this.current, this.next);
 }
