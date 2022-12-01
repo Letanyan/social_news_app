@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/model/geo.dart';

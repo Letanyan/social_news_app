@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/mod_packages/sign_button.dart';
 import 'package:social_news_app/model/helpers.dart';

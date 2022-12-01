@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
@@ -72,14 +71,14 @@ class SignInButton extends StatelessWidget {
   SignInButton({
     required this.buttonType,
     required this.onPressed,
-    this.imagePosition: ImagePosition.left,
-    this.buttonSize: ButtonSize.small,
+    this.imagePosition = ImagePosition.left,
+    this.buttonSize = ButtonSize.small,
     this.btnColor,
     this.btnDisabledColor,
     this.btnTextColor,
     this.btnDisabledTextColor,
     this.btnText,
-    this.elevation: 5.0,
+    this.elevation = 5.0,
     this.width,
     this.padding,
     this.shape,
@@ -88,10 +87,10 @@ class SignInButton extends StatelessWidget {
   SignInButton.mini({
     required this.buttonType,
     required this.onPressed,
-    this.buttonSize: ButtonSize.small,
+    this.buttonSize = ButtonSize.small,
     this.btnColor,
     this.btnDisabledColor,
-    this.elevation: 5.0,
+    this.elevation = 5.0,
     this.padding,
   }) : mini = true;
 
@@ -107,10 +106,10 @@ class SignInButton extends StatelessWidget {
         ? MaterialButton(
             color: btnColor,
             disabledColor: btnDisabledColor,
-            shape: shape ?? StadiumBorder(),
+            shape: shape ?? const StadiumBorder(),
             onPressed: onPressed,
             elevation: elevation,
-            child: Container(
+            child: SizedBox(
               width: width,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -136,10 +135,10 @@ class SignInButton extends StatelessWidget {
             onPressed: onPressed,
             color: btnColor,
             disabledColor: btnDisabledColor,
-            child: _image,
             elevation: elevation,
             padding: EdgeInsets.all(padding!),
-            shape: CircleBorder(),
+            shape: const CircleBorder(),
+            child: _image,
           );
   }
 
@@ -228,7 +227,7 @@ class SignInButton extends StatelessWidget {
       case ButtonType.facebook:
         btnText ??= 'Sign in with Facebook';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF1877F2);
+        btnColor ??= const Color(0xFF1877F2);
         break;
 
       case ButtonType.facebookDark:
@@ -246,7 +245,7 @@ class SignInButton extends StatelessWidget {
       case ButtonType.githubDark:
         btnText ??= "Sign in with Github";
         btnTextColor ??= Colors.white70;
-        btnColor ??= Color(0xff212121);
+        btnColor ??= const Color(0xff212121);
         break;
 
       case ButtonType.pinterest:
@@ -258,7 +257,7 @@ class SignInButton extends StatelessWidget {
       case ButtonType.apple:
         btnText ??= 'Sign in with Apple';
         btnTextColor ??= Colors.black;
-        btnColor ??= Color(0xfff7f7f7);
+        btnColor ??= const Color(0xfff7f7f7);
         break;
 
       case ButtonType.appleDark:
@@ -270,25 +269,25 @@ class SignInButton extends StatelessWidget {
       case ButtonType.twitter:
         btnText ??= 'Sign in with Twitter';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF1DA1F2);
+        btnColor ??= const Color(0xFF1DA1F2);
         break;
 
       case ButtonType.linkedin:
         btnText ??= 'Sign in with LinkedIn';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF3282B8);
+        btnColor ??= const Color(0xFF3282B8);
         break;
 
       case ButtonType.google:
         btnText ??= 'Sign in with Google';
         btnTextColor ??= Colors.black;
-        btnColor ??= Color(0xfff7f7f7);
+        btnColor ??= const Color(0xfff7f7f7);
         break;
 
       case ButtonType.googleDark:
         btnText ??= 'Sign in with Google';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF4285F4);
+        btnColor ??= const Color(0xFF4285F4);
         break;
 
       case ButtonType.youtube:
@@ -300,13 +299,13 @@ class SignInButton extends StatelessWidget {
       case ButtonType.microsoft:
         btnText ??= 'Sign in with Microsoft';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF2F2F2F);
+        btnColor ??= const Color(0xFF2F2F2F);
         break;
 
       case ButtonType.tumblr:
         btnText ??= 'Sign in with Tumblr';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF0F4C75);
+        btnColor ??= const Color(0xFF0F4C75);
         break;
 
       case ButtonType.email:
@@ -336,19 +335,19 @@ class SignInButton extends StatelessWidget {
       case ButtonType.mail:
         btnText ??= 'Sign in with Mail';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF20639B);
+        btnColor ??= const Color(0xFF20639B);
         break;
 
       case ButtonType.reddit:
         btnText ??= 'Sign in with Reddit';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFFC85417);
+        btnColor ??= const Color(0xFFC85417);
         break;
 
       case ButtonType.yahoo:
         btnText ??= 'Sign in with Yahoo';
         btnTextColor ??= Colors.white;
-        btnColor ??= Color(0xFF7C5295);
+        btnColor ??= const Color(0xFF7C5295);
         break;
 
       case ButtonType.amazon:

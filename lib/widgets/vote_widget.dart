@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
-import 'package:social_news_app/widgets/particle_widget.dart';
 import 'package:social_news_app/widgets/purchase_credit_widget.dart';
 
 class VoteWidget extends StatefulWidget {

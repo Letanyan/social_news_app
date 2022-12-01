@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/comment_reply.dart';
@@ -92,7 +91,7 @@ class Comment {
     return InkWell(
       onTap: () => author.showUserPage(context),
       child: Padding(
-        padding: EdgeInsets.all(4),
+        padding: const EdgeInsets.all(4),
         child: RichText(
           text: TextSpan(
             text: "${author.name} ",

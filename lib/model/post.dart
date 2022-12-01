@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -11,7 +10,6 @@ import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/tag.dart';
-import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/widgets/particle_widget.dart';
@@ -162,7 +160,7 @@ class Post {
     return InkWell(
       onTap: () => creator.showUserPage(context),
       child: Padding(
-        padding: EdgeInsets.all(4),
+        padding: const EdgeInsets.all(4),
         child: RichText(
           text: TextSpan(
             text: "${creator.name} ",

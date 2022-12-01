@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/posts_page.dart';

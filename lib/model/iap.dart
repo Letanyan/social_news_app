@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_platform_interface/src/in_app_purchase_platform_addition.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 

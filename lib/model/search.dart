@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
@@ -6,7 +5,6 @@ import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';
-import 'package:social_news_app/posts_page.dart';
 import 'helpers.dart';
 
 class SearchPage extends StatefulWidget {
