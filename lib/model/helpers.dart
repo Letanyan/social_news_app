@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -103,7 +104,7 @@ DateTime startOfDay(DateTime d) {
 
 bool isTypeEqual<S, T>() => S == T;
 
-class MyCustomScrollBehavior extends MaterialScrollBehavior {
+class TouchAndMouseScrollBehaviour extends MaterialScrollBehavior {
   // Override behavior methods and getters like dragDevices
   @override
   Set<PointerDeviceKind> get dragDevices => {
@@ -402,4 +403,20 @@ Widget buildFilteredList<T>(
   }
 
   return Stack(children: stack);
+}
+
+Future<String> deviceId() async {
+  final deviceInfo = DeviceInfoPlugin();
+  if (kIsWeb) {
+    final info = await deviceInfo.webBrowserInfo;
+    return info.userAgent ?? "web";
+  } else if (Platform.isAndroid) {
+    final info = await deviceInfo.androidInfo;
+    return info.id;
+  } else if (Platform.isIOS) {
+    final info = await deviceInfo.iosInfo;
+    return info.identifierForVendor ?? "ios";
+  } else {
+    return "other";
+  }
 }

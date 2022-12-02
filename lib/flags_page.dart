@@ -64,21 +64,25 @@ class _FlagsPageState extends State<FlagsPage> {
   }
 
   Future<List<T>> getNewItems<T>() async {
-    final idx = currentIndex<T>();
-    final sd = filterState.startDate;
-    final ed = filterState.endDate;
-    final loc =
-        filterState.location?.isEmpty == true ? null : filterState.location;
-    final src = filterState.search?.isEmpty == true ? null : filterState.search;
+    // final idx = currentIndex<T>();
+    // final sd = filterState.startDate;
+    // final ed = filterState.endDate;
+    // final loc =
+    //     filterState.location?.isEmpty == true ? null : filterState.location;
+    // final src = filterState.search?.isEmpty == true ? null : filterState.search;
     final rsn = filterState.current;
     if (isTypeEqual<T, FlaggedPost>()) {
       return NewSource.getFlaggedPosts(
-              FlagReason.values[rsn], pageSize, offset[filterState.current])
-          as Future<List<T>>;
+        FlagReason.values[rsn],
+        pageSize,
+        offset[filterState.current],
+      ) as Future<List<T>>;
     } else if (isTypeEqual<T, FlaggedComment>()) {
       return NewSource.getFlaggedComments(
-              FlagReason.values[rsn], pageSize, offset[filterState.current])
-          as Future<List<T>>;
+        FlagReason.values[rsn],
+        pageSize,
+        offset[filterState.current],
+      ) as Future<List<T>>;
     } else {
       return Future(() => <T>[]);
     }

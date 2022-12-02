@@ -29,7 +29,7 @@ class MainAppState extends State<MainApp> {
     return MaterialApp(
       title: 'New Source',
       debugShowCheckedModeBanner: false,
-      scrollBehavior: MyCustomScrollBehavior(),
+      scrollBehavior: TouchAndMouseScrollBehaviour(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,

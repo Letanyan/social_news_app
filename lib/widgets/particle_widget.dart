@@ -5,7 +5,7 @@ import 'package:social_news_app/model/theme.dart';
 
 class ParticleWidget extends StatefulWidget {
   final Widget child;
-  int animated;
+  final int animated;
 
   ParticleWidget({
     super.key,
@@ -22,9 +22,11 @@ class _ParticleWidgetState extends State<ParticleWidget>
   late Animation<double> animation;
   late AnimationController controller;
   late List<Particle> particles;
+  late int animated;
 
   @override
   void initState() {
+    animated = widget.animated;
     controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 2));
     animation = Tween(begin: 0.0, end: 1.0).animate(controller)
@@ -32,11 +34,17 @@ class _ParticleWidgetState extends State<ParticleWidget>
 
     updateParticles();
 
-    if (widget.animated != 0) {
+    if (animated != 0) {
       controller.forward();
     }
 
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant ParticleWidget oldWidget) {
+    animated = widget.animated;
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -48,7 +56,7 @@ class _ParticleWidgetState extends State<ParticleWidget>
   void updateParticles() {
     particles = <Particle>[];
     final rand = Random();
-    final intensity = widget.animated;
+    final intensity = animated;
     final abs = intensity < 0 ? -intensity : intensity;
     for (int i = 0; i < min(abs * 2 + 3, 50); i += 1) {
       final startPos = Offset(rand.nextDouble(), rand.nextDouble());
@@ -71,20 +79,20 @@ class _ParticleWidgetState extends State<ParticleWidget>
         endColor: endColor,
         startTime: startTime,
         endTime: endTime,
-        icon: widget.animated > 0
+        icon: animated > 0
             ? Icons.arrow_drop_up_rounded
             : Icons.arrow_drop_down_rounded,
       );
       particles.add(x);
     }
-    widget.animated = 0;
+    animated = 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.animated != 0 && !controller.isAnimating) {
+    if (animated != 0 && !controller.isAnimating) {
       if (controller.isCompleted || controller.isDismissed) {
-        final intensity = widget.animated.toDouble();
+        final intensity = animated.toDouble();
         print("$intensity");
         final d =
             (min(pow(intensity < 0 ? -intensity : intensity, 0.25), 4.0) * 1000)

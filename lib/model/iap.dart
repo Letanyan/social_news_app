@@ -180,7 +180,6 @@ class TestIAPConnection implements InAppPurchase {
 
   @override
   T getPlatformAddition<T extends InAppPurchasePlatformAddition?>() {
-    // TODO: implement getPlatformAddition
     throw UnimplementedError();
   }
 
@@ -190,7 +189,6 @@ class TestIAPConnection implements InAppPurchase {
 
   @override
   Future<void> restorePurchases({String? applicationUserName}) {
-    // TODO: implement restorePurchases
     throw UnimplementedError();
   }
 }

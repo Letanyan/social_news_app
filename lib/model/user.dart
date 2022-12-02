@@ -177,7 +177,7 @@ class User {
   }
 
   static User? current;
-  static var streakMessage = StreamController<StreakMessage>();
+  static var streakMessage = StreamController<StreakMessage>.broadcast();
 
   Author toAuthor() {
     return Author(

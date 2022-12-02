@@ -69,6 +69,7 @@ class SignInButton extends StatelessWidget {
   bool mini;
 
   SignInButton({
+    super.key,
     required this.buttonType,
     required this.onPressed,
     this.imagePosition = ImagePosition.left,

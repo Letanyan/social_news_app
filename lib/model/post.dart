@@ -426,8 +426,8 @@ class Post {
       reviewItems.add(downChip);
     }
 
-    final showSimilar = TextButton(
-        onPressed: () => openSimilar(context), child: const Text("Similar"));
+    // final showSimilar = TextButton(
+    //     onPressed: () => openSimilar(context), child: const Text("Similar"));
 
     final voteItems = Row(children: [
       upvoteButton,

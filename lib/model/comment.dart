@@ -73,7 +73,7 @@ class Comment {
 
   void Function() showParentPost(BuildContext context) {
     return () {
-      final post = NewSource.getPost(postId).then(((value) {
+      NewSource.getPost(postId).then(((value) {
         final page = Scaffold(
           appBar: AppBar(title: const Text("Comments")),
           body: CommentsPage(post: value, scrollComments: this),

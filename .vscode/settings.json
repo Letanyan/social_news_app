@@ -2,10 +2,13 @@
     "cmake.configureOnOpen": true,
     "cSpell.words": [
         "addedon",
+        "analyzes",
+        "appauth",
         "createdat",
         "cred",
         "strikethrough",
         "updatedat",
         "updatedon"
-    ]
+    ],
+    "cSpell.language": "en-GB,en-US"
 }

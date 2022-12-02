@@ -105,7 +105,6 @@ class _UserContPageState extends State<UserContPage> {
   }
 
   Future<List<T>> getNewItems<T>() async {
-    final idx = currentIndex<T>();
     final sd = filterState.startDate;
     final ed = filterState.endDate;
     final loc =

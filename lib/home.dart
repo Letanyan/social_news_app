@@ -117,18 +117,20 @@ class HomeViewState extends State<HomeView>
       },
     );
 
-    if (streakAmount != null /*&& streakAmount?.current != 0*/) {
+    if (streakAmount != null && streakAmount?.current != 0) {
       final amount = streakAmount!.current;
       final nextAmount = streakAmount!.next;
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         showPlatformDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text("Added $amount Credits"),
+            title: Text(
+              "Added $amount Credits",
+            ),
             content: Text(
-                "$amount Credits added for daily login. Login again tomorrow for an additional $nextAmount credits."),
+                "$amount Credits added for daily login. Login again tomorrow for an additional $nextAmount credits from your streak."),
             actions: [
-              TextButton(
+              ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text("Got It"))
             ],
@@ -139,7 +141,7 @@ class HomeViewState extends State<HomeView>
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      scrollBehavior: MyCustomScrollBehavior(),
+      scrollBehavior: TouchAndMouseScrollBehaviour(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,

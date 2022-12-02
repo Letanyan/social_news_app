@@ -103,8 +103,9 @@ class NewSource {
   // Sign In
   //----------------------------------------------------------------------------
   static Future<User> signInUser(String email, String password) async {
-    final obj = await post(
-        ["auth", "sign-in"], [], {"email": email, "password": password});
+    final device = await deviceId();
+    final obj = await post(["auth", "sign-in"], [],
+        {"email": email, "password": password, "device": device});
     if (obj == null) {
       throw unknownError;
     }
@@ -118,8 +119,9 @@ class NewSource {
 
   static Future<User> signUpUser(
       String user, String email, String password) async {
-    final obj = await post(
-        ["users"], [], {"email": email, "name": user, "password": password});
+    final device = await deviceId();
+    final obj = await post(["users"], [],
+        {"email": email, "name": user, "password": password, "device": device});
     if (obj == null) {
       throw unknownError;
     }
@@ -132,7 +134,8 @@ class NewSource {
   }
 
   static Future<User> signInUserGoogle(String idToken, String access) async {
-    final body = {"token": idToken, "access": access};
+    final device = await deviceId();
+    final body = {"token": idToken, "access": access, "device": device};
     final obj = await post(
       ["auth", "sign-in-with-google"],
       [],
@@ -149,7 +152,8 @@ class NewSource {
   }
 
   static Future<User> signInUserApple(String code) async {
-    final body = {"code": code};
+    final device = await deviceId();
+    final body = {"code": code, "device": device};
     final obj = await post(
       ["auth", "sign-in-with-apple"],
       [],
@@ -168,9 +172,11 @@ class NewSource {
   static Future<bool> signOut() async {
     final path = ["auth", "sign-out"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
-    final obj = await post(path, args, {"userId": User.current!.id});
+    final device = await deviceId();
+    final obj =
+        await post(path, args, {"userId": User.current!.id, "device": device});
     if (obj == null) {
       User.current = null;
       return false;
@@ -227,7 +233,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final input = {"data": data, "productId": productId, "userId": userId};
     final obj = await post(path, args, input);
@@ -252,7 +258,7 @@ class NewSource {
 
   static Future<bool> updateUserDetails(User user) async {
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final path = ["users", "${user.id}", "details"];
     final body = {
@@ -294,7 +300,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await post(
         ["posts", "$postId", "comments"],
@@ -325,7 +331,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final loc = await getCurrentLocation();
     final obj = await post(
@@ -355,7 +361,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(
         ["update", "posts", "$postId", "comments", "$commentId"],
         args,
@@ -380,7 +386,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(
         ["update", "posts", "$postId"],
         args,
@@ -408,7 +414,7 @@ class NewSource {
   //----------------------------------------------------------------------------
   static Future<User> getUser(int uid) async {
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final path = ["users", "$uid"];
 
     final obj = await get(path, args);
@@ -479,7 +485,7 @@ class NewSource {
     addS("search", search, args);
     addD("start", startVoted, args);
     addD("end", endVoted, args);
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "users"], args);
     if (obj == null) {
@@ -511,7 +517,7 @@ class NewSource {
     addL("location", location, args);
     addD("start", startVoted, args);
     addD("end", endVoted, args);
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "posts"], args);
     if (obj == null) {
@@ -556,7 +562,7 @@ class NewSource {
     addI("isReview", isReview == true ? 1 : 0, args);
     addD("start", startVoted, args);
     addD("end", endVoted, args);
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "comments"], args);
     if (obj == null) {
@@ -586,7 +592,7 @@ class NewSource {
     addS("search", search, args);
     addD("start", startVoted, args);
     addD("end", endVoted, args);
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "tags"], args);
     if (obj == null) {
@@ -619,7 +625,7 @@ class NewSource {
     addD("start", startCreated, args);
     addD("end", endCreated, args);
     addL("location", location, args);
-    addSecret(args);
+    await addSecret(args);
 
     var path = ["users", "$uid", "content", "posts"];
     if (kind == UserContKind.viewed) {
@@ -699,7 +705,7 @@ class NewSource {
     addD("end", endDate, args);
     addI("limit", limit, args);
     addI("offset", offset, args);
-    addSecret(args);
+    await addSecret(args);
     final obj = await get(path, args);
     if (obj == null) {
       throw unknownError;
@@ -724,7 +730,7 @@ class NewSource {
     addD("end", endDate, args);
     addI("limit", limit, args);
     addI("offset", offset, args);
-    addSecret(args);
+    await addSecret(args);
     final obj = await get(path, args);
     if (obj == null) {
       throw unknownError;
@@ -993,7 +999,7 @@ class NewSource {
     required int amount,
   }) async {
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final location = await getCurrentLocation();
     final body = {
       "uid": userId,
@@ -1019,7 +1025,7 @@ class NewSource {
     required int amount,
   }) async {
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final path = ["posts", "$postId", "comments", "$commentId"];
     final location = await getCurrentLocation();
     final body = {
@@ -1041,7 +1047,7 @@ class NewSource {
 
   static Future<bool> watchPost(int uid, int pid, int amount) async {
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj =
         await post(["users", "$uid", "watch", "$pid"], args, {"time": amount});
     if (obj == null) {
@@ -1087,7 +1093,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await post(path, args, {"pid": pid});
     if (obj == null) {
@@ -1158,7 +1164,7 @@ class NewSource {
       int uid, List<int> pids) async {
     final path = ["users", "$uid", "content", "recommendations"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {"pid": pids});
     if (obj["success"] == true) {
       return true;
@@ -1170,7 +1176,7 @@ class NewSource {
   static Future<int?> purchaseCredit(int uid, int amount) async {
     final path = ["credits", "$uid"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await post(path, args, {"amount": amount});
     if (obj["success"] == true) {
@@ -1214,7 +1220,7 @@ class NewSource {
     }
 
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await delete(path, args);
     if (obj == null) {
@@ -1231,7 +1237,7 @@ class NewSource {
   static Future<bool> deletePost(int pid) async {
     final path = ["trash", "posts", "$pid"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {});
     if (obj == null) {
       throw unknownError;
@@ -1242,7 +1248,7 @@ class NewSource {
   static Future<bool> deleteComment(int pid, int sid) async {
     final path = ["trash", "posts", "$pid", "comments", "$sid"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {});
     if (obj == null) {
       throw unknownError;
@@ -1262,7 +1268,7 @@ class NewSource {
   ) async {
     var path = ["flags"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {
       "uid": uid,
       "pid": pid,
@@ -1288,7 +1294,7 @@ class NewSource {
     addI("kind", kind.index, args);
     addI("limit", limit, args);
     addI("offset", offset, args);
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await get(path, args);
     if (obj == null) {
@@ -1305,7 +1311,7 @@ class NewSource {
     addI("kind", kind.index, args);
     addI("limit", limit, args);
     addI("offset", offset, args);
-    addSecret(args);
+    await addSecret(args);
 
     final obj = await get(path, args);
     if (obj == null) {
@@ -1319,7 +1325,7 @@ class NewSource {
       int id, int pid, int sid, FlagHandle action) async {
     var path = ["trash", "flags", "$id"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(
         path, [], {"pid": pid, "sid": sid, "action": flagHandleKind(action)});
     if (obj == null) {
@@ -1335,7 +1341,7 @@ class NewSource {
   static Future<List<NewsAgent>> getAgents() async {
     final path = ["agents"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await get(path, args);
     if (obj == null) {
       throw unknownError;
@@ -1346,7 +1352,7 @@ class NewSource {
   static Future<bool> updateAgents() async {
     final path = ["all-agents"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {});
     if (obj == null) {
       throw unknownError;
@@ -1357,7 +1363,7 @@ class NewSource {
   static Future<bool> updateAgent(int aid) async {
     final path = ["agents", "$aid"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {});
     if (obj == null) {
       throw unknownError;
@@ -1368,7 +1374,7 @@ class NewSource {
   static Future<bool> deleteAgent(int aid) async {
     final path = ["trash", "agents", "$aid"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {});
     if (obj == null) {
       throw unknownError;
@@ -1380,7 +1386,7 @@ class NewSource {
       int aid, String name, String origin) async {
     final path = ["update", "agents", "$aid"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {"name": name, "origin": origin});
     if (obj == null) {
       throw unknownError;
@@ -1395,7 +1401,7 @@ class NewSource {
   static Future<NewsAgent> createAgent(String name, String origin) async {
     final path = ["agents"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {"name": name, "origin": origin});
     if (obj == null) {
       throw unknownError;
@@ -1411,7 +1417,7 @@ class NewSource {
       {required bool add}) async {
     final path = ["agents", "$aid", "sub"];
     var args = <String>[];
-    addSecret(args);
+    await addSecret(args);
     final obj = await post(path, args, {"sub": (add ? "+" : "-") + sub});
     if (obj == null) {
       throw unknownError;
@@ -1487,10 +1493,12 @@ void addSO(String name, SortOrder? value, List<String> args) {
   }
 }
 
-void addSecret(List<String> args) {
+Future<void> addSecret(List<String> args) async {
   if (User.current?.secret != null) {
     args.add("secret");
     args.add(User.current!.secret);
+    args.add("device");
+    args.add(await deviceId());
   }
 }
 
