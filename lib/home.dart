@@ -94,6 +94,28 @@ class HomeViewState extends State<HomeView>
         ],
       ),
       tabBuilder: (context, index) {
+        if (streakAmount != null && streakAmount?.current != 0) {
+          final amount = streakAmount!.current;
+          final nextAmount = streakAmount!.next;
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            streakAmount = null;
+            showPlatformDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(
+                  "Added $amount Credits",
+                ),
+                content: Text(
+                    "$amount Credits added for daily login. Login again tomorrow for an additional $nextAmount credits from your streak."),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text("Got It"))
+                ],
+              ),
+            );
+          });
+        }
         switch (index) {
           case 0:
             return PostsPage(
@@ -116,28 +138,6 @@ class HomeViewState extends State<HomeView>
         return const SizedBox();
       },
     );
-
-    if (streakAmount != null && streakAmount?.current != 0) {
-      final amount = streakAmount!.current;
-      final nextAmount = streakAmount!.next;
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        showPlatformDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(
-              "Added $amount Credits",
-            ),
-            content: Text(
-                "$amount Credits added for daily login. Login again tomorrow for an additional $nextAmount credits from your streak."),
-            actions: [
-              ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Got It"))
-            ],
-          ),
-        );
-      });
-    }
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,

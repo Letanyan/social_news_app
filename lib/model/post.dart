@@ -538,16 +538,21 @@ class Post {
     }
     const imageWidth = 164.0;
     final image = FutureBuilder(
-      future: Parser.canLoadImageFromHeaderRegExps(
+      future: Parser.loadableImageWithHeaderRegExps(
         urls,
         content,
         creator.isAgent,
       ),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data == null) {
+        final canLoad = Parser.loadableImageNoHeaderFromRegExps(
+          urls,
+          content,
+          creator.isAgent,
+        );
+        if (canLoad == null && (!snapshot.hasData || snapshot.data == null)) {
           return const SizedBox();
         }
-        final url = snapshot.data;
+        final url = snapshot.data ?? canLoad;
         final clipped = ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           clipBehavior: Clip.antiAlias,

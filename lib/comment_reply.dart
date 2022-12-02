@@ -6,10 +6,10 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
-import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/preview_post.dart';
 
 class CommentReplyPage extends StatefulWidget {
   final Comment? comment;
@@ -29,6 +29,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
   late StreamSubscription<bool> keyboardSubscription;
   double bottomOffset = 48;
   Post? toBePosted;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -53,12 +54,17 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     super.dispose();
   }
 
-  void replyToComment() async {
-    // TODO: Show progress indicator
+  void replyToComment() {
+    setState(() {
+      isLoading = true;
+    });
+    _replyToComment().then((value) => setState(() => isLoading = false));
+  }
+
+  Future<void> _replyToComment() async {
     try {
       if (widget.isEdit) {
         if (widget.comment != null) {
-          // Navigator.pop(context);
           widget.comment?.content = controller.text;
           widget.comment?.edited = DateTime.now();
           await NewSource.updateComment(
@@ -68,7 +74,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
           ).then((value) => Navigator.pop(context));
         } else if (widget.post != null) {
           int count = 0;
-          // Navigator.popUntil(context, (route) => count++ >= 2);
           widget.post?.content = controller.text;
           widget.post?.edited = DateTime.now();
           await NewSource.updatePost(widget.post!.id, controller.text).then(
@@ -76,7 +81,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         }
       } else {
         if (widget.comment != null) {
-          // Navigator.pop(context);
           await NewSource.createComment(
             widget.comment!.postId,
             widget.comment!.id,
@@ -84,12 +88,10 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
             isReview,
           ).then((value) => Navigator.pop(context));
         } else if (widget.post != null) {
-          // Navigator.pop(context);
           await NewSource.createComment(
                   widget.post!.id, 0, controller.text, isReview)
               .then((value) => Navigator.pop(context));
         } else if (toBePosted != null) {
-          // Navigator.pop(context, "posted");
           await NewSource.createPost(toBePosted!.content, false)
               .then((value) => Navigator.pop(context, "posted"));
         }
@@ -228,7 +230,10 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     late AppBar? bar;
     if (widget.isEdit) {
       Widget action;
-      if (widget.post != null) {
+      print("build: $isLoading");
+      if (isLoading) {
+        action = Center(child: CircularProgressIndicator());
+      } else if (widget.post != null) {
         action = TextButton(
           onPressed: () {
             final text = controller.text;
@@ -245,21 +250,35 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         actions: [action],
       );
     } else if (widget.comment == null && widget.post == null) {
+      Widget action;
+      print("build: $isLoading");
+      if (isLoading) {
+        action = Center(child: CircularProgressIndicator());
+      } else {
+        action = TextButton(
+          onPressed: () {
+            final text = controller.text;
+            previewPost(context, text)();
+          },
+          child: const Text("Preview"),
+        );
+      }
       bar = AppBar(
         title: const Text("Create Post"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              final text = controller.text;
-              previewPost(context, text)();
-            },
-            child: const Text("Preview"),
-          )
-        ],
+        actions: [action],
       );
     } else {
-      final action = IconButton(
-          onPressed: replyToComment, icon: const Icon(Icons.send_rounded));
+      Widget action;
+      print("build: $isLoading");
+      if (isLoading) {
+        action = Center(child: CircularProgressIndicator());
+      } else {
+        action = IconButton(
+          onPressed: replyToComment,
+          icon: const Icon(Icons.send_rounded),
+        );
+      }
+
       bar = AppBar(
         title: const Text("Reply"),
         actions: [action],
@@ -322,64 +341,16 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
             const SnackBar(content: Text("You must sign in to make a post")));
         return;
       }
-      final currentTime = DateTime.now();
-      final previewPost = Post(
-        id: -1,
-        creator: User.current!.toAuthor(),
-        content: content,
-        tags: [],
-        createdAt: currentTime,
-        location: [],
-        upvotes: 0,
-        downvotes: 0,
-        commentCount: 0,
-        trashed: false,
-        edited: currentTime,
-        score: 0,
-        cred: 0,
-        rank: 0,
-      );
-
-      final makePost =
-          TextButton(onPressed: replyToComment, child: const Text("Post"));
-
-      final trimContent = content.trim();
-      final urls = RegexPatterns.url.allMatches(trimContent);
-      late Widget preview;
-      if (urls.isNotEmpty &&
-          urls.first.start == 0 &&
-          urls.first.end == trimContent.length) {
-        preview = FutureBuilder(
-            future: NewSource.createPost(trimContent, true),
-            builder: ((context, snapshot) {
-              if (!snapshot.hasData) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    CircularProgressIndicator(),
-                  ],
-                );
-              }
-              if (snapshot.data == null) {
-                return const ListTile(title: Text("An Error Occurred"));
-              }
-              toBePosted = snapshot.data!;
-              return snapshot.data!.card(context, () {});
-            }));
-      } else {
-        toBePosted = previewPost;
-        preview = previewPost.card(context, () {});
-      }
-
-      final page = Scaffold(
-        appBar: AppBar(
-          title: const Text("Preview"),
-          actions: [makePost],
+      Navigator.push(
+        context,
+        route(
+          builder: (context) => PostPreview(
+            content,
+            widget.isEdit,
+            isReview,
+          ),
         ),
-        body: ListView(children: [preview]),
-      );
-
-      Navigator.push(context, route(builder: (context) => page)).then((value) {
+      ).then((value) {
         if (value == "posted") {
           controller.text = "";
         }

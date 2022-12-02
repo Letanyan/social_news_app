@@ -201,7 +201,7 @@ class Parser {
     return TextSpan(style: rawStyle, children: result);
   }
 
-  static bool canLoadImage(String s, bool isAgent) {
+  static bool canLoadImageNoHeader(String s, bool isAgent) {
     var canLoadImage = isAgent;
     final path = Uri.tryParse(s) ?? Uri();
     if (!canLoadImage) {
@@ -217,22 +217,10 @@ class Parser {
         t.endsWith(".wbmp") ||
         t.endsWith(".gif");
 
-    /*
-    // cant handle async
-    if (!validPath) {
-      final response = await NewSource.head(s);
-      final c = response?.headers["content-type"];
-      validPath = c == "image/gif" ||
-          c == "image/jpeg" ||
-          c == "image/jpg" ||
-          c == "image/png";
-    }
-    */
-
     return canLoadImage && validPath;
   }
 
-  static Future<bool> canLoadImageFromHeader(String s, bool isAgent) async {
+  static Future<bool> canLoadImageWithHeader(String s, bool isAgent) async {
     var canLoadImage = isAgent;
     final path = Uri.tryParse(s) ?? Uri();
     if (!canLoadImage) {
@@ -260,26 +248,40 @@ class Parser {
     return canLoadImage && validPath;
   }
 
-  static Future<String?> canLoadImageFromHeaders(
+  static Future<String?> loadableImageWithHeader(
     List<String> headers,
     bool isAgent,
   ) async {
     for (final s in headers) {
-      if (await canLoadImageFromHeader(s, isAgent)) {
+      if (await canLoadImageWithHeader(s, isAgent)) {
         return s;
       }
     }
     return null;
   }
 
-  static Future<String?> canLoadImageFromHeaderRegExps(
+  static String? loadableImageNoHeaderFromRegExps(
+    Iterable<RegExpMatch> headers,
+    String content,
+    bool isAgent,
+  ) {
+    for (final match in headers) {
+      final s = content.substring(match.start, match.end);
+      if (canLoadImageNoHeader(s, isAgent)) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  static Future<String?> loadableImageWithHeaderRegExps(
     Iterable<RegExpMatch> headers,
     String content,
     bool isAgent,
   ) async {
     for (final match in headers) {
       final s = content.substring(match.start, match.end);
-      if (await canLoadImageFromHeader(s, isAgent)) {
+      if (await canLoadImageWithHeader(s, isAgent)) {
         return s;
       }
     }
@@ -297,9 +299,14 @@ class Parser {
         ParserMapping.url(
           (s, c) {
             final future = FutureBuilder(
-              future: canLoadImageFromHeader(s, c["img"] as bool? ?? false),
+              future: canLoadImageWithHeader(s, c["img"] as bool? ?? false),
               builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data == false) {
+                final canLoad = canLoadImageNoHeader(
+                  s,
+                  c["img"] as bool? ?? false,
+                );
+
+                if (!canLoad && (!snapshot.hasData || snapshot.data == false)) {
                   var newStyle =
                       const TextStyle(decoration: TextDecoration.underline);
                   if (c["style"] is TextStyle) {
