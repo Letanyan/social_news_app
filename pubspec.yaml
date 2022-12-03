@@ -119,4 +119,12 @@ flutter:
 flutter_icons:
   android: true
   ios: true
+  web:
+    generate: true
+    background_color: "#707070"
+    theme_color: "#FFFFFF"
+  macos:
+    generate: true
+  windows:
+    generate: true
   image_path: "assets/icon/icon.png"

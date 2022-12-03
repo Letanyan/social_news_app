@@ -274,8 +274,7 @@ class Author {
   }
 
   String calculateScore() {
-    final u = upvotes + investment;
-    final v = u * ratio(u, downvotes);
+    final v = upvotes * ratio(upvotes + investment, downvotes + investment);
     return v.toStringAsFixed(0);
   }
 

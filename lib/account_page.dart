@@ -157,7 +157,15 @@ class _AccountPageState extends State<AccountPage> {
     }
     final display = widget.user.name.isEmpty ? "Anonymous" : widget.user.name;
     final name = ListTile(
-      title: Text(display),
+      title: widget.user.isAgent
+          ? Row(
+              children: [
+                Icon(Icons.smart_toy_outlined),
+                SizedBox(width: 8),
+                Text(display),
+              ],
+            )
+          : Text(display),
       subtitle: subtitle,
       trailing: action,
     );
