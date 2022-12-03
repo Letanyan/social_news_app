@@ -226,13 +226,18 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         preview,
       ],
     );
-
+    final progressCircle = Center(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: CircularProgressIndicator(),
+      ),
+    );
     late AppBar? bar;
     if (widget.isEdit) {
       Widget action;
       print("build: $isLoading");
       if (isLoading) {
-        action = Center(child: CircularProgressIndicator());
+        action = progressCircle;
       } else if (widget.post != null) {
         action = TextButton(
           onPressed: () {
@@ -253,7 +258,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       Widget action;
       print("build: $isLoading");
       if (isLoading) {
-        action = Center(child: CircularProgressIndicator());
+        action = progressCircle;
       } else {
         action = TextButton(
           onPressed: () {
@@ -271,7 +276,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       Widget action;
       print("build: $isLoading");
       if (isLoading) {
-        action = Center(child: CircularProgressIndicator());
+        action = progressCircle;
       } else {
         action = IconButton(
           onPressed: replyToComment,

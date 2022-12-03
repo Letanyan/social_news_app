@@ -97,10 +97,15 @@ class _PostPreviewState extends State<PostPreview> {
       cred: 0,
       rank: 0,
     );
-
+    final progressCircle = Center(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: CircularProgressIndicator(),
+      ),
+    );
     Widget makePost;
     if (isLoading) {
-      makePost = Center(child: CircularProgressIndicator());
+      makePost = progressCircle;
     } else {
       makePost = TextButton(
         onPressed: replyToComment,

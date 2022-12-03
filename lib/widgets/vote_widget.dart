@@ -151,33 +151,28 @@ void Function() showVoteDialog(
   };
 }
 
-Widget buildDownvoteChip(BuildContext context, int downvotes) {
+Widget buildVoteChip(BuildContext context, int votes, bool isUpvote) {
+  final double leftRounding = isUpvote ? 16 : 0;
+  final double rightRounding = isUpvote ? 0 : 16;
   return Chip(
-    shape: const RoundedRectangleBorder(
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
-        topRight: Radius.circular(16),
-        bottomRight: Radius.circular(16),
+        topLeft: Radius.circular(leftRounding),
+        bottomLeft: Radius.circular(leftRounding),
+        topRight: Radius.circular(rightRounding),
+        bottomRight: Radius.circular(rightRounding),
       ),
     ),
     visualDensity: VisualDensity.compact,
-    avatar: Icon(Icons.back_hand, color: MyTheme.primary, size: 12),
-    labelStyle: const TextStyle(fontSize: 12),
-    label: Text("$downvotes"),
-  );
-}
-
-Widget buildUpvoteChip(BuildContext context, int upvotes) {
-  return Chip(
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(16),
-        bottomLeft: Radius.circular(16),
-      ),
+    avatar: Icon(
+      isUpvote
+          ? Icons.keyboard_double_arrow_up_rounded
+          : Icons.keyboard_double_arrow_down_rounded,
+      color: MyTheme.primary,
+      size: 12,
     ),
-    visualDensity: VisualDensity.compact,
-    avatar: Icon(Icons.speaker, color: MyTheme.primary, size: 12),
     labelStyle: const TextStyle(fontSize: 12),
-    label: Text("$upvotes"),
+    label: Text("$votes"),
   );
 }
 
@@ -195,7 +190,9 @@ Widget buildVoteButton(
       child: Row(children: [
         Icon(
           size: 16,
-          isUpvote ? Icons.speaker : Icons.back_hand,
+          isUpvote
+              ? Icons.keyboard_double_arrow_up_rounded
+              : Icons.keyboard_double_arrow_down_rounded,
         ),
         Text(" $votes"),
       ]),

@@ -358,8 +358,8 @@ class Author {
   Widget card(BuildContext context, Function() updateState,
       {int? up, int? down}) {
     final title = Text(name);
-    final upChip = buildUpvoteChip(context, upvotes);
-    final downChip = buildDownvoteChip(context, downvotes);
+    final upChip = buildVoteChip(context, upvotes, true);
+    final downChip = buildVoteChip(context, downvotes, true);
     final follow = followButton(context, updateState);
     final votes = FittedBox(
         fit: BoxFit.contain, child: Row(children: [upChip, downChip]));

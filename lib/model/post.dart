@@ -157,24 +157,41 @@ class Post {
 
   Widget buildCreator(BuildContext context) {
     final theme = Theme.of(context).textTheme;
+    var words = <InlineSpan>[];
+    if (creator.isAgent) {
+      words.add(
+        WidgetSpan(
+          child: Padding(
+            padding: EdgeInsets.only(left: 4, right: 4),
+            child: Icon(
+              Icons.smart_toy_outlined,
+              size: (theme.bodyText1?.fontSize ?? 12) * 1.25,
+            ),
+          ),
+        ),
+      );
+    }
+    words.addAll([
+      TextSpan(
+        text: "${creator.name} ",
+        style: theme.bodyText1,
+      ),
+      TextSpan(
+        text: "${creator.calculateScore()} ",
+        style: const TextStyle(color: Colors.grey),
+      ),
+      TextSpan(
+        text: "(${creator.calculateCred()})",
+        style: const TextStyle(color: Colors.grey),
+      ),
+    ]);
     return InkWell(
       onTap: () => creator.showUserPage(context),
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: RichText(
           text: TextSpan(
-            text: "${creator.name} ",
-            style: theme.bodyText1,
-            children: [
-              TextSpan(
-                text: "${creator.calculateScore()} ",
-                style: const TextStyle(color: Colors.grey),
-              ),
-              TextSpan(
-                text: "(${creator.calculateCred()})",
-                style: const TextStyle(color: Colors.grey),
-              ),
-            ],
+            children: words,
           ),
         ),
       ),
@@ -420,8 +437,8 @@ class Post {
 
     var reviewItems = <Widget>[];
     if (up != null && down != null) {
-      final upChip = buildUpvoteChip(context, upvotes);
-      final downChip = buildDownvoteChip(context, downvotes);
+      final upChip = buildVoteChip(context, upvotes, true);
+      final downChip = buildVoteChip(context, downvotes, false);
       reviewItems.add(upChip);
       reviewItems.add(downChip);
     }
@@ -637,8 +654,8 @@ class Post {
 
     late Widget personal;
     if (up != null && down != null) {
-      final upChip = buildUpvoteChip(context, up);
-      final downChip = buildDownvoteChip(context, down);
+      final upChip = buildVoteChip(context, up, true);
+      final downChip = buildVoteChip(context, down, false);
       personal = Padding(
           padding: const EdgeInsets.all(8),
           child: Row(
