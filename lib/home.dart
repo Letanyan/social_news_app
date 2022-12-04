@@ -42,11 +42,10 @@ class HomeViewState extends State<HomeView>
         ? InAppPurchase.instance
         : TestIAPConnection();
     final purchaseUpdated = IAPConnection.instance.purchaseStream;
+    handleCachePurchases();
     subscription = purchaseUpdated.listen((purchaseDetailsList) {
-      if (purchaseDetailsList.isNotEmpty) {
-        print(purchaseDetailsList);
-      }
       handlePurchases(purchaseDetailsList);
+      handleCachePurchases();
     }, onDone: () {
       subscription.cancel();
     }, onError: (error) {

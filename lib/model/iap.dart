@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_platform_interface/src/in_app_purchase_platform_addition.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 
@@ -77,11 +78,135 @@ void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
             IAPConnection.instance.completePurchase(purchase);
           }
         } catch (e) {
+          cachePurchaseDetails(User.current!.id, purchase);
           print("Failed");
         }
       }
     }
   }
+}
+
+class IAPConnection {
+  static InAppPurchase? _instance;
+  static set instance(InAppPurchase value) {
+    _instance = value;
+  }
+
+  static InAppPurchase get instance {
+    _instance ??= InAppPurchase.instance;
+    return _instance!;
+  }
+}
+
+void handleCachePurchases() async {
+  final pref = await SharedPreferences.getInstance();
+  final len = pref.getInt("iap:len");
+  if (len == null) {
+    return;
+  }
+  var purchases = <UserPurchaseDetails>[];
+  for (var i = 0; i < len; i += 1) {
+    final purchase = await getCachedPurchaseDetails(i);
+    if (User.current != null && User.current?.id == purchase.userId) {
+      final oldAmount = User.current?.credits;
+      final platform = purchase.details.verificationData.source;
+      final verifyKey =
+          purchase.details.verificationData.serverVerificationData;
+      final productId = purchase.details.productID;
+      try {
+        final newAmount = await NewSource.authenticateIAP(
+            platform, User.current!.id, verifyKey, productId);
+        if (newAmount != -1 && newAmount != oldAmount) {
+          User.current?.credits = newAmount;
+        }
+      } catch (e) {
+        purchases.add(purchase);
+      }
+    }
+  }
+  clearCachePurchaseDetails();
+  for (final p in purchases) {
+    cachePurchaseDetails(p.userId, p.details);
+  }
+}
+
+void cachePurchaseDetails(int userId, PurchaseDetails details) async {
+  final pref = await SharedPreferences.getInstance();
+  final len = pref.getInt("iap:len") ?? 0;
+  pref.setInt("iap:user_id:$len", userId);
+
+  pref.setString(
+    "iap:source:$len",
+    details.verificationData.source,
+  );
+  pref.setString(
+    "iap:server:$len",
+    details.verificationData.serverVerificationData,
+  );
+  pref.setString(
+    "iap:local:$len",
+    details.verificationData.localVerificationData,
+  );
+
+  pref.setString("iap:product_id:$len", details.productID);
+
+  if (details.purchaseID != null) {
+    pref.setString("iap:purchase_id:$len", details.purchaseID ?? "");
+  }
+  if (details.transactionDate != null) {
+    pref.setString("iap:transaction_date:$len", details.transactionDate!);
+  }
+
+  pref.setInt("iap:len", len + 1);
+}
+
+class UserPurchaseDetails {
+  final int userId;
+  final PurchaseDetails details;
+
+  const UserPurchaseDetails(this.userId, this.details);
+}
+
+Future<UserPurchaseDetails> getCachedPurchaseDetails(int index) async {
+  final pref = await SharedPreferences.getInstance();
+  final userId = pref.getInt("iap:user_id:$index") ?? 0;
+
+  final source = pref.getString("iap:source:$index") ?? "";
+  final server = pref.getString("iap:server:$index") ?? "";
+  final local = pref.getString("iap:local:$index") ?? "";
+
+  final productId = pref.getString("iap:product_id:$index") ?? "";
+  final date = pref.getString("iap:transaction_date:$index");
+  final purchaseId = pref.getString("iap:purchase_id:$index");
+
+  final details = PurchaseDetails(
+    purchaseID: purchaseId,
+    productID: productId,
+    verificationData: PurchaseVerificationData(
+      localVerificationData: local,
+      serverVerificationData: server,
+      source: source,
+    ),
+    transactionDate: date,
+    status: PurchaseStatus.purchased,
+  );
+  return UserPurchaseDetails(userId, details);
+}
+
+void clearCachePurchaseDetails() async {
+  final pref = await SharedPreferences.getInstance();
+  final len = pref.getInt("iap:len") ?? 0;
+  for (int i = 0; i < len; i += 1) {
+    pref.remove("iap:user_id:$i");
+    pref.remove("iap:source:$i");
+    pref.remove("iap:server:$i");
+    pref.remove("iap:local:$i");
+    pref.remove("iap:transaction_date:$i");
+
+    pref.remove("iap:product_id:$i");
+    pref.remove("iap:purchase_id:$i");
+  }
+  pref.remove("iap:len");
 }
 
 class TestIAPConnection implements InAppPurchase {
@@ -192,123 +317,3 @@ class TestIAPConnection implements InAppPurchase {
     throw UnimplementedError();
   }
 }
-
-class IAPConnection {
-  static InAppPurchase? _instance;
-  static set instance(InAppPurchase value) {
-    _instance = value;
-  }
-
-  static InAppPurchase get instance {
-    _instance ??= InAppPurchase.instance;
-    return _instance!;
-  }
-}
-
-// void handleCachePurchases() async {
-//   final pref = await SharedPreferences.getInstance();
-//   final len = pref.getInt("iap:len");
-//   if (len == null) {
-//     return;
-//   }
-//   var purchases = <UserPurchaseDetails>[];
-//   for (var i = 0; i < len; i += 1) {
-//     final purchase = await getCachedPurchaseDetails(i);
-//     if (User.current != null && User.current?.id == purchase.userId) {
-//       final oldAmount = User.current?.credits;
-//       final platform = purchase.details.verificationData.source;
-//       final verifyKey =
-//           purchase.details.verificationData.serverVerificationData;
-//       final productId = purchase.details.productID;
-//       try {
-//         final newAmount = await NewSource.authenticateIAP(
-//             platform, User.current!.id, verifyKey, productId);
-//         if (newAmount != -1 && newAmount != oldAmount) {
-//           User.current?.credits = newAmount;
-//           IAPConnection.instance.completePurchase(purchase.details);
-//         }
-//       } catch (e) {
-//         purchases.add(purchase);
-//       }
-//     }
-//   }
-// }
-
-// void cachePurchaseDetails(int userId, PurchaseDetails details) async {
-//   final pref = await SharedPreferences.getInstance();
-//   final len = pref.getInt("iap:len") ?? 0;
-//   pref.setInt("iap:user_id:$len", userId);
-
-//   pref.setString(
-//     "iap:source:$len",
-//     details.verificationData.source,
-//   );
-//   pref.setString(
-//     "iap:server:$len",
-//     details.verificationData.serverVerificationData,
-//   );
-//   pref.setString(
-//     "iap:local:$len",
-//     details.verificationData.localVerificationData,
-//   );
-
-//   pref.setString("iap:product_id:$len", details.productID);
-
-//   if (details.purchaseID != null) {
-//     pref.setString("iap:purchase_id:$len", details.purchaseID ?? "");
-//   }
-//   if (details.transactionDate != null) {
-//     pref.setString("iap:transaction_date:$len", details.transactionDate!);
-//   }
-
-//   pref.setInt("iap:len", len + 1);
-// }
-
-// class UserPurchaseDetails {
-//   final int userId;
-//   final PurchaseDetails details;
-
-//   const UserPurchaseDetails(this.userId, this.details);
-// }
-
-// Future<UserPurchaseDetails> getCachedPurchaseDetails(int index) async {
-//   final pref = await SharedPreferences.getInstance();
-//   final userId = pref.getInt("iap:user_id:$index") ?? 0;
-
-//   final source = pref.getString("iap:source:$index") ?? "";
-//   final server = pref.getString("iap:server:$index") ?? "";
-//   final local = pref.getString("iap:local:$index") ?? "";
-
-//   final productId = pref.getString("iap:product_id:$index") ?? "";
-//   final date = pref.getString("iap:transaction_date:$index");
-//   final purchaseId = pref.getString("iap:purchase_id:$index");
-
-//   final details = PurchaseDetails(
-//     purchaseID: purchaseId,
-//     productID: productId,
-//     verificationData: PurchaseVerificationData(
-//       localVerificationData: local,
-//       serverVerificationData: server,
-//       source: source,
-//     ),
-//     transactionDate: date,
-//     status: PurchaseStatus.purchased,
-//   );
-//   return UserPurchaseDetails(userId, details);
-// }
-
-// void clearCachePurchaseDetails() async {
-//   final pref = await SharedPreferences.getInstance();
-//   final len = pref.getInt("iap:len") ?? 0;
-//   for (int i = 0; i < len; i += 1) {
-//     pref.remove("iap:user_id:$i");
-//     pref.remove("iap:source:$i");
-//     pref.remove("iap:server:$i");
-//     pref.remove("iap:local:$i");
-//     pref.remove("iap:transaction_date:$i");
-
-//     pref.remove("iap:product_id:$i");
-//     pref.remove("iap:purchase_id:$i");
-//   }
-//   pref.remove("iap:len");
-// }
