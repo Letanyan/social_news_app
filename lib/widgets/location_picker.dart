@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/geo.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 
 class LocationCountryPickerPage extends StatefulWidget {
   final String country;
@@ -62,7 +63,7 @@ class _LocationCountryPickerPageState extends State<LocationCountryPickerPage> {
     if (country.isNotEmpty) {
       title += Geo.current.country(country);
     } else {
-      title = "Everywhere";
+      title = TRGeneral.everywhere;
     }
     if (region.isNotEmpty) {
       title += ", ${Geo.current.region(country, region)}";
@@ -74,7 +75,7 @@ class _LocationCountryPickerPageState extends State<LocationCountryPickerPage> {
           region = "";
         });
       },
-      child: const Text("Unselect"),
+      child: Text(TRGeneral.unselect),
     );
     var body = Scaffold(
       appBar: AppBar(
@@ -139,7 +140,7 @@ class _LocationRegionPickerPageState extends State<LocationRegionPickerPage> {
 
     var unselect = TextButton(
       onPressed: () => setState(() => region = ""),
-      child: const Text("Unselect"),
+      child: Text(TRGeneral.unselect),
     );
 
     var body = Scaffold(

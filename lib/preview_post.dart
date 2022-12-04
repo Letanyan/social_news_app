@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/post.dart';
@@ -108,7 +109,7 @@ class _PostPreviewState extends State<PostPreview> {
     } else {
       makePost = TextButton(
         onPressed: replyToComment,
-        child: const Text("Post"),
+        child: Text(TRGeneral.postVerb),
       );
     }
 
@@ -130,7 +131,7 @@ class _PostPreviewState extends State<PostPreview> {
             );
           }
           if (snapshot.data == null) {
-            return const ListTile(title: Text("An Error Occurred"));
+            return ListTile(title: Text(TRGeneral.errorOccurred));
           }
           toBePosted = snapshot.data!;
           return snapshot.data!.card(context, () {});
@@ -143,7 +144,7 @@ class _PostPreviewState extends State<PostPreview> {
 
     final page = Scaffold(
       appBar: AppBar(
-        title: const Text("Preview"),
+        title: Text(TRGeneral.preview),
         actions: [makePost],
       ),
       body: ListView(children: [preview]),

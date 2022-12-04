@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:social_news_app/account.dart';
@@ -7,6 +6,7 @@ import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/mod_packages/sign_button.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/onboard.dart';
@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
         gotoSignUpPage();
         return;
       } else if (e.toString() == "incorrect") {
-        message = "Incorrect password or email address";
+        message = TRSignIn.incorrectPasswordOrEmail;
       } else {
         message = e.toString();
       }
@@ -158,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void gotoSignUpPage() {
     final page = Scaffold(
-      appBar: AppBar(title: const Text("Create Account")),
+      appBar: AppBar(title: Text(TRSignIn.createAccount)),
       body: const SignUpPage(),
     );
 
@@ -170,13 +170,12 @@ class _LoginPageState extends State<LoginPage> {
         ? "letanyan.a@gmail.com"
         : emailController.text;
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content:
-              Text("Please provide an email address in the above field.")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(TRSignIn.provideEmail)));
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Password Reset Link Sent")));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(TRSignIn.sentPasswordReset)));
     await NewSource.sendPasswordResetLink(email);
   }
 
@@ -184,12 +183,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     var email = TextField(
       controller: emailController,
-      decoration: const InputDecoration(labelText: "Email"),
+      decoration: InputDecoration(labelText: TRGeneral.email),
     );
     var password = TextField(
       controller: passwordController,
       obscureText: true,
-      decoration: const InputDecoration(labelText: "Password"),
+      decoration: InputDecoration(labelText: TRGeneral.password),
     );
     var emailRow = Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -230,7 +229,7 @@ class _LoginPageState extends State<LoginPage> {
     var forgot = TextButton(
       onPressed: resetPassword,
       child: Text(
-        "Forgot Password",
+        TRSignIn.forgotPassword,
         style: TextStyle(
           color: MyTheme.isDark ? Colors.grey[200] : Colors.grey[800],
           fontSize: 9,
@@ -240,7 +239,7 @@ class _LoginPageState extends State<LoginPage> {
     final createAccount = TextButton(
       onPressed: gotoSignUpPage,
       child: Text(
-        "Create Account",
+        TRSignIn.createAccount,
         style: TextStyle(
           color: MyTheme.isDark ? Colors.grey[200] : Colors.grey[800],
           fontSize: 12,
@@ -250,7 +249,7 @@ class _LoginPageState extends State<LoginPage> {
     var anon = TextButton(
       onPressed: signInAnon,
       child: Text(
-        "Just Browse",
+        TRSignIn.justBrowse,
         style: TextStyle(color: MyTheme.isDark ? Colors.white : Colors.black),
       ),
     );

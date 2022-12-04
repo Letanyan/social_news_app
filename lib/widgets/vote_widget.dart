@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
@@ -54,26 +55,53 @@ class _VoteWidgetState extends State<VoteWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final action = widget.isPromote ? "Promote" : "Demote";
-    final actionDescription = widget.isPromote ? "Promotion" : "Demotion";
-    final content = userVoteKindToString(widget.kind);
+    late String titleText;
+    if (widget.isPromote) {
+      switch (widget.kind) {
+        case UserVoteKind.post:
+          titleText = TRVoteWidget.promotePost;
+          break;
+        case UserVoteKind.review:
+          titleText = TRVoteWidget.promoteReview;
+          break;
+        case UserVoteKind.comment:
+          titleText = TRVoteWidget.promoteComment;
+          break;
+      }
+    } else {
+      switch (widget.kind) {
+        case UserVoteKind.post:
+          titleText = TRVoteWidget.demotePost;
+          break;
+        case UserVoteKind.review:
+          titleText = TRVoteWidget.demoteReview;
+          break;
+        case UserVoteKind.comment:
+          titleText = TRVoteWidget.demoteComment;
+          break;
+      }
+    }
+
     if (User.current == null || User.current?.validationKey != 0) {
       return AlertDialog(
-        title: Text("Sign in to $action $content"),
+        title: Text(TRGeneral.signInRequired),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Okay"),
+            child: Text(TRGeneral.okay),
           ),
         ],
       );
     }
 
-    final title = Text("$action $content");
-    final subtitle = Text("Credits Available: ${User.current!.creditAmount()}");
+    final title = Text(titleText);
+    final subtitle = Text(
+        "${TRVoteWidget.creditsAvailable}: ${User.current!.creditAmount()}");
     final heading = ListTile(title: title, subtitle: subtitle);
 
-    final amountDescription = Text("$actionDescription Amount");
+    final amountDescription = Text(widget.isPromote
+        ? TRVoteWidget.promotionAmount
+        : TRVoteWidget.demotionAmount);
     final amount = Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -108,7 +136,7 @@ class _VoteWidgetState extends State<VoteWidget> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
+          child: Text(TRGeneral.cancel),
         ),
         TextButton(
           onPressed: () {
@@ -118,7 +146,7 @@ class _VoteWidgetState extends State<VoteWidget> {
             );
             Navigator.pop(context);
           },
-          child: const Text("Confirm"),
+          child: Text(TRGeneral.confirm),
         ),
       ],
     );
@@ -226,7 +254,9 @@ Widget buildReplyCountButton(BuildContext context, int replyCount,
     child: Padding(
       padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
       child: Text(
-        replyCount == 1 ? " $replyCount Reply" : " $replyCount Replies",
+        replyCount == 1
+            ? " $replyCount ${TRGeneral.reply}"
+            : " $replyCount ${TRGeneral.replies}",
         style: TextStyle(
             color: highlightedReplies
                 ? MyTheme.primary

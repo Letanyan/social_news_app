@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -42,11 +43,11 @@ class SearchPageState extends State<SearchPage> {
     users = Future(() => []);
     comments = Future(() => []);
 
-    const selector = <int, String>{
-      0: "Posts",
-      1: "Tags",
-      2: "Users",
-      3: "Comments"
+    final selector = <int, String>{
+      0: TRGeneral.posts,
+      1: TRGeneral.tags,
+      2: TRGeneral.users,
+      3: TRGeneral.comments,
     };
     final search = widget.isTrending ? null : "";
     final List<SortOrder> rank =

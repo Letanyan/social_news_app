@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/model/geo.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/widgets/location_picker.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -132,11 +133,11 @@ class _FilterBoxState extends State<FilterBox> {
 
   String getLocationPresentation() {
     if (location[current]?.isEmpty == true) {
-      return "Everywhere";
+      return TRGeneral.everywhere;
     } else {
       final args = location[current];
       if (args == null) {
-        return "Everywhere";
+        return TRGeneral.everywhere;
       }
       var result = "";
       if (args.isNotEmpty) {
@@ -226,20 +227,20 @@ class _FilterBoxState extends State<FilterBox> {
             return StatefulBuilder(builder: (context, setState) {
               final startTile = ListTile(
                 title: Text(
-                    "From: ${formatDate(startDate[current] ?? fallbackDate)}"),
+                    "${TRFilterWidget.from}: ${formatDate(startDate[current] ?? fallbackDate)}"),
                 onTap: updateDate(true, setState),
               );
               final endTile = ListTile(
-                title:
-                    Text("To: ${formatDate(endDate[current] ?? fallbackDate)}"),
+                title: Text(
+                    "${TRFilterWidget.to}: ${formatDate(endDate[current] ?? fallbackDate)}"),
                 onTap: updateDate(false, setState),
               );
               final closeDate = ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("Close"),
+                child: Text(TRGeneral.close),
               );
               return AlertDialog(
-                title: const Text("Select Date Range"),
+                title: Text(TRFilterWidget.selectDates),
                 content: SingleChildScrollView(
                   child: Column(
                     children: [startTile, endTile],
@@ -293,10 +294,10 @@ class _FilterBoxState extends State<FilterBox> {
             return StatefulBuilder(builder: (context, setState) {
               final closeSort = ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("Close"),
+                child: Text(TRGeneral.close),
               );
               return AlertDialog(
-                title: const Text("Sort By"),
+                title: Text(TRFilterWidget.sortBy),
                 content: SingleChildScrollView(
                   child: Column(
                     children: buildSortByTiles(setState),
@@ -319,10 +320,10 @@ class _FilterBoxState extends State<FilterBox> {
             return StatefulBuilder(builder: (context, setState) {
               final closeCategory = ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text("Close"),
+                child: Text(TRGeneral.close),
               );
               return AlertDialog(
-                title: const Text("Category"),
+                title: Text(TRFilterWidget.categories),
                 content: SingleChildScrollView(
                   child: Column(
                     children: buildCategoryTiles(setState),
@@ -380,7 +381,7 @@ class _FilterBoxState extends State<FilterBox> {
                     : Colors.grey[600] ?? Colors.black),
             borderRadius: const BorderRadius.all(Radius.circular(8))),
         hintStyle: textStyle,
-        hintText: 'Search',
+        hintText: TRGeneral.search,
       ),
       onSubmitted: (value) async {
         searchString[current] = value;

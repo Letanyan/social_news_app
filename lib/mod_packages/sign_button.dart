@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:social_news_app/model/locale.dart';
 
 // ignore: must_be_immutable
 class SignInButton extends StatelessWidget {
@@ -156,17 +157,17 @@ class SignInButton extends StatelessWidget {
   void _setButtonSize() {
     if (buttonSize == ButtonSize.small) {
       padding ??= !mini ? 5.0 : 6.0;
-      width ??= 200;
+      width ??= TRGeneral.signInButtonWidth;
       _fontSize = 15.0;
       _imageSize = !mini ? 24.0 : 30.0;
     } else if (buttonSize == ButtonSize.medium) {
       padding ??= !mini ? 5.5 : 6.5;
-      width ??= 220;
+      width ??= TRGeneral.signInButtonWidth + 20;
       _fontSize = 17.0;
       _imageSize = !mini ? 28.0 : 34.0;
     } else {
       padding ??= !mini ? 6.0 : 7.0;
-      width ??= 250;
+      width ??= TRGeneral.signInButtonWidth + 50;
       _fontSize = 19.0;
       _imageSize = !mini ? 32.0 : 38.0;
     }
@@ -226,145 +227,145 @@ class SignInButton extends StatelessWidget {
 
     switch (buttonType) {
       case ButtonType.facebook:
-        btnText ??= 'Sign in with Facebook';
+        btnText ??= TRGeneral.signInWith("Facebook");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF1877F2);
         break;
 
       case ButtonType.facebookDark:
-        btnText ??= 'Sign in with Facebook';
+        btnText ??= TRGeneral.signInWith("Facebook");
         btnTextColor ??= Colors.white;
         btnColor ??= Colors.black;
         break;
 
       case ButtonType.github:
-        btnText ??= 'Sign in with Github';
+        btnText ??= TRGeneral.signInWith("Github");
         btnTextColor ??= Colors.black87;
         btnColor ??= Colors.white;
         break;
 
       case ButtonType.githubDark:
-        btnText ??= "Sign in with Github";
+        btnText ??= TRGeneral.signInWith("Github");
         btnTextColor ??= Colors.white70;
         btnColor ??= const Color(0xff212121);
         break;
 
       case ButtonType.pinterest:
-        btnText ??= 'Sign in with Pinterest';
+        btnText ??= TRGeneral.signInWith("Pinterest");
         btnTextColor ??= Colors.white;
         btnColor ??= Colors.redAccent;
         break;
 
       case ButtonType.apple:
-        btnText ??= 'Sign in with Apple';
+        btnText ??= TRGeneral.signInWith("Apple");
         btnTextColor ??= Colors.black;
         btnColor ??= const Color(0xfff7f7f7);
         break;
 
       case ButtonType.appleDark:
-        btnText ??= 'Sign in with Apple';
+        btnText ??= TRGeneral.signInWith("Apple");
         btnTextColor ??= Colors.white;
         btnColor ??= Colors.black;
         break;
 
       case ButtonType.twitter:
-        btnText ??= 'Sign in with Twitter';
+        btnText ??= TRGeneral.signInWith("Twitter");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF1DA1F2);
         break;
 
       case ButtonType.linkedin:
-        btnText ??= 'Sign in with LinkedIn';
+        btnText ??= TRGeneral.signInWith("LinkedIn");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF3282B8);
         break;
 
       case ButtonType.google:
-        btnText ??= 'Sign in with Google';
+        btnText ??= TRGeneral.signInWith("Google");
         btnTextColor ??= Colors.black;
         btnColor ??= const Color(0xfff7f7f7);
         break;
 
       case ButtonType.googleDark:
-        btnText ??= 'Sign in with Google';
+        btnText ??= TRGeneral.signInWith("Google");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF4285F4);
         break;
 
       case ButtonType.youtube:
-        btnText ??= 'Sign in with Youtube';
+        btnText ??= TRGeneral.signInWith("Youtube");
         btnTextColor ??= Colors.black;
         btnColor ??= Colors.white;
         break;
 
       case ButtonType.microsoft:
-        btnText ??= 'Sign in with Microsoft';
+        btnText ??= TRGeneral.signInWith("Microsoft");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF2F2F2F);
         break;
 
       case ButtonType.tumblr:
-        btnText ??= 'Sign in with Tumblr';
+        btnText ??= TRGeneral.signInWith("Tumblr");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF0F4C75);
         break;
 
       case ButtonType.email:
-        btnText ??= 'Sign in with Email';
+        btnText ??= TRGeneral.signInWith("Email");
         btnTextColor ??= Colors.black;
         btnColor ??= Colors.white;
         break;
 
       case ButtonType.emailDark:
-        btnText ??= 'Sign in with Email';
+        btnText ??= TRGeneral.signInWith("Email");
         btnTextColor ??= Colors.white;
         btnColor ??= Colors.grey[800];
         break;
 
       case ButtonType.account:
-        btnText ??= 'Create Account';
+        btnText ??= TRSignIn.createAccount;
         btnTextColor ??= Colors.black;
         btnColor ??= Colors.white;
         break;
 
       case ButtonType.accountDark:
-        btnText ??= 'Create Account';
+        btnText ??= TRSignIn.createAccount;
         btnTextColor ??= Colors.white;
         btnColor ??= Colors.grey[800];
         break;
 
       case ButtonType.mail:
-        btnText ??= 'Sign in with Mail';
+        btnText ??= TRGeneral.signInWith("Mail");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF20639B);
         break;
 
       case ButtonType.reddit:
-        btnText ??= 'Sign in with Reddit';
+        btnText ??= TRGeneral.signInWith("Reddit");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFFC85417);
         break;
 
       case ButtonType.yahoo:
-        btnText ??= 'Sign in with Yahoo';
+        btnText ??= TRGeneral.signInWith("Yahoo");
         btnTextColor ??= Colors.white;
         btnColor ??= const Color(0xFF7C5295);
         break;
 
       case ButtonType.amazon:
-        btnText ??= 'Sign in with Amazon';
+        btnText ??= TRGeneral.signInWith("Amazon");
         btnTextColor ??= Colors.black87;
         btnColor ??= Colors.white;
         break;
 
       case ButtonType.quora:
-        btnText ??= 'Sign in with Quora';
+        btnText ??= TRGeneral.signInWith("Quora");
         btnTextColor ??= Colors.black87;
         btnColor ??= Colors.white;
         break;
 
       case ButtonType.instagram:
-        btnText ??= 'Sign in with Instagram';
+        btnText ??= TRGeneral.signInWith("Instagram");
         btnTextColor ??= Colors.black87;
         btnColor ??= Colors.white;
         break;

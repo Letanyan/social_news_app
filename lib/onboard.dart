@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:social_news_app/email_verification_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
@@ -105,18 +106,18 @@ class _OnboardState extends State<Onboard> {
 
     final list = ListView(
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.all(8),
           child: Text(
-            "Follow Tags",
+            TROnboard.followTags,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
         tags,
-        const Padding(
+        Padding(
           padding: EdgeInsets.all(8),
           child: Text(
-            "Follow Sources",
+            TROnboard.followSources,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
@@ -139,12 +140,12 @@ class _OnboardState extends State<Onboard> {
           route(builder: (context) => page),
         );
       },
-      child: const Text("Done"),
+      child: Text(TRGeneral.done),
     );
 
     final page = Scaffold(
       appBar: AppBar(
-        title: const Text("Getting Started"),
+        title: Text(TRGeneral.gettingStarted),
         actions: selectedAgents.isEmpty && selectedTags.isEmpty ? [] : [done],
       ),
       body: list,

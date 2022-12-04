@@ -1461,9 +1461,9 @@ NSError err(String message) {
   return NSError(message: message);
 }
 
-final unknownError = err("An unknown error has occurred");
-final userNotSignedIn = err("No user appears to be signed in");
-final contentLengthTooLong = err("Message length too long");
+final unknownError = err(TRError.unknown);
+final userNotSignedIn = err(TRError.notSignedIn);
+final contentLengthTooLong = err(TRError.tooLong);
 
 void addS(String name, String? value, List<String> args) {
   if (value != null) {
@@ -1649,21 +1649,21 @@ String sortOrderPresentation(SortOrder so) {
 String flagReasonToString(FlagReason fr) {
   switch (fr) {
     case FlagReason.sexual:
-      return "Sexual Content";
+      return TRFlagReason.sexual;
     case FlagReason.violent:
-      return "Violent Content";
+      return TRFlagReason.violent;
     case FlagReason.hateful:
-      return "Hateful Content";
+      return TRFlagReason.hateful;
     case FlagReason.harassment:
-      return "Harassing Content";
+      return TRFlagReason.harrasment;
     case FlagReason.harmful:
-      return "Harmful Content";
+      return TRFlagReason.harmful;
     case FlagReason.abuse:
-      return "Abusive Content";
+      return TRFlagReason.abusive;
     case FlagReason.spam:
-      return "Spam";
+      return TRFlagReason.spam;
     case FlagReason.other:
-      return "Other";
+      return TRFlagReason.other;
   }
 }
 
@@ -1705,11 +1705,11 @@ String flagHandleKind(FlagHandle handle) {
 String userVoteKindToString(UserVoteKind uvk) {
   switch (uvk) {
     case UserVoteKind.post:
-      return "Post";
+      return TRGeneral.postNoun;
     case UserVoteKind.review:
-      return "Review";
+      return TRGeneral.critique;
     case UserVoteKind.comment:
-      return "Comment";
+      return TRGeneral.commentNoun;
   }
 }
 

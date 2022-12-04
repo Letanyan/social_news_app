@@ -109,7 +109,7 @@ class HomeViewState extends State<HomeView>
                 actions: [
                   ElevatedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text(TRHome.addCreditsAccept),
+                    child: Text(TRGeneral.gotIt),
                   )
                 ],
               ),

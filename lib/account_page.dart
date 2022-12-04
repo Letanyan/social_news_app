@@ -4,6 +4,7 @@ import 'package:social_news_app/flags_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/news_agent_page.dart';
@@ -56,7 +57,7 @@ class _AccountPageState extends State<AccountPage> {
     return () {
       late final String title;
       if (kind == ContentKind.comment && isReview) {
-        title = "Critiques";
+        title = TRGeneral.critiques;
       } else {
         title = contentKindToString(kind);
       }
@@ -85,7 +86,7 @@ class _AccountPageState extends State<AccountPage> {
           return true;
         },
         child: Scaffold(
-          appBar: AppBar(title: const Text("Account")),
+          appBar: AppBar(title: Text(TRGeneral.account)),
           body: SettingsPage(homeView: widget.homeView),
         ),
       );
@@ -117,7 +118,8 @@ class _AccountPageState extends State<AccountPage> {
     final Widget? action;
     final isOwner = widget.user.id == User.current?.id;
     if (isOwner) {
-      final credit = Text("Credits: ${User.current!.creditAmount()}");
+      final credit =
+          Text("${TRGeneral.credits}: ${User.current!.creditAmount()}");
       action = TextButton(
         onPressed: () {
           User.removeUser();
@@ -125,14 +127,14 @@ class _AccountPageState extends State<AccountPage> {
           Navigator.pop(context);
           Navigator.push(context, route(builder: (c) => const MainApp()));
         },
-        child: const Text("Logout"),
+        child: Text(TRGeneral.signOut),
       );
       final col = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           credit,
-          Text("Reputation: ${widget.user.calculateScore()}"),
-          Text("Credibility: ${widget.user.calculateCred()}"),
+          Text("${TRGeneral.reputation}: ${widget.user.calculateScore()}"),
+          Text("${TRGeneral.credibility}: ${widget.user.calculateCred()}"),
         ],
       );
       subtitle = InkWell(
@@ -149,13 +151,14 @@ class _AccountPageState extends State<AccountPage> {
       subtitle = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Reputation: ${widget.user.calculateScore()}"),
-          Text("Credibility: ${widget.user.calculateCred()}"),
+          Text("${TRGeneral.reputation}: ${widget.user.calculateScore()}"),
+          Text("${TRGeneral.credibility}: ${widget.user.calculateCred()}"),
         ],
       );
       action = widget.user.followButton(context, () => setState(() {}));
     }
-    final display = widget.user.name.isEmpty ? "Anonymous" : widget.user.name;
+    final display =
+        widget.user.name.isEmpty ? TRGeneral.anonymous : widget.user.name;
     final name = ListTile(
       title: widget.user.isAgent
           ? Row(
@@ -171,7 +174,7 @@ class _AccountPageState extends State<AccountPage> {
     );
 
     final userPosts = ListTile(
-        title: const Text("Posts"),
+        title: Text(TRGeneral.posts),
         onTap: showUserContPage(
           context,
           ContentKind.post,
@@ -179,7 +182,7 @@ class _AccountPageState extends State<AccountPage> {
           false,
         ));
     final userComments = ListTile(
-      title: const Text("Comments"),
+      title: Text(TRGeneral.comments),
       onTap: showUserContPage(
         context,
         ContentKind.comment,
@@ -188,7 +191,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
     final userReviews = ListTile(
-      title: const Text("Critiques"),
+      title: Text(TRGeneral.critiques),
       onTap: showUserContPage(
         context,
         ContentKind.comment,
@@ -198,7 +201,7 @@ class _AccountPageState extends State<AccountPage> {
     );
 
     final viewed = ListTile(
-      title: const Text("Viewed"),
+      title: Text(TRAccountPage.viewed),
       onTap: showUserContPage(
         context,
         ContentKind.post,
@@ -207,7 +210,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
     final readLater = ListTile(
-      title: const Text("Read Later"),
+      title: Text(TRAccountPage.readLater),
       onTap: showUserContPage(
         context,
         ContentKind.post,
@@ -216,7 +219,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
     final following = ListTile(
-      title: const Text("Users Following"),
+      title: Text(TRAccountPage.usersFollowing),
       onTap: showUserContPage(
         context,
         ContentKind.user,
@@ -225,7 +228,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
     final ignored = ListTile(
-      title: const Text("Ignored"),
+      title: Text(TRAccountPage.usersIgnored),
       onTap: showUserContPage(
         context,
         ContentKind.user,
@@ -234,7 +237,7 @@ class _AccountPageState extends State<AccountPage> {
       ),
     );
     final favourites = ListTile(
-      title: const Text("Tags Following"),
+      title: Text(TRAccountPage.tagsFollowing),
       onTap: showUserContPage(
         context,
         ContentKind.tag,
@@ -244,22 +247,22 @@ class _AccountPageState extends State<AccountPage> {
     );
 
     final votedPosts = ListTile(
-      title: const Text("Posts"),
+      title: Text(TRGeneral.posts),
       onTap: showUserPrefPage(context, ContentKind.post, false),
     );
     final votedUsers = ListTile(
-      title: const Text("Users"),
+      title: Text(TRGeneral.users),
       onTap: showUserPrefPage(context, ContentKind.user, false),
     );
     final votedTags = ListTile(
-        title: const Text("Tags"),
+        title: Text(TRGeneral.tags),
         onTap: showUserPrefPage(context, ContentKind.tag, false));
     final votedComments = ListTile(
-        title: const Text("Comments"),
+        title: Text(TRGeneral.comments),
         onTap: showUserPrefPage(context, ContentKind.comment, false));
 
     final settings = ListTile(
-      title: const Text("Settings"),
+      title: Text(TRGeneral.settings),
       onTap: showSettingsPage(context),
     );
     final postFlags = ListTile(
@@ -278,8 +281,12 @@ class _AccountPageState extends State<AccountPage> {
     if (NewSource.isDebug) {
       if (isOwner) {
         settingsSection.add(const Divider(thickness: 1));
-        settingsSection.add(const Padding(
-            padding: EdgeInsets.all(8), child: Text("Preferences")));
+        settingsSection.add(
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: Text(TRGeneral.preferences),
+          ),
+        );
         settingsSection.add(const Divider(thickness: 1));
         settingsSection.add(settings);
         if (User.current?.id == -1 && NewSource.isDebug) {
@@ -293,13 +300,19 @@ class _AccountPageState extends State<AccountPage> {
     final list = ListView(children: [
       name,
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Created Content")),
+      Padding(
+        padding: EdgeInsets.all(8),
+        child: Text(TRAccountPage.createdContent),
+      ),
       const Divider(thickness: 1),
       userPosts,
       userComments,
       userReviews,
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Collections")),
+      Padding(
+        padding: EdgeInsets.all(8),
+        child: Text(TRAccountPage.collections),
+      ),
       const Divider(thickness: 1),
       viewed,
       readLater,
@@ -307,7 +320,10 @@ class _AccountPageState extends State<AccountPage> {
       ignored,
       favourites,
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Voted For")),
+      Padding(
+        padding: EdgeInsets.all(8),
+        child: Text(TRAccountPage.votedFor),
+      ),
       const Divider(thickness: 1),
       votedPosts,
       votedUsers,
@@ -328,12 +344,12 @@ enum ContentKind { post, comment, user, tag }
 String contentKindToString(ContentKind ck) {
   switch (ck) {
     case ContentKind.comment:
-      return "Comments";
+      return TRGeneral.comments;
     case ContentKind.post:
-      return "Posts";
+      return TRGeneral.posts;
     case ContentKind.user:
-      return "Users";
+      return TRGeneral.users;
     case ContentKind.tag:
-      return "Tags";
+      return TRGeneral.tags;
   }
 }

@@ -187,14 +187,6 @@ class _UserPrefPageState extends State<UserPrefPage> {
     oldItems = Future(() => oldPosts);
   }
 
-  Widget makeList() {
-    return ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return const ListTile(title: Text("Test"));
-        });
-  }
-
   void updateState() {
     setState(() {});
   }

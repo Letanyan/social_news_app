@@ -30,7 +30,7 @@ class MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     MyTheme.loadThemeData();
     return MaterialApp(
-      title: 'New Source',
+      title: TRGeneral.newSource,
       debugShowCheckedModeBanner: false,
       scrollBehavior: TouchAndMouseScrollBehaviour(),
       theme: ThemeData(
@@ -39,7 +39,7 @@ class MainAppState extends State<MainApp> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('New Source'),
+          title: Text(TRGeneral.newSource),
         ),
         body: const LoginPage(),
       ),

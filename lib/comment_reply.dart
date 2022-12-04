@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -173,7 +174,10 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       } else if (widget.post != null) {
         preview = widget.post!.card(context, updateState);
         final sel = CupertinoSlidingSegmentedControl(
-          children: const {false: Text("Comment"), true: Text("Critique")},
+          children: {
+            false: Text(TRGeneral.discussion),
+            true: Text(TRGeneral.critique)
+          },
           groupValue: isReview,
           onValueChanged: (value) {
             isReview = value ?? false;
@@ -191,13 +195,14 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       preview = const SizedBox();
     }
     String hintText = isCreation
-        ? "Create Post"
+        ? TRCommentsPage.createPost
         : isReview
-            ? "Critique Post"
-            : "Enter a Reply";
-    final editingKind = widget.post != null ? "Post" : "Comment";
+            ? TRCommentsPage.critiquePost
+            : TRCommentsPage.enterReply;
     if (widget.isEdit) {
-      hintText = "Edit $editingKind";
+      hintText = widget.post != null
+          ? TRCommentsPage.editPost
+          : TRCommentsPage.editComment;
     }
     final input = TextField(
       keyboardType: TextInputType.multiline,
@@ -243,14 +248,14 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
             final text = controller.text;
             previewPost(context, text)();
           },
-          child: const Text("Preview"),
+          child: Text(TRGeneral.preview),
         );
       } else {
         action =
             IconButton(onPressed: replyToComment, icon: const Icon(Icons.edit));
       }
       bar = AppBar(
-        title: Text("Edit $editingKind"),
+        title: Text(hintText),
         actions: [action],
       );
     } else if (widget.comment == null && widget.post == null) {
@@ -263,11 +268,11 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
             final text = controller.text;
             previewPost(context, text)();
           },
-          child: const Text("Preview"),
+          child: Text(TRGeneral.preview),
         );
       }
       bar = AppBar(
-        title: const Text("Create Post"),
+        title: Text(TRCommentsPage.createPost),
         actions: [action],
       );
     } else {
@@ -282,7 +287,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       }
 
       bar = AppBar(
-        title: const Text("Reply"),
+        title: Text(TRGeneral.reply),
         actions: [action],
       );
     }
@@ -339,8 +344,8 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
   void Function() previewPost(BuildContext context, String content) {
     return () {
       if (User.current == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("You must sign in to make a post")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(TRCommentsPage.mustSignIn)));
         return;
       }
       Navigator.push(

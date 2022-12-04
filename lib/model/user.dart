@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/main.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -196,10 +197,10 @@ class User {
 
   static String validateLength(String name, String value, int min, int max) {
     if (value.length > max) {
-      return "$name must be at most $max characters long";
+      return TRSignUp.tooLong(name, max);
     }
     if (value.length < min) {
-      return "$name must be at least $min characters long";
+      return TRSignUp.tooShort(name, min);
     }
     return "";
   }
@@ -299,12 +300,12 @@ class Author {
             .id !=
         User.current?.id;
     final actionText = User.current == null
-        ? "Sign In"
+        ? TRGeneral.signIn
         : isIgnored
-            ? "Don't Ignore"
+            ? TRGeneral.doNotIgnore
             : isFollowing
-                ? "Unfollow"
-                : "Follow";
+                ? TRGeneral.unfollow
+                : TRGeneral.follow;
     final action = TextButton(
       onPressed: () async {
         if (User.current == null) {

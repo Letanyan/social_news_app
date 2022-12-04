@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/iap.dart';
+import 'package:social_news_app/model/locale.dart';
 
 class PurchaseCredit extends StatefulWidget {
   const PurchaseCredit({super.key});
@@ -29,11 +30,11 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
         if (snapshot.hasData) {
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
             return AlertDialog(
-              content: const Text("Unable to Connect to Store"),
+              content: Text(TRPurchaseCredit.unableToConnect),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                  child: Text(TRGeneral.cancel),
                 ),
               ],
             );
@@ -50,7 +51,7 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
               .toList();
 
           return AlertDialog(
-            title: const Text("Purchase Credits"),
+            title: Text(TRPurchaseCredit.purchaseCredits),
             content: SingleChildScrollView(
               child: Column(children: items),
             ),
@@ -59,7 +60,7 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: const Text("Close"),
+                child: Text(TRGeneral.close),
               ),
             ],
           );
@@ -72,7 +73,7 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text(TRGeneral.cancel),
             ),
           ],
         );

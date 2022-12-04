@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
@@ -43,7 +44,8 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       f();
 
-      String un = User.validateLength("username", controller.text, 3, 15);
+      String un = User.validateLength(
+          TRGeneral.displayName.toLowerCase(), controller.text, 3, 15);
       if (un.isEmpty) {
         User.current!.name = controller.text;
       }
@@ -99,10 +101,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget buildThemeMode(BuildContext context, ThemeMode mode, int index) {
     return RadioListTile<ThemeMode>(
       title: Text(mode == ThemeMode.system
-          ? "System"
+          ? TRGeneral.system
           : mode == ThemeMode.dark
-              ? "Dark"
-              : "Light"),
+              ? TRGeneral.dark
+              : TRGeneral.light),
       value: mode,
       groupValue: MyTheme.mode,
       onChanged: (mode) async {
@@ -118,7 +120,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget buildSafeMode(BuildContext context, bool safe) {
     return SwitchListTile(
-      title: const Text("Preview image from only 'safe' sources"),
+      title: Text(TRSettings.safeImage),
       value: MyTheme.safe,
       onChanged: (safe) {
         setState(() {
@@ -133,15 +135,14 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget buildDeleteAccount(BuildContext context) {
     return ListTile(
       leading: Icon(Icons.delete_forever_rounded),
-      title: Text("Delete Account"),
+      title: Text(TRSettings.deleteAccount),
       onTap: () {
         showPlatformDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text("Delete Account"),
-              content: Text(
-                  "Are you sure you want to permanently delete your account? All your data will be permanently deleted and can not be recovered."),
+              title: Text(TRSettings.deleteAccount),
+              content: Text(TRSettings.areYouSureDelete),
               actions: [
                 TextButton(
                   style: ButtonStyle(
@@ -149,14 +150,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         MyTheme.isDark ? Colors.white : Colors.black),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text("Cancel"),
+                  child: Text(TRGeneral.cancel),
                 ),
                 ElevatedButton(
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(Colors.red),
                     ),
                     onPressed: null,
-                    child: Text("Delete")),
+                    child: Text(TRGeneral.delete)),
               ],
             );
           },
@@ -169,18 +170,23 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return ListView(children: [
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Account Details")),
+      Padding(
+        padding: EdgeInsets.all(8),
+        child: Text(TRSettings.accountDetails),
+      ),
       const Divider(thickness: 1),
       Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
-            const Text("Display Name: "),
+            Text("${TRGeneral.displayName}: "),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
                 controller: controller,
-                decoration: const InputDecoration(hintText: "name"),
+                decoration: InputDecoration(
+                  hintText: TRGeneral.displayName.toLowerCase(),
+                ),
                 onChanged: (value) => updateState(() {}),
               ),
             ),
@@ -188,7 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Theme")),
+      Padding(padding: EdgeInsets.all(8), child: Text(TRSettings.theme)),
       const Divider(thickness: 1),
       SizedBox(
         height: 48,
@@ -223,23 +229,24 @@ class _SettingsPageState extends State<SettingsPage> {
       buildThemeMode(context, ThemeMode.dark, 1),
       buildThemeMode(context, ThemeMode.light, 2),
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Safe Mode")),
+      Padding(padding: EdgeInsets.all(8), child: Text(TRSettings.safeMode)),
       const Divider(thickness: 1),
       buildSafeMode(context, MyTheme.safe),
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Permissions")),
+      Padding(padding: EdgeInsets.all(8), child: Text(TRSettings.permission)),
       const Divider(thickness: 1),
-      publicContSetting("Public Read Later", UserContKind.readLater),
-      publicContSetting("Public Viewed Posts", UserContKind.viewed),
-      publicContSetting("Public Followed Users", UserContKind.userFollow),
-      publicContSetting("Public Ignored Users", UserContKind.ignored),
-      publicContSetting("Public Followed Tags", UserContKind.tagFollow),
-      publicPrefSetting("Public Voted For Posts", UserPrefKind.post),
-      publicPrefSetting("Public Voted For Comments", UserPrefKind.comment),
-      publicPrefSetting("Public Voted For Users", UserPrefKind.user),
-      publicPrefSetting("Public Voted For Tags", UserPrefKind.tag),
+      publicContSetting(TRSettings.publicReadLater, UserContKind.readLater),
+      publicContSetting(TRSettings.publicViewedPosts, UserContKind.viewed),
+      publicContSetting(
+          TRSettings.publicFollowedUsers, UserContKind.userFollow),
+      publicContSetting(TRSettings.publicIgnoredUsers, UserContKind.ignored),
+      publicContSetting(TRSettings.publicFollowedTags, UserContKind.tagFollow),
+      publicPrefSetting(TRSettings.publicVotedPosts, UserPrefKind.post),
+      publicPrefSetting(TRSettings.publicVotedComments, UserPrefKind.comment),
+      publicPrefSetting(TRSettings.publicVotedUsers, UserPrefKind.user),
+      publicPrefSetting(TRSettings.publicVotedTags, UserPrefKind.tag),
       const Divider(thickness: 1),
-      const Padding(padding: EdgeInsets.all(8), child: Text("Actions")),
+      Padding(padding: EdgeInsets.all(8), child: Text(TRSettings.actions)),
       const Divider(thickness: 1),
       buildDeleteAccount(context),
     ]);

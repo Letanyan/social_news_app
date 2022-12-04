@@ -4,6 +4,7 @@ import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -75,7 +76,7 @@ class Comment {
     return () {
       NewSource.getPost(postId).then(((value) {
         final page = Scaffold(
-          appBar: AppBar(title: const Text("Comments")),
+          appBar: AppBar(title: Text(TRGeneral.comments)),
           body: CommentsPage(post: value, scrollComments: this),
         );
         Navigator.push(
@@ -185,7 +186,7 @@ class Comment {
     final creator = buildCreator(context);
     final date = Text(
       edited.isAfter(createdAt)
-          ? "edited ${formatDateTime(edited)}"
+          ? "${TRGeneral.edited} ${formatDateTime(edited)}"
           : formatDateTime(createdAt),
       style: const TextStyle(color: Colors.grey),
     );
@@ -241,17 +242,17 @@ class Comment {
     final removeComment = PopupMenuItem(
       onTap: () {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Removed")));
+            .showSnackBar(SnackBar(content: Text(TRGeneral.removed)));
         trashed = true;
         updateState();
         NewSource.deleteComment(postId, id);
       },
-      child: const Text("Remove"),
+      child: Text(TRGeneral.remove),
     );
     final editComment = PopupMenuItem(
       value: 3517,
       onTap: () {},
-      child: const Text("Edit"),
+      child: Text(TRGeneral.edit),
     );
     final userActionsList = <PopupMenuItem>[];
     if (author.id == User.current?.id ||
@@ -278,7 +279,7 @@ class Comment {
               builder: (context) => FlagDialog(pid: postId, sid: id),
             );
           },
-          child: const Text("Report"),
+          child: Text(TRGeneral.report),
         ),
       ],
     );

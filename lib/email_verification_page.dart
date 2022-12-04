@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -25,15 +26,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       fontFamily: "Helvetica",
       fontWeight: FontWeight.normal,
     );
-    final message = Parser.basic(defaultStyle).parse(
-        "Please click the verification link in the email sent to you "
-        "(**${User.current!.email}**). If you did not receive "
-        "an email you can resend the link by pressing the "
-        "**Resend Verification Link** button below. Ensure that the email is "
-        "not in the Junk folder.\n\n"
-        "Without having a verified account you will not have functionality "
-        "which allows you to participate in the New Source community.",
-        {});
+    final message = Parser.basic(defaultStyle)
+        .parse(TREmailVerify.message(User.current?.email ?? ""), {});
 
     final resend = ElevatedButton(
       onPressed: () async {
@@ -43,13 +37,13 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         await NewSource.sendVerificationLink(
             User.current!.id, User.current!.email, User.current!.validationKey);
       },
-      child: const Text("Resend Verification Link"),
+      child: Text(TREmailVerify.resend),
     );
 
     final ignore = ElevatedButton(
       onPressed: () =>
           Navigator.push(context, route(builder: (c) => const HomeView())),
-      child: const Text("Got It"),
+      child: Text(TRGeneral.gotIt),
     );
 
     final body = ListView(children: [
@@ -62,7 +56,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
     final page = Scaffold(
       appBar: AppBar(
-        title: const Text("Email Verification"),
+        title: Text(TREmailVerify.verifyEmail),
         automaticallyImplyLeading: false,
       ),
       body: Padding(padding: const EdgeInsets.all(16), child: body),

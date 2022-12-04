@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
@@ -218,7 +219,7 @@ class _CommentsPageState extends State<CommentsPage> {
         // some parent comment was deleted so impossible to show thread
         scrollToComment = null;
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Comment thread was deleted")));
+            SnackBar(content: Text(TRCommentsPage.threadWasDeleted)));
         break;
       }
       comments[oldChain] = [];
@@ -289,16 +290,16 @@ class _CommentsPageState extends State<CommentsPage> {
       autofocus: true,
       controller: controller,
       onSubmitted: (value) => replyToComment(),
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         border: OutlineInputBorder(),
-        hintText: 'Enter a reply',
+        hintText: TRCommentsPage.enterReply,
       ),
     );
     final send = Padding(
       padding: const EdgeInsets.all(8),
       child: TextButton(
         onPressed: () => replyToComment(),
-        child: const Text("Reply"),
+        child: Text(TRGeneral.reply),
       ),
     );
     final cancel = Padding(
@@ -308,7 +309,7 @@ class _CommentsPageState extends State<CommentsPage> {
           replyingTo = null;
           updateState();
         },
-        child: const Text("Cancel"),
+        child: Text(TRGeneral.cancel),
       ),
     );
     final actions = Column(
@@ -332,7 +333,10 @@ class _CommentsPageState extends State<CommentsPage> {
         final card = widget.post.card(context, updateState);
         final sel = CupertinoSlidingSegmentedControl(
           key: selectorKey,
-          children: const {false: Text("Discussion"), true: Text("Critique")},
+          children: {
+            false: Text(TRGeneral.discussion),
+            true: Text(TRGeneral.critique),
+          },
           groupValue: isReview,
           onValueChanged: (value) {
             final didChange = value != isReview && value != null;
@@ -403,8 +407,8 @@ class _CommentsPageState extends State<CommentsPage> {
                   padding: const EdgeInsets.all(32),
                   child: Text(
                     isReview
-                        ? "No Critiques. Be the First to Evaluate the Post."
-                        : "No Comments. Be the First to Start the Discussion.",
+                        ? TRCommentsPage.noCritiques
+                        : TRCommentsPage.noDiscussion,
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),

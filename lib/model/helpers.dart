@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/tag.dart';
@@ -33,7 +34,7 @@ Future<void> launchURL(String url) async {
     return;
   }
   if (!await launchUrlString(url, mode: LaunchMode.externalApplication)) {
-    throw err("Could not launch website");
+    throw err(TRHelper.launchWebFailed);
   }
 }
 
@@ -46,11 +47,11 @@ String formatDate(DateTime date) {
   if (sameYear) {
     if (sameMonth) {
       if (sameDay) {
-        return "Today";
+        return TRHelper.today;
       } else if ((today.day - date.day).abs() == 1) {
-        return "Yesterday";
+        return TRHelper.yesterday;
       } else if ((today.day - date.day).abs() < 7) {
-        return "Last ${DateFormat.EEEE().format(date)}";
+        return "${TRHelper.last} ${DateFormat.EEEE().format(date)}";
       } else {
         return DateFormat.MMMEd().format(date);
       }
@@ -79,18 +80,18 @@ String formatDateTime(DateTime date) {
     if (sameMonth) {
       if (sameDay) {
         if (sameHour) {
-          return "${diff.inMinutes}m";
+          return "${diff.inMinutes}${TRHelper.minute}";
         } else {
-          return "${diff.inHours}h";
+          return "${diff.inHours}${TRHelper.hour}";
         }
       } else {
-        return "${diff.inDays}d";
+        return "${diff.inDays}${TRHelper.day}";
       }
     } else {
-      return "${diff.inDays / 30}mon";
+      return "${diff.inDays / 30}${TRHelper.month}";
     }
   } else {
-    return "${diff.inDays / 365}y";
+    return "${diff.inDays / 365}${TRHelper.year}";
   }
 }
 
@@ -226,14 +227,13 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
           }
 
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-            const empty = Center(
+            final empty = Center(
               child: Text(
-                "No Results",
+                TRHelper.noResults,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             );
-            return const SliverList(
-                delegate: SliverChildListDelegate.fixed([empty]));
+            return SliverList(delegate: SliverChildListDelegate.fixed([empty]));
           }
 
           final list = SliverList(

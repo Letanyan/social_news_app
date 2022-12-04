@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/mod_packages/sign_button.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -24,13 +25,13 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool validateLength(String name, String value, int min, int max) {
     if (value.length > max) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("$name must be at most $max characters long")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(TRSignUp.tooLong(name, max))));
       return false;
     }
     if (value.length < min) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("$name must be at least $min characters long")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(TRSignUp.tooShort(name, min))));
       return false;
     }
     return true;
@@ -44,19 +45,19 @@ class _SignUpPageState extends State<SignUpPage> {
       final em = emailController.text;
 
       if (p1 != p2) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("passwords do not match")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(TRSignUp.passwordMismatch)));
         return;
       }
-      if (!validateLength("username", un, 3, 15)) {
+      if (!validateLength(TRGeneral.displayName.toLowerCase(), un, 3, 15)) {
         return;
       }
-      if (!validateLength("password", p1, 8, 2048)) {
+      if (!validateLength(TRGeneral.password.toLowerCase(), p1, 8, 2048)) {
         return;
       }
       if (!RegexPatterns.email.hasMatch(em)) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("email address appears to be invalid")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(TRSignUp.emailInvalid)));
         return;
       }
 
@@ -92,21 +93,22 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     var username = TextField(
       controller: usernameController,
-      decoration: const InputDecoration(labelText: "Username"),
+      decoration: InputDecoration(labelText: TRGeneral.displayName.toTitleCase),
     );
     var email = TextField(
       controller: emailController,
-      decoration: const InputDecoration(labelText: "Email"),
+      decoration: InputDecoration(labelText: TRGeneral.email.toTitleCase),
     );
     var password = TextField(
       controller: passwordController,
       obscureText: true,
-      decoration: const InputDecoration(labelText: "Password"),
+      decoration: InputDecoration(labelText: TRGeneral.password.toTitleCase),
     );
     var passwordValidate = TextField(
       controller: passwordValidateController,
       obscureText: true,
-      decoration: const InputDecoration(labelText: "Re-enter Password"),
+      decoration:
+          InputDecoration(labelText: TRGeneral.renterPassword.toTitleCase),
     );
     var create = SignInButton(
       shape: const RoundedRectangleBorder(

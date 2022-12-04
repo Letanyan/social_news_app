@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -46,25 +47,24 @@ class _FlagDialogState extends State<FlagDialog> {
     for (final s in FlagReason.values) {
       items.add(radioTile(s));
     }
-    items.add(const Text(
-        "Please provide a detailed description of why the content violates the community guidelines"));
+    items.add(Text(TRFlag.rationalDescription));
     items.add(
       TextField(
         controller: controller,
         maxLines: null,
-        decoration: const InputDecoration(labelText: "Rational"),
+        decoration: InputDecoration(labelText: TRFlag.rational),
       ),
     );
 
     return AlertDialog(
-      title: const Text("Report Content"),
+      title: Text(TRFlag.reportContent),
       content: SingleChildScrollView(
         child: Column(children: items),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
+          child: Text(TRGeneral.cancel),
         ),
         TextButton(
           onPressed: () {
@@ -79,7 +79,7 @@ class _FlagDialogState extends State<FlagDialog> {
             }
             Navigator.pop(context);
           },
-          child: const Text("Report"),
+          child: Text(TRGeneral.report),
         ),
       ],
     );
@@ -132,7 +132,7 @@ class FlaggedPost {
     final total = Text("$count Reports");
     final report = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.report, updateState),
-      child: const Text("Report"),
+      child: const Text("Police"),
     );
     final remove = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.remove, updateState),

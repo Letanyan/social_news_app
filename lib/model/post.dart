@@ -7,6 +7,7 @@ import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/tag.dart';
@@ -86,8 +87,8 @@ class Post {
       if (User.current?.readLater.contains(id) ?? false) {
         actions.add(IconButton(
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Post Marked as Read")));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(TRPosts.postMarkedRead)));
             markAsRead();
           },
           icon: const Icon(Icons.mark_chat_read),
@@ -96,7 +97,7 @@ class Post {
 
       final commentsPage = Scaffold(
         appBar: AppBar(
-          title: const Text("Comments"),
+          title: Text(TRGeneral.comments),
           actions: actions,
         ),
         body: CommentsPage(post: this, scrollComments: null),
@@ -117,7 +118,7 @@ class Post {
 
   void openSimilar(BuildContext context) {
     final postsPage = PostsPage(
-        title: "Similar",
+        title: TRGeneral.similar,
         forUser: User.current!.id,
         postId: id,
         order: SortOrder.score);
@@ -200,7 +201,8 @@ class Post {
 
   Widget buildDate(BuildContext context) {
     if (edited.isAfter(createdAt)) {
-      return Text("edited ${formatDateTime(edited)}");
+      return Text(
+          "${TRGeneral.edited.toLowerCase()} ${formatDateTime(edited)}");
     } else {
       return Text(formatDateTime(createdAt));
     }
@@ -213,7 +215,7 @@ class Post {
         NewSource.deletePost(id);
         Navigator.of(context).pop();
       },
-      child: const Text("Remove"),
+      child: Text(TRGeneral.remove),
     );
   }
 
@@ -245,10 +247,10 @@ class Post {
     return PopupMenuItem(
       onTap: () {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Added to Read Later")));
+            .showSnackBar(SnackBar(content: Text(TRPosts.addedToReadLater)));
         readLater();
       },
-      child: const Text("Read Later"),
+      child: Text(TRAccountPage.readLater),
     );
   }
 
@@ -256,15 +258,15 @@ class Post {
     return CustomSlidableAction(
       onPressed: (context) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Added to Read Later")));
+            .showSnackBar(SnackBar(content: Text(TRPosts.addedToReadLater)));
         readLater();
       },
       backgroundColor: Colors.blue,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.watch_later_outlined),
-          Text(textAlign: TextAlign.center, "Read Later")
+          Text(TRAccountPage.readLater, textAlign: TextAlign.center)
         ],
       ),
     );
@@ -284,27 +286,27 @@ class Post {
   PopupMenuItem buildIgnoreUser(BuildContext context) {
     return PopupMenuItem(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Posts From This User Will Be Ignored")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(TRPosts.confirmIgnoreUser)));
         ignoreUser();
       },
-      child: const Text("Ignore User"),
+      child: Text(TRPosts.ignoreUser),
     );
   }
 
   Widget buildIgnoreUserSlide(BuildContext context) {
     return CustomSlidableAction(
       onPressed: (context) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Posts From This User Will Be Ignored")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(TRPosts.confirmIgnoreUser)));
         ignoreUser();
       },
       backgroundColor: Colors.orange,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.block),
-          Text(textAlign: TextAlign.center, "Ignore User")
+          Text(TRPosts.ignoreUser, textAlign: TextAlign.center)
         ],
       ),
     );
@@ -320,7 +322,7 @@ class Post {
   PopupMenuItem buildReport(BuildContext context) {
     return PopupMenuItem(
       onTap: () => report(context),
-      child: const Text("Report"),
+      child: Text(TRGeneral.report),
     );
   }
 
@@ -330,9 +332,9 @@ class Post {
       backgroundColor: Colors.red,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.flag),
-          Text(textAlign: TextAlign.center, "Report")
+          Text(TRGeneral.report, textAlign: TextAlign.center)
         ],
       ),
     );
@@ -342,7 +344,7 @@ class Post {
     return PopupMenuItem(
       value: 3517,
       onTap: () {},
-      child: const Text("Edit"),
+      child: Text(TRGeneral.edit),
     );
   }
 
