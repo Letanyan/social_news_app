@@ -191,11 +191,17 @@ class FlaggedPost {
         scrollDirection: Axis.horizontal,
         child: Row(children: [
           block1,
+          SizedBox(width: 4),
           block2,
+          SizedBox(width: 4),
           block7,
+          SizedBox(width: 4),
           block14,
+          SizedBox(width: 4),
           block21,
+          SizedBox(width: 4),
           block28,
+          SizedBox(width: 4),
           perm
         ]),
       ),

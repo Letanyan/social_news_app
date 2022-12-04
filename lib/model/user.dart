@@ -358,7 +358,7 @@ class Author {
       {int? up, int? down}) {
     final title = Text(name);
     final upChip = buildVoteChip(context, upvotes, true);
-    final downChip = buildVoteChip(context, downvotes, true);
+    final downChip = buildVoteChip(context, downvotes, false);
     final follow = followButton(context, updateState);
     final votes = FittedBox(
         fit: BoxFit.contain, child: Row(children: [upChip, downChip]));

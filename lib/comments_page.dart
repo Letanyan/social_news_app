@@ -207,13 +207,21 @@ class _CommentsPageState extends State<CommentsPage> {
     // Add the comment chain to the comment selected by the user from scrollToComment
     var chain = scrollToComment?.replyId;
     while (chain != null && chain != 0) {
-      comments[chain] = [];
+      final oldChain = chain;
       for (final c in allCommentsLoaded) {
         if (c.id == chain) {
           chain = c.replyId;
           break;
         }
       }
+      if (chain == scrollToComment?.replyId) {
+        // some parent comment was deleted so impossible to show thread
+        scrollToComment = null;
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Comment thread was deleted")));
+        break;
+      }
+      comments[oldChain] = [];
     }
 
     comments = <int, List<Comment>>{};

@@ -79,7 +79,6 @@ class _PostPreviewState extends State<PostPreview> {
 
   @override
   Widget build(BuildContext context) {
-    print("Build Preview");
     final currentTime = DateTime.now();
     final previewPost = Post(
       id: -1,

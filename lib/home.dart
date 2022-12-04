@@ -5,11 +5,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:get/get.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/iap.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/search.dart';
@@ -102,15 +104,13 @@ class HomeViewState extends State<HomeView>
             showPlatformDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text(
-                  "Added $amount Credits",
-                ),
-                content: Text(
-                    "$amount Credits added for daily login. Login again tomorrow for an additional $nextAmount credits from your streak."),
+                title: Text(TRHome.addCreditsTitle(amount)),
+                content: Text(TRHome.addCreditsBody(amount, nextAmount)),
                 actions: [
                   ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("Got It"))
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(TRHome.addCreditsAccept),
+                  )
                 ],
               ),
             );
@@ -119,27 +119,28 @@ class HomeViewState extends State<HomeView>
         switch (index) {
           case 0:
             return PostsPage(
-                title: "For You",
+                title: TRGeneral.forYou,
                 order: SortOrder.score,
                 forUser: User.current?.id);
 
           case 1:
-            return const SearchPage(title: "Trending", isTrending: true);
+            return SearchPage(title: TRGeneral.trending, isTrending: true);
           case 2:
             return const CommentReplyPage(isEdit: false);
           case 3:
-            return const SearchPage(title: "Search", isTrending: false);
+            return SearchPage(title: TRGeneral.search, isTrending: false);
           case 4:
             return AccountPage(
                 homeView: this,
                 user: User.current?.toAuthor() ?? Author.fromInt(-1),
-                title: "Settings");
+                title: TRGeneral.settings);
         }
         return const SizedBox();
       },
     );
 
     return MaterialApp(
+      title: TRGeneral.newSource,
       debugShowCheckedModeBanner: false,
       scrollBehavior: TouchAndMouseScrollBehaviour(),
       theme: ThemeData(

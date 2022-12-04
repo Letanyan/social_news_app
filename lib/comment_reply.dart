@@ -235,7 +235,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     late AppBar? bar;
     if (widget.isEdit) {
       Widget action;
-      print("build: $isLoading");
       if (isLoading) {
         action = progressCircle;
       } else if (widget.post != null) {
@@ -256,7 +255,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       );
     } else if (widget.comment == null && widget.post == null) {
       Widget action;
-      print("build: $isLoading");
       if (isLoading) {
         action = progressCircle;
       } else {
@@ -274,7 +272,6 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       );
     } else {
       Widget action;
-      print("build: $isLoading");
       if (isLoading) {
         action = progressCircle;
       } else {

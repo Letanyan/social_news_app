@@ -290,26 +290,13 @@ class Comment {
         child: Row(children: buttonRowItems)));
 
     if (up != null && down != null) {
-      final upChip = Row(children: [
-        const Icon(
-          size: 12,
-          Icons.speaker,
-        ),
-        Text(" $up"),
-      ]);
-      final downChip = Row(children: [
-        const Icon(
-          size: 12,
-          Icons.back_hand,
-        ),
-        Text(" $down"),
-      ]);
+      final upChip = buildVoteChip(context, up, true);
+      final downChip = buildVoteChip(context, down, false);
 
       items.add(Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           upChip,
-          const SizedBox(width: 8),
           downChip,
           const SizedBox(width: 8),
         ],

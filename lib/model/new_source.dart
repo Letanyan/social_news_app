@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -8,9 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/news_agent.dart';
 import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/user_pref.dart';
+import 'package:get/get.dart';
 
 import 'user.dart';
 import 'tag.dart';
@@ -309,7 +312,8 @@ class NewSource {
           "userId": User.current!.id,
           "replyId": replyId,
           "content": content,
-          "isReview": isReview
+          "isReview": isReview,
+          "lang": Get.deviceLocale?.languageCode ?? "en",
         });
     if (obj == null) {
       throw unknownError;
@@ -342,6 +346,7 @@ class NewSource {
           "content": content,
           "location": loc,
           "isPreview": isPreview,
+          "lang": Get.deviceLocale?.languageCode ?? "en",
         });
     if (obj == null) {
       throw unknownError;
@@ -1256,6 +1261,17 @@ class NewSource {
     return obj["success"];
   }
 
+  static Future<bool> deleteUser(int userId) async {
+    final path = ["trash", "users", "$userId"];
+    var args = <String>[];
+    await addSecret(args);
+    final obj = await post(path, args, {});
+    if (obj == null) {
+      throw unknownError;
+    }
+    return obj["success"];
+  }
+
   //----------------------------------------------------------------------------
   // Flags
   //----------------------------------------------------------------------------
@@ -1608,25 +1624,25 @@ String sortOrderToString(SortOrder so) {
 String sortOrderPresentation(SortOrder so) {
   switch (so) {
     case SortOrder.score:
-      return "Score";
+      return TRSorting.score;
     case SortOrder.cred:
-      return "Credibility";
+      return TRSorting.credibility;
     case SortOrder.upvotes:
-      return "Upvotes";
+      return TRSorting.upvotes;
     case SortOrder.downvotes:
-      return "Downvotes";
+      return TRSorting.downvotes;
     case SortOrder.controversial:
-      return "Controversial";
+      return TRSorting.controversial;
     case SortOrder.createdAt:
-      return "Newly Created";
+      return TRSorting.newlyCreated;
     case SortOrder.updatedAt:
-      return "Recently Updated";
+      return TRSorting.recentlyUpdated;
     case SortOrder.updatedOn:
-      return "Recently Updated";
+      return TRSorting.recentlyUpdated;
     case SortOrder.addedOn:
-      return "Recently Added";
+      return TRSorting.recentlyAdded;
     case SortOrder.rank:
-      return "Relevance";
+      return TRSorting.relevance;
   }
 }
 

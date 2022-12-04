@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:social_news_app/login.dart';
 import 'package:social_news_app/model/geo.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Geo.init();
+  Get.updateLocale(Get.deviceLocale ?? Locale("en", "US"));
   runApp(const MainApp());
 }
 

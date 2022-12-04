@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -129,6 +130,41 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget buildDeleteAccount(BuildContext context) {
+    return ListTile(
+      leading: Icon(Icons.delete_forever_rounded),
+      title: Text("Delete Account"),
+      onTap: () {
+        showPlatformDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Delete Account"),
+              content: Text(
+                  "Are you sure you want to permanently delete your account? All your data will be permanently deleted and can not be recovered."),
+              actions: [
+                TextButton(
+                  style: ButtonStyle(
+                    foregroundColor: MaterialStateProperty.all(
+                        MyTheme.isDark ? Colors.white : Colors.black),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text("Cancel"),
+                ),
+                ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.red),
+                    ),
+                    onPressed: null,
+                    child: Text("Delete")),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView(children: [
@@ -202,6 +238,10 @@ class _SettingsPageState extends State<SettingsPage> {
       publicPrefSetting("Public Voted For Comments", UserPrefKind.comment),
       publicPrefSetting("Public Voted For Users", UserPrefKind.user),
       publicPrefSetting("Public Voted For Tags", UserPrefKind.tag),
+      const Divider(thickness: 1),
+      const Padding(padding: EdgeInsets.all(8), child: Text("Actions")),
+      const Divider(thickness: 1),
+      buildDeleteAccount(context),
     ]);
   }
 }

@@ -420,3 +420,18 @@ Future<String> deviceId() async {
     return "other";
   }
 }
+
+extension Union<K, V> on Map<K, V> {
+  Map<K, V> addingAll(Map<K, V> other) {
+    addAll(other);
+    return this;
+  }
+}
+
+Map<K, V> combineMaps<K, V>(List<Map<K, V>> operands) {
+  var result = <K, V>{};
+  for (final op in operands) {
+    result.addAll(op);
+  }
+  return result;
+}
