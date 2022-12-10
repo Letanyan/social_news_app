@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -107,8 +106,16 @@ class NewSource {
   //----------------------------------------------------------------------------
   static Future<User> signInUser(String email, String password) async {
     final device = await deviceId();
-    final obj = await post(["auth", "sign-in"], [],
-        {"email": email, "password": password, "device": device});
+    final key = "{{]]";
+    final obj = await post([
+      "auth",
+      "sign-in"
+    ], [], {
+      "email": email,
+      "password": password,
+      "device": device,
+      "key": key,
+    });
     if (obj == null) {
       throw unknownError;
     }
@@ -123,8 +130,14 @@ class NewSource {
   static Future<User> signUpUser(
       String user, String email, String password) async {
     final device = await deviceId();
-    final obj = await post(["users"], [],
-        {"email": email, "name": user, "password": password, "device": device});
+    final obj = await post([
+      "users"
+    ], [], {
+      "email": email,
+      "name": user,
+      "password": password,
+      "device": device,
+    });
     if (obj == null) {
       throw unknownError;
     }
@@ -138,7 +151,11 @@ class NewSource {
 
   static Future<User> signInUserGoogle(String idToken, String access) async {
     final device = await deviceId();
-    final body = {"token": idToken, "access": access, "device": device};
+    final body = {
+      "token": idToken,
+      "access": access,
+      "device": device,
+    };
     final obj = await post(
       ["auth", "sign-in-with-google"],
       [],
@@ -156,7 +173,10 @@ class NewSource {
 
   static Future<User> signInUserApple(String code) async {
     final device = await deviceId();
-    final body = {"code": code, "device": device};
+    final body = {
+      "code": code,
+      "device": device,
+    };
     final obj = await post(
       ["auth", "sign-in-with-apple"],
       [],
@@ -172,23 +192,20 @@ class NewSource {
     }
   }
 
-  static Future<bool> signOut() async {
+  static Future<bool> signOut(int id) async {
     final path = ["auth", "sign-out"];
     var args = <String>[];
-    await addSecret(args);
 
     final device = await deviceId();
-    final obj =
-        await post(path, args, {"userId": User.current!.id, "device": device});
+    final obj = await post(path, args, {"userId": id, "device": device});
+
     if (obj == null) {
-      User.current = null;
       return false;
     }
 
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      User.current = null;
       return true;
     }
   }
@@ -793,6 +810,9 @@ class NewSource {
     addD("endCreated", endCreated, args);
     addI("for", forUser, args);
     addS("search", search, args);
+    if (forUser != null && forUser != 0) {
+      await addSecret(args);
+    }
 
     final obj = await get(["posts"], args);
     if (obj == null) {
@@ -1100,7 +1120,7 @@ class NewSource {
     var args = <String>[];
     await addSecret(args);
 
-    final obj = await post(path, args, {"pid": pid});
+    final obj = await post(path, args, {"pid": pid.toString()});
     if (obj == null) {
       throw unknownError;
     }
@@ -1343,7 +1363,7 @@ class NewSource {
     var args = <String>[];
     await addSecret(args);
     final obj = await post(
-        path, [], {"pid": pid, "sid": sid, "action": flagHandleKind(action)});
+        path, args, {"pid": pid, "sid": sid, "action": flagHandleKind(action)});
     if (obj == null) {
       throw unknownError;
     }
@@ -1511,10 +1531,13 @@ void addSO(String name, SortOrder? value, List<String> args) {
 
 Future<void> addSecret(List<String> args) async {
   if (User.current?.secret != null) {
+    final secret = User.current!.secret;
     args.add("secret");
-    args.add(User.current!.secret);
+    args.add(secret);
+
     args.add("device");
-    args.add(await deviceId());
+    final id = await deviceId();
+    args.add(id);
   }
 }
 
@@ -1545,6 +1568,8 @@ enum FlagReason {
   spam,
   other,
 }
+
+const flagReasonLimit = 5;
 
 enum FlagHandle {
   ignore,

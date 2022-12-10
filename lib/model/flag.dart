@@ -92,7 +92,6 @@ class FlaggedPost {
   final FlagReason kind;
   final String reason;
   final DateTime createdAt;
-  final int count;
   bool handled;
 
   FlaggedPost({
@@ -101,7 +100,6 @@ class FlaggedPost {
     required this.kind,
     required this.reason,
     required this.createdAt,
-    required this.count,
   }) : handled = false;
 
   factory FlaggedPost.fromJson(Map<String, dynamic> json) {
@@ -111,7 +109,6 @@ class FlaggedPost {
       kind: FlagReason.values[json["Kind"]],
       reason: json["Reason"],
       createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
-      count: json["Count"],
     );
   }
 
@@ -129,7 +126,7 @@ class FlaggedPost {
   Widget card(BuildContext context, Function() updateState) {
     final body = Text(reason);
 
-    final total = Text("$count Reports");
+    final total = Text("${content.flagCount} Reports");
     final report = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.report, updateState),
       child: const Text("Police"),
@@ -231,7 +228,6 @@ class FlaggedComment {
   final FlagReason kind;
   final String reason;
   final DateTime createdAt;
-  final int count;
   bool handled;
 
   FlaggedComment({
@@ -240,7 +236,6 @@ class FlaggedComment {
     required this.kind,
     required this.reason,
     required this.createdAt,
-    required this.count,
   }) : handled = false;
 
   factory FlaggedComment.fromJson(Map<String, dynamic> json) {
@@ -250,7 +245,6 @@ class FlaggedComment {
       kind: FlagReason.values[json["Kind"]],
       reason: json["Reason"],
       createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
-      count: json["Count"],
     );
   }
 
@@ -268,7 +262,7 @@ class FlaggedComment {
   Widget card(BuildContext context, Function() updateState) {
     final body = Text(reason);
 
-    final total = Text("$count Reports");
+    final total = Text("${content.flagCount} Reports");
     final report = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.report, updateState),
       child: const Text("Report"),

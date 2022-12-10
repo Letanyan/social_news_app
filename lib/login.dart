@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:social_news_app/account.dart';
 
@@ -73,6 +74,8 @@ class _LoginPageState extends State<LoginPage> {
       User.current = user;
       user.storeUser();
     } catch (e) {
+      SharedPreferences.getInstance()
+          .then((value) => value.remove("client:key"));
       late final String message;
       if (e.toString() == "missing") {
         // if email not in database
@@ -91,8 +94,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void signIn() async {
-    final email =
-        emailController.text == "" ? "ribet@yahoo.com" : emailController.text;
+    final email = emailController.text == ""
+        ? "ribet@new-source.app"
+        : emailController.text;
     final password =
         passwordController.text == "" ? "123456" : passwordController.text;
 
@@ -166,9 +170,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void resetPassword() async {
-    final email = emailController.text == ""
-        ? "letanyan.a@gmail.com"
-        : emailController.text;
+    final email = emailController.text;
     if (email.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(TRSignIn.provideEmail)));

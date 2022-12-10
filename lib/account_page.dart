@@ -122,10 +122,12 @@ class _AccountPageState extends State<AccountPage> {
           Text("${TRGeneral.credits}: ${User.current!.creditAmount()}");
       action = TextButton(
         onPressed: () {
-          User.removeUser();
-          NewSource.signOut();
-          Navigator.pop(context);
-          Navigator.push(context, route(builder: (c) => const MainApp()));
+          NewSource.signOut(User.current?.id ?? 0);
+          User.removeUser().then((value) {
+            User.current = null;
+            Navigator.pop(context);
+            Navigator.push(context, route(builder: (c) => const MainApp()));
+          });
         },
         child: Text(TRGeneral.signOut),
       );

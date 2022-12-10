@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -419,6 +421,13 @@ Future<String> deviceId() async {
   } else {
     return "other";
   }
+}
+
+String sha256Hash(String s) {
+  final bytes = utf8.encode("[_${s}_]");
+  final digest = sha256.convert(bytes);
+  final result = base64Encode(digest.bytes);
+  return result;
 }
 
 extension Union<K, V> on Map<K, V> {

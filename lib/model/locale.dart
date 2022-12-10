@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'helpers.dart';
 
 abstract class TRGeneral {
   TRGeneral._();
@@ -1267,6 +1265,15 @@ abstract class TRFlag {
         return "Report Content";
       case LC.es:
         return "Reportar contenido";
+    }
+  }
+
+  static String get flaggedContentMessage {
+    switch (locale) {
+      case LC.en:
+        return "Content was flagged multiple times. Tap to show content.";
+      case LC.es:
+        return ""; // FIXME: translate
     }
   }
 }

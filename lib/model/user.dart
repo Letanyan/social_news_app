@@ -41,7 +41,7 @@ class User {
     return credits < 0 ? "..." : "$credits";
   }
 
-  void storeUser() async {
+  Future<void> storeUser() async {
     final pref = await SharedPreferences.getInstance();
     pref.setInt("user:id", id);
     pref.setString("user:name", name);
@@ -51,7 +51,7 @@ class User {
     pref.setString("user:secret", secret);
   }
 
-  static void removeUser() async {
+  static Future<void> removeUser() async {
     final pref = await SharedPreferences.getInstance();
     pref.remove("user:id");
     pref.remove("user:name");
@@ -59,6 +59,7 @@ class User {
     pref.remove("user:register");
     pref.remove("user:validation");
     pref.remove("user:secret");
+    pref.remove("user:cipher");
     pref.remove("theme:color");
     pref.remove("theme:mode");
   }
@@ -125,7 +126,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json["ID"],
+      id: int.parse(json["ID"]),
       name: json["Name"],
       email: json["Email"],
       password: json["Password"],
@@ -150,7 +151,7 @@ class User {
   factory User.fromSecretJson(Map<String, dynamic> json) {
     final obj = json["user"];
     var user = User(
-      id: obj["ID"],
+      id: int.parse(obj["ID"]),
       name: obj["Name"],
       email: obj["Email"],
       password: obj["Password"],
@@ -248,7 +249,7 @@ class Author {
 
   factory Author.fromJson(Map<String, dynamic> json) {
     return Author(
-      id: json["ID"],
+      id: int.parse(json["ID"]),
       name: json["Name"],
       registerDate: DateTime.parse(json["RegisterDate"]).toLocal(),
       upvotes: json["Upvotes"],

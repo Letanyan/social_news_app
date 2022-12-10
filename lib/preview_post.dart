@@ -93,6 +93,7 @@ class _PostPreviewState extends State<PostPreview> {
       commentCount: 0,
       trashed: false,
       edited: currentTime,
+      flagCount: 0,
       score: 0,
       cred: 0,
       rank: 0,

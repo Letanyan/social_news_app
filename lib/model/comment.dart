@@ -24,6 +24,7 @@ class Comment {
   bool trashed;
   DateTime edited;
   bool isReview;
+  int flagCount;
   num score;
   num cred;
   num rank;
@@ -41,6 +42,7 @@ class Comment {
     required this.trashed,
     required this.edited,
     required this.isReview,
+    required this.flagCount,
     required this.score,
     required this.cred,
     required this.rank,
@@ -48,7 +50,7 @@ class Comment {
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
-      id: json["ID"],
+      id: int.parse(json["ID"]),
       postId: json["PostID"],
       author: json["Author"] == null
           ? Author.fromInt(json["UserID"])
@@ -62,6 +64,7 @@ class Comment {
       trashed: json["Trashed"],
       edited: DateTime.parse(json["Edited"]).toLocal(),
       isReview: json["IsReview"],
+      flagCount: int.parse(json["FlagCount"]),
       score: json["Score"],
       cred: json["Cred"],
       rank: json["Rank"],
@@ -171,7 +174,9 @@ class Comment {
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
     final firstUrl = urlParser.pattern.firstMatch(content);
     late String newContent;
-    if (firstUrl != null && firstUrl.start == 0) {
+    if (flagCount >= 0) {
+      newContent = TRFlag.flaggedContentMessage;
+    } else if (firstUrl != null && firstUrl.start == 0) {
       newContent = content.substring(firstUrl.end);
     } else {
       newContent = content;
@@ -328,6 +333,7 @@ class Comment {
       );
       indents.add(div);
     }
+
     return IntrinsicHeight(
       child: Row(children: [
         ...indents,

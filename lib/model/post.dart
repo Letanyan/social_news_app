@@ -28,6 +28,7 @@ class Post {
   final int commentCount;
   bool trashed;
   DateTime edited;
+  int flagCount;
   num score;
   num cred;
   num rank;
@@ -47,6 +48,7 @@ class Post {
     required this.commentCount,
     required this.trashed,
     required this.edited,
+    required this.flagCount,
     required this.score,
     required this.cred,
     required this.rank,
@@ -55,7 +57,7 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: json["ID"],
+      id: int.parse(json["ID"]),
       creator: Author.fromJson(json["Author"]),
       content: json["Content"],
       tags: List<int>.from(json["Tags"]),
@@ -66,6 +68,7 @@ class Post {
       commentCount: json["CommentCount"],
       trashed: json["Trashed"],
       edited: DateTime.parse(json["Edited"]).toLocal(),
+      flagCount: int.parse(json["FlagCount"]),
       score: json["Score"],
       cred: json["Cred"],
       rank: json["Rank"],
@@ -364,7 +367,9 @@ class Post {
 
     final firstUrl = urlParser.pattern.firstMatch(content);
     late String newContent;
-    if (firstUrl != null && firstUrl.start == 0) {
+    if (flagCount >= flagReasonLimit) {
+      newContent = TRFlag.flaggedContentMessage;
+    } else if (firstUrl != null && firstUrl.start == 0) {
       newContent = content.substring(firstUrl.end);
       sourceUrl = content.substring(firstUrl.start, firstUrl.end);
     } else {
@@ -515,9 +520,22 @@ class Post {
     final particle = ParticleWidget(animated: animated, child: post);
     animated = 0;
 
-    final card = Material(
-      child: particle,
-    );
+    late final card;
+    if (flagCount >= flagReasonLimit) {
+      card = Material(
+        child: InkWell(
+          onTap: () {
+            flagCount = 0;
+            updateState();
+          },
+          child: particle,
+        ),
+      );
+    } else {
+      card = Material(
+        child: particle,
+      );
+    }
 
     return card;
   }
@@ -532,7 +550,9 @@ class Post {
     final lines = content.split("\n");
 
     Widget title;
-    if (headline != null) {
+    if (flagCount >= flagReasonLimit) {
+      title = Text(TRFlag.flaggedContentMessage);
+    } else if (headline != null) {
       title = Text(
         content.substring(headline.start + 1, headline.end),
         style: const TextStyle(fontSize: 18),
@@ -563,6 +583,9 @@ class Post {
         creator.isAgent,
       ),
       builder: (context, snapshot) {
+        if (flagCount >= flagReasonLimit) {
+          return const SizedBox();
+        }
         final canLoad = Parser.loadableImageNoHeaderFromRegExps(
           urls,
           content,

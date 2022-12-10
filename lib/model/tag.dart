@@ -25,7 +25,7 @@ class Tag {
 
   factory Tag.fromJson(Map<String, dynamic> json) {
     return Tag(
-      id: json["ID"],
+      id: int.parse(json["ID"]),
       name: json["Name"],
       upvotes: json["Upvotes"],
       downvotes: json["Downvotes"],
