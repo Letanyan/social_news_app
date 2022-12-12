@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/flags_page.dart';
@@ -140,10 +141,13 @@ class _AccountPageState extends State<AccountPage> {
         ],
       );
       subtitle = InkWell(
-        onTap: () {
-          showPlatformDialog(
-              context: context, builder: (context) => const PurchaseCredit());
-        },
+        onTap: kIsWeb
+            ? null
+            : () {
+                showPlatformDialog(
+                    context: context,
+                    builder: (context) => const PurchaseCredit());
+              },
         child: col,
       );
     } else if (User.current == null) {

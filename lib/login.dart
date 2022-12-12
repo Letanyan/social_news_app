@@ -27,6 +27,7 @@ class _LoginPageState extends State<LoginPage> {
   var passwordController = TextEditingController();
   var originController = TextEditingController();
   var isLoading = false;
+  var isEmailLogin = false;
 
   @override
   void initState() {
@@ -93,7 +94,19 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void signIn() async {
+  void signInEmail() async {
+    setState(() {
+      isEmailLogin = true;
+    });
+  }
+
+  void undoSignInEmail() async {
+    setState(() {
+      isEmailLogin = false;
+    });
+  }
+
+  void signInEmailConfirm() async {
     final email = emailController.text == ""
         ? "ribet@new-source.app"
         : emailController.text;
@@ -108,7 +121,13 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    signInTemplate(email, password);
+    await Future.delayed(Duration(seconds: 5));
+
+    setState(() {
+      isLoading = false;
+    });
+
+    //signInTemplate(email, password);
   }
 
   void signInAnon() {
@@ -214,22 +233,28 @@ class _LoginPageState extends State<LoginPage> {
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(8))),
       buttonType: MyTheme.isDark ? ButtonType.apple : ButtonType.appleDark,
-      onPressed: signInApple,
+      onPressed: isLoading ? null : signInApple,
     );
     var signInWithGoogle = SignInButton(
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(8))),
       buttonType: MyTheme.isDark ? ButtonType.google : ButtonType.googleDark,
-      onPressed: signInGoogle,
+      onPressed: isLoading ? null : signInGoogle,
     );
     var signInWithEmail = SignInButton(
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(8))),
       buttonType: MyTheme.isDark ? ButtonType.email : ButtonType.emailDark,
-      onPressed: signIn,
+      onPressed: isLoading ? null : signInEmail,
+    );
+    var signInWithEmailConfirm = SignInButton(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      buttonType: MyTheme.isDark ? ButtonType.email : ButtonType.emailDark,
+      onPressed: isLoading ? null : signInEmailConfirm,
     );
     var forgot = TextButton(
-      onPressed: resetPassword,
+      onPressed: isLoading ? null : resetPassword,
       child: Text(
         TRSignIn.forgotPassword,
         style: TextStyle(
@@ -239,7 +264,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
     final createAccount = TextButton(
-      onPressed: gotoSignUpPage,
+      onPressed: isLoading ? null : gotoSignUpPage,
       child: Text(
         TRSignIn.createAccount,
         style: TextStyle(
@@ -249,9 +274,16 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
     var anon = TextButton(
-      onPressed: signInAnon,
+      onPressed: isLoading ? null : signInAnon,
       child: Text(
         TRSignIn.justBrowse,
+        style: TextStyle(color: MyTheme.isDark ? Colors.white : Colors.black),
+      ),
+    );
+    var cancelEmailSignIn = TextButton(
+      onPressed: isLoading ? null : undoSignInEmail,
+      child: Text(
+        TRGeneral.cancel,
         style: TextStyle(color: MyTheme.isDark ? Colors.white : Colors.black),
       ),
     );
@@ -263,33 +295,39 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              signInWithGoogle,
+              isEmailLogin ? emailRow : signInWithGoogle,
               const SizedBox(height: 8),
-              signInWithApple,
-            ],
-          ),
-        ),
-        Flexible(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              emailRow,
-              passwordRow,
-              const SizedBox(height: 16),
-              Center(child: signInWithEmail),
+              isEmailLogin ? passwordRow : signInWithApple,
               const SizedBox(height: 8),
-              Center(child: createAccount),
-              Center(child: forgot),
+              Center(
+                  child:
+                      isEmailLogin ? signInWithEmailConfirm : signInWithEmail),
+              Center(child: isEmailLogin ? createAccount : SizedBox()),
+              Center(child: isEmailLogin ? forgot : SizedBox()),
             ],
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(8),
-          child: anon,
+          padding: const EdgeInsets.all(0),
+          child: isEmailLogin ? cancelEmailSignIn : anon,
         ),
       ],
     );
 
-    return form;
+    var stack = <Widget>[];
+    stack.add(form);
+    if (isLoading) {
+      stack.add(Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            CircularProgressIndicator(),
+          ]),
+        ],
+      ));
+    }
+
+    return Stack(children: stack);
   }
 }

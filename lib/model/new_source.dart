@@ -123,6 +123,9 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
+      final current = obj["payload"]["streak"];
+      final next = obj["payload"]["user"]["Streak"];
+      User.streakMessage.add(StreakMessage(current, next));
       return User.fromSecretJson(obj["payload"]);
     }
   }
@@ -145,6 +148,9 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
+      final current = obj["payload"]["streak"];
+      final next = obj["payload"]["user"]["Streak"];
+      User.streakMessage.add(StreakMessage(current, next));
       return User.fromSecretJson(obj["payload"]);
     }
   }
@@ -167,6 +173,9 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
+      final current = obj["payload"]["streak"];
+      final next = obj["payload"]["user"]["Streak"];
+      User.streakMessage.add(StreakMessage(current, next));
       return User.fromSecretJson(obj["payload"]);
     }
   }
@@ -188,6 +197,9 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
+      final current = obj["payload"]["streak"];
+      final next = obj["payload"]["user"]["Streak"];
+      User.streakMessage.add(StreakMessage(current, next));
       return User.fromSecretJson(obj["payload"]);
     }
   }

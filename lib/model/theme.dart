@@ -12,8 +12,8 @@ class MyTheme {
 
   static void loadThemeData() {
     SharedPreferences.getInstance().then((value) {
-      final color = value.getInt("theme:color") ?? 17;
-      final mode = value.getInt("theme:mode") ?? 1;
+      final color = value.getInt("theme:color") ?? 16;
+      final mode = value.getInt("theme:mode") ?? 0;
       MyTheme.safe = value.getBool("theme:safe") ?? true;
 
       switch (color) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/model/locale.dart';
@@ -164,7 +165,7 @@ void Function() showVoteDialog(
       context: context,
       builder: (context) {
         late final StatefulWidget page;
-        if ((User.current?.credits ?? 0) <= 0) {
+        if ((User.current?.credits ?? 0) <= 0 && !kIsWeb) {
           page = const PurchaseCredit();
         } else {
           page = VoteWidget(

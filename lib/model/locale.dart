@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:social_news_app/model/helpers.dart';
 
 abstract class TRGeneral {
   TRGeneral._();
@@ -622,9 +623,9 @@ abstract class TRHome {
   static String addCreditsBody(int amount, int nextAmount) {
     switch (locale) {
       case LC.en:
-        return "Added $amount Credit for daily login. Login again tomorrow for an additional $nextAmount credit from your streak.";
+        return "Added $amount Credit for daily login. Login again at ${utcMidnight()} for an additional $nextAmount credit from your streak.";
       case LC.es:
-        return "Se agregó $amount crédito por inicio de sesión diario. Vuelva a iniciar sesión mañana para obtener $nextAmount crédito adicional de su racha.";
+        return "Se agregó $amount crédito por inicio de sesión diario. Vuelva a iniciar sesión a las ${utcMidnight()} para obtener $nextAmount crédito adicional de su racha.";
     }
   }
 }

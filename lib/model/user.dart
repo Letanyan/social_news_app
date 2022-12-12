@@ -37,6 +37,8 @@ class User {
   bool publicTagVotes;
   bool publicTagFollow;
 
+  Future<void>? streakUpdate;
+
   String creditAmount() {
     return credits < 0 ? "..." : "$credits";
   }
@@ -175,11 +177,35 @@ class User {
     user.following = jsonArrayTo(json["following"], Author.fromJson);
     user.ignored = jsonArrayTo(json["ignored"], Author.fromJson);
     user.favourites = jsonArrayTo(json["tags"], Tag.fromJson);
+    checkStreak(user);
     return user;
   }
 
-  static User? current;
+  static void checkStreak(User user) {
+    final n = DateTime.now().toUtc();
+    final end = DateTime.utc(n.year, n.month, n.day).add(Duration(days: 1));
+    final dur = end.difference(n).inSeconds + 5;
+    user.streakUpdate = Future.delayed(Duration(seconds: dur), () async {
+      if (User.current == null) {
+        return;
+      }
+      await NewSource.getUser(User.current!.id);
+    });
+  }
+
   static var streakMessage = StreamController<StreakMessage>.broadcast();
+
+  static User? _current;
+  static set current(User? user) {
+    if (_current?.streakUpdate != null) {
+      _current?.streakUpdate?.timeout(Duration(seconds: 0), onTimeout: () {});
+    }
+    _current = user;
+  }
+
+  static User? get current {
+    return _current;
+  }
 
   Author toAuthor() {
     return Author(

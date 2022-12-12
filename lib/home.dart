@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:intl/date_symbol_data_file.dart';
+import 'package:intl/intl.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/helpers.dart';
@@ -51,9 +53,11 @@ class HomeViewState extends State<HomeView>
       print(error);
     });
 
-    streakSubscription = User.streakMessage.stream.listen((event) {
-      setState(() {
-        streakAmount = event;
+    WidgetsBinding.instance.addPostFrameCallback((ts) {
+      streakSubscription = User.streakMessage.stream.listen((event) {
+        setState(() {
+          streakAmount = event;
+        });
       });
     });
   }
@@ -63,6 +67,33 @@ class HomeViewState extends State<HomeView>
     subscription.cancel();
     streakSubscription.cancel();
     super.dispose();
+  }
+
+  void showStreakAmount() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        if (streakAmount != null && streakAmount?.current != 0) {
+          final amount = streakAmount!.current;
+          final nextAmount = streakAmount!.next;
+          showPlatformDialog(
+            context: context,
+            builder: (context) {
+              streakAmount = null;
+              return AlertDialog(
+                title: Text(TRHome.addCreditsTitle(amount)),
+                content: Text(TRHome.addCreditsBody(amount, nextAmount)),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(TRGeneral.gotIt),
+                  )
+                ],
+              );
+            },
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -94,26 +125,6 @@ class HomeViewState extends State<HomeView>
         ],
       ),
       tabBuilder: (context, index) {
-        if (streakAmount != null && streakAmount?.current != 0) {
-          final amount = streakAmount!.current;
-          final nextAmount = streakAmount!.next;
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            streakAmount = null;
-            showPlatformDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(TRHome.addCreditsTitle(amount)),
-                content: Text(TRHome.addCreditsBody(amount, nextAmount)),
-                actions: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(TRGeneral.gotIt),
-                  )
-                ],
-              ),
-            );
-          });
-        }
         switch (index) {
           case 0:
             return PostsPage(
@@ -136,6 +147,7 @@ class HomeViewState extends State<HomeView>
         return const SizedBox();
       },
     );
+    showStreakAmount();
 
     return MaterialApp(
       title: TRGeneral.newSource,

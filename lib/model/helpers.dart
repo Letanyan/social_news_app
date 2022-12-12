@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
@@ -95,6 +96,13 @@ String formatDateTime(DateTime date) {
   } else {
     return "${diff.inDays / 365}${TRHelper.year}";
   }
+}
+
+String utcMidnight() {
+  final n = DateTime.now().toUtc();
+  final end =
+      DateTime.utc(n.year, n.month, n.day).add(Duration(days: 1)).toLocal();
+  return DateFormat.j(Intl.systemLocale).format(end);
 }
 
 DateTime endOfDay(DateTime d) {
