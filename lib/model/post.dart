@@ -60,7 +60,7 @@ class Post {
       id: int.parse(json["ID"]),
       creator: Author.fromJson(json["Author"]),
       content: json["Content"],
-      tags: List<int>.from(json["Tags"]),
+      tags: List<String>.from(json["Tags"]).map((e) => int.parse(e)).toList(),
       createdAt: DateTime.parse(json["CreatedAt"]).toLocal(),
       location: List<String>.from(json["Location"]),
       upvotes: json["Upvotes"],

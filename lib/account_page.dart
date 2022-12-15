@@ -266,6 +266,9 @@ class _AccountPageState extends State<AccountPage> {
     final votedComments = ListTile(
         title: Text(TRGeneral.comments),
         onTap: showUserPrefPage(context, ContentKind.comment, false));
+    final watchedTags = ListTile(
+        title: Text(TRGeneral.tagsViewed),
+        onTap: showUserPrefPage(context, ContentKind.tag, true));
 
     final settings = ListTile(
       title: Text(TRGeneral.settings),
@@ -325,6 +328,7 @@ class _AccountPageState extends State<AccountPage> {
       following,
       ignored,
       favourites,
+      watchedTags,
       const Divider(thickness: 1),
       Padding(
         padding: EdgeInsets.all(8),

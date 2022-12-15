@@ -121,13 +121,13 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    await Future.delayed(Duration(seconds: 5));
+    // await Future.delayed(Duration(seconds: 5));
 
-    setState(() {
-      isLoading = false;
-    });
+    // setState(() {
+    //   isLoading = false;
+    // });
 
-    //signInTemplate(email, password);
+    signInTemplate(email, password);
   }
 
   void signInAnon() {

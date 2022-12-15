@@ -128,15 +128,39 @@ class Tag {
   Widget card(BuildContext context, Function() updateState,
       {int? up, int? down}) {
     final title = Text(name);
-    final upChip = buildVoteChip(context, upvotes, true);
-    final downChip = buildVoteChip(context, downvotes, false);
-    final votes = FittedBox(
-        fit: BoxFit.contain, child: Row(children: [upChip, downChip]));
+    final upvoteButton =
+        buildVoteButton(context, upvotes, true, UserVoteKind.post, null);
+    final downvoteButton =
+        buildVoteButton(context, downvotes, false, UserVoteKind.post, null);
 
-    return ListTile(
-      title: title,
-      trailing: Padding(padding: const EdgeInsets.all(8), child: votes),
+    final primary = Row(
+      children: [
+        Expanded(child: title),
+        upvoteButton,
+        downvoteButton,
+      ],
+    );
+
+    late Widget body;
+    if (up != null && down != null) {
+      final upChip = buildVoteChip(context, up, true);
+      final downChip = buildVoteChip(context, down, false);
+      body = Column(
+        children: [
+          primary,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [upChip, downChip],
+          ),
+        ],
+      );
+    } else {
+      body = primary;
+    }
+
+    return InkWell(
       onTap: () => showTagPage(context),
+      child: Padding(padding: EdgeInsets.all(8), child: body),
     );
   }
 }

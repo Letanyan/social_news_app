@@ -104,6 +104,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
         limit: pageSize,
         order: srt,
         search: src,
+        isWatched: widget.isViewed,
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefPost>()) {
       return NewSource.getUserPrefPosts(

@@ -423,6 +423,15 @@ abstract class TRGeneral {
     }
   }
 
+  static String get tagsViewed {
+    switch (locale) {
+      case LC.en:
+        return "Tags Viewed";
+      case LC.es:
+        return "Etiquetas Vistas";
+    }
+  }
+
   static String get preferences {
     switch (locale) {
       case LC.en:

@@ -338,7 +338,7 @@ class NewSource {
         ["posts", "$postId", "comments"],
         args,
         {
-          "userId": User.current!.id,
+          "userId": User.current!.id.toString(),
           "replyId": replyId,
           "content": content,
           "isReview": isReview,
@@ -371,7 +371,7 @@ class NewSource {
         ["posts"],
         args,
         {
-          "userId": User.current!.id,
+          "userId": User.current!.id.toString(),
           "content": content,
           "location": loc,
           "isPreview": isPreview,
@@ -616,6 +616,7 @@ class NewSource {
     int? limit,
     int? offset,
     String? search,
+    bool? isWatched,
   }) async {
     var args = <String>[];
     addI("upvotes", upvotes, args);
@@ -626,6 +627,7 @@ class NewSource {
     addS("search", search, args);
     addD("start", startVoted, args);
     addD("end", endVoted, args);
+    addS("watched", (isWatched ?? false) ? "true" : "", args);
     await addSecret(args);
 
     final obj = await get(["users", "$uid", "prefs", "tags"], args);
@@ -901,7 +903,8 @@ class NewSource {
   }
 
   static Future<List<Tag>> getTagsFromIds(List<int> ids) async {
-    final obj = await post(["tags"], [], {"ids": ids});
+    final obj =
+        await post(["tags"], [], {"ids": ids.map((e) => "$e").toList()});
     if (obj == null) {
       throw unknownError;
     }
@@ -1202,7 +1205,7 @@ class NewSource {
     final path = ["users", "$uid", "content", "recommendations"];
     var args = <String>[];
     await addSecret(args);
-    final obj = await post(path, args, {"pid": pids});
+    final obj = await post(path, args, {"pid": pids.map((e) => "$e").toList()});
     if (obj["success"] == true) {
       return true;
     } else {

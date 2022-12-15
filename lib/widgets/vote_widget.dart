@@ -210,10 +210,12 @@ Widget buildVoteButton(
   int votes,
   bool isUpvote,
   UserVoteKind kind,
-  void Function(BuildContext, int) confirmVote,
+  void Function(BuildContext, int)? confirmVote,
 ) {
   return InkWell(
-    onTap: showVoteDialog(context, isUpvote, kind, confirmVote),
+    onTap: confirmVote != null
+        ? showVoteDialog(context, isUpvote, kind, confirmVote)
+        : null,
     child: Padding(
       padding: const EdgeInsets.all(8),
       child: Row(children: [
