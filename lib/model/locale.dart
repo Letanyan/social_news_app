@@ -1079,6 +1079,24 @@ abstract class TRAccountPage {
     }
   }
 
+  static String get followedBy {
+    switch (locale) {
+      case LC.en:
+        return "Followed By";
+      case LC.es:
+        return "Seguido por";
+    }
+  }
+
+  static String get ignoredBy {
+    switch (locale) {
+      case LC.en:
+        return "Ignored By";
+      case LC.es:
+        return "Ignorado por";
+    }
+  }
+
   static String get tagsFollowing {
     switch (locale) {
       case LC.en:
@@ -1283,7 +1301,7 @@ abstract class TRFlag {
       case LC.en:
         return "Content was flagged multiple times. Tap to show content.";
       case LC.es:
-        return ""; // FIXME: translate
+        return "El contenido se marcó varias veces. Toque para mostrar contenido.";
     }
   }
 }
@@ -1545,6 +1563,16 @@ abstract class TRError {
         return "Message length too long";
       case LC.es:
         return "Longitud del mensaje demasiado larga";
+    }
+  }
+
+  static String get notValidated {
+    // TODO: Show button for resending validation link
+    switch (locale) {
+      case LC.en:
+        return "Your email is not validated. Please confirm by clicking the 'validate' link sent to your email";
+      case LC.es:
+        return "Su correo electrónico no está validado. Confirme haciendo clic en el enlace 'validar' enviado a su correo electrónico";
     }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/model/flag.dart';
@@ -13,6 +14,8 @@ import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/posts_page.dart';
+import 'package:social_news_app/user_cont_page.dart';
+import 'package:social_news_app/user_pref_page.dart';
 import 'package:social_news_app/widgets/particle_widget.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
@@ -246,6 +249,73 @@ class Post {
     );
   }
 
+  void openVotedFor(BuildContext context) {
+    final title = contentKindToString(ContentKind.user);
+
+    final body = UserPrefPage(
+      title: title,
+      showSearch: true,
+      prefKind: ContentKind.post,
+      user: User.current?.toAuthor(),
+      isViewed: false,
+      pid: id,
+      sid: -1,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((ts) {
+      Navigator.push(
+        context,
+        route(builder: (context) => body),
+      );
+    });
+  }
+
+  PopupMenuItem buildVotedFor(BuildContext context) {
+    return PopupMenuItem(
+      onTap: () => openVotedFor(context),
+      child: Text(TRAccountPage.votedFor),
+    );
+  }
+
+  void openContFor(BuildContext context, UserContKind kind) {
+    final title = contentKindToString(ContentKind.user);
+
+    final body = UserContPage(
+      title: title,
+      showSearch: true,
+      kind: ContentKind.user,
+      playlist: kind,
+      isReview: false,
+      user: User.current!.toAuthor(),
+      forContent: true,
+      pid: id,
+      sid: -1,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((ts) {
+      Navigator.push(
+        context,
+        route(builder: (context) => body),
+      );
+    });
+  }
+
+  PopupMenuItem buildContFor(BuildContext context, UserContKind kind) {
+    late final String text;
+    switch (kind) {
+      case UserContKind.viewed:
+        text = TRAccountPage.viewed;
+        break;
+      case UserContKind.readLater:
+        text = TRAccountPage.readLater;
+        break;
+      default:
+        text = "";
+    }
+    return PopupMenuItem(
+      onTap: () => openContFor(context, kind),
+      child: Text(text),
+    );
+  }
+
   PopupMenuItem buildReadLater(BuildContext context) {
     return PopupMenuItem(
       onTap: () {
@@ -438,6 +508,9 @@ class Post {
           buildReadLater(context),
           buildIgnoreUser(context),
           buildReport(context),
+          buildVotedFor(context),
+          buildContFor(context, UserContKind.viewed),
+          buildContFor(context, UserContKind.readLater),
         ],
       ),
     );

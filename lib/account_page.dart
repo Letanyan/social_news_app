@@ -27,16 +27,21 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
-  late User? currentUser;
+  late Author? currentUser;
 
   @override
   void initState() {
     super.initState();
-    currentUser = User.current;
+    currentUser = widget.user;
   }
 
   void Function() showUserPrefPage(
-      BuildContext context, ContentKind kind, bool isViewed) {
+    BuildContext context,
+    ContentKind kind,
+    bool isViewed, {
+    int? pid,
+    int? sid,
+  }) {
     return () {
       final title = contentKindToString(kind);
 
@@ -46,6 +51,8 @@ class _AccountPageState extends State<AccountPage> {
         prefKind: kind,
         user: widget.user,
         isViewed: isViewed,
+        pid: pid,
+        sid: sid,
       );
 
       Navigator.push(context, route(builder: (context) => body))
@@ -54,7 +61,7 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   void Function() showUserContPage(BuildContext context, ContentKind kind,
-      UserContKind playlist, bool isReview) {
+      UserContKind playlist, bool isReview, bool forContent) {
     return () {
       late final String title;
       if (kind == ContentKind.comment && isReview) {
@@ -70,6 +77,9 @@ class _AccountPageState extends State<AccountPage> {
         playlist: playlist,
         user: widget.user,
         isReview: isReview,
+        forContent: forContent,
+        pid: currentUser?.id,
+        sid: -1,
       );
 
       Navigator.push(context, route(builder: (context) => body))
@@ -186,6 +196,7 @@ class _AccountPageState extends State<AccountPage> {
           ContentKind.post,
           UserContKind.created,
           false,
+          false,
         ));
     final userComments = ListTile(
       title: Text(TRGeneral.comments),
@@ -193,6 +204,7 @@ class _AccountPageState extends State<AccountPage> {
         context,
         ContentKind.comment,
         UserContKind.created,
+        false,
         false,
       ),
     );
@@ -203,6 +215,7 @@ class _AccountPageState extends State<AccountPage> {
         ContentKind.comment,
         UserContKind.created,
         true,
+        false,
       ),
     );
 
@@ -213,6 +226,7 @@ class _AccountPageState extends State<AccountPage> {
         ContentKind.post,
         UserContKind.viewed,
         false,
+        false,
       ),
     );
     final readLater = ListTile(
@@ -221,6 +235,7 @@ class _AccountPageState extends State<AccountPage> {
         context,
         ContentKind.post,
         UserContKind.readLater,
+        false,
         false,
       ),
     );
@@ -231,6 +246,7 @@ class _AccountPageState extends State<AccountPage> {
         ContentKind.user,
         UserContKind.userFollow,
         false,
+        false,
       ),
     );
     final ignored = ListTile(
@@ -240,6 +256,27 @@ class _AccountPageState extends State<AccountPage> {
         ContentKind.user,
         UserContKind.ignored,
         false,
+        false,
+      ),
+    );
+    final followedBy = ListTile(
+      title: Text(TRAccountPage.followedBy),
+      onTap: showUserContPage(
+        context,
+        ContentKind.user,
+        UserContKind.userFollow,
+        false,
+        true,
+      ),
+    );
+    final ignoredBy = ListTile(
+      title: Text(TRAccountPage.ignoredBy),
+      onTap: showUserContPage(
+        context,
+        ContentKind.user,
+        UserContKind.ignored,
+        false,
+        true,
       ),
     );
     final favourites = ListTile(
@@ -248,6 +285,7 @@ class _AccountPageState extends State<AccountPage> {
         context,
         ContentKind.tag,
         UserContKind.tagFollow,
+        false,
         false,
       ),
     );
@@ -266,6 +304,16 @@ class _AccountPageState extends State<AccountPage> {
     final votedComments = ListTile(
         title: Text(TRGeneral.comments),
         onTap: showUserPrefPage(context, ContentKind.comment, false));
+    final votedByOthers = ListTile(
+      title: Text(TRGeneral.forYou),
+      onTap: showUserPrefPage(
+        context,
+        ContentKind.user,
+        false,
+        pid: User.current?.id ?? -1,
+        sid: -1,
+      ),
+    );
     final watchedTags = ListTile(
         title: Text(TRGeneral.tagsViewed),
         onTap: showUserPrefPage(context, ContentKind.tag, true));
@@ -326,7 +374,9 @@ class _AccountPageState extends State<AccountPage> {
       viewed,
       readLater,
       following,
+      followedBy,
       ignored,
+      ignoredBy,
       favourites,
       watchedTags,
       const Divider(thickness: 1),
@@ -339,6 +389,7 @@ class _AccountPageState extends State<AccountPage> {
       votedUsers,
       votedTags,
       votedComments,
+      votedByOthers,
       ...settingsSection,
     ]);
 

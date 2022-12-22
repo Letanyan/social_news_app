@@ -20,7 +20,7 @@ import 'tag.dart';
 class NewSource {
   static const isDebug = true;
   static var host = isDebug
-      ? "http://192.168.0.147:8080/api/v1"
+      ? "http://192.168.50.64:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
   // admin: @@:AbstractServer8080
 
@@ -289,6 +289,9 @@ class NewSource {
   }
 
   static Future<bool> updateUserDetails(User user) async {
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
     var args = <String>[];
     await addSecret(args);
 
@@ -323,6 +326,9 @@ class NewSource {
       int postId, int replyId, String content, bool isReview) async {
     if (User.current == null) {
       throw userNotSignedIn;
+    }
+    if (!currentUserIsValidated()) {
+      throw notValidated;
     }
     if (isReview && content.length > 10000) {
       throw contentLengthTooLong;
@@ -359,6 +365,9 @@ class NewSource {
     if (User.current == null) {
       throw userNotSignedIn;
     }
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
     if (content.length > 10000) {
       throw contentLengthTooLong;
     }
@@ -393,6 +402,9 @@ class NewSource {
     if (User.current == null) {
       throw userNotSignedIn;
     }
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
 
     var args = <String>[];
     await addSecret(args);
@@ -417,6 +429,9 @@ class NewSource {
   static Future<bool> updatePost(int postId, String content) async {
     if (User.current == null) {
       throw userNotSignedIn;
+    }
+    if (!currentUserIsValidated()) {
+      throw notValidated;
     }
 
     var args = <String>[];
@@ -638,6 +653,48 @@ class NewSource {
     return handlePayload(obj, UserPrefTag.fromJson);
   }
 
+  static Future<List<Author>> getUserPrefsFor(
+    UserPrefKind kind,
+    int pid,
+    int sid, {
+    String? search,
+    SortOrder? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addSO("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+    addI("pid", pid, args);
+    addI("sid", sid, args);
+    addS("search", search, args);
+    await addSecret(args);
+
+    var kindDesc = "";
+    switch (kind) {
+      case UserPrefKind.user:
+        kindDesc = "users";
+        break;
+      case UserPrefKind.comment:
+        kindDesc = "comments";
+        break;
+      case UserPrefKind.post:
+        kindDesc = "posts";
+        break;
+      case UserPrefKind.tag:
+        kindDesc = "tags";
+        break;
+    }
+
+    final obj = await get(["users", "prefs", kindDesc], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, Author.fromJson);
+  }
+
   static Future<List<Post>> getUserContPost({
     required int uid,
     required UserContKind kind,
@@ -772,6 +829,53 @@ class NewSource {
       throw unknownError;
     }
     return handlePayload(obj, Tag.fromJson);
+  }
+
+  static Future<List<Author>> getUserContFor(
+    UserContKind kind,
+    int pid,
+    int sid, {
+    String? search,
+    SortOrder? order,
+    int? limit,
+    int? offset,
+  }) async {
+    var args = <String>[];
+    addSO("order", order, args);
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+    addI("pid", pid, args);
+    addI("sid", sid, args);
+    addS("search", search, args);
+    await addSecret(args);
+
+    var kindDesc = "";
+    switch (kind) {
+      case UserContKind.readLater:
+        kindDesc = "read-later";
+        break;
+      case UserContKind.viewed:
+        kindDesc = "viewed";
+        break;
+      case UserContKind.userFollow:
+        kindDesc = "user-follows";
+        break;
+      case UserContKind.ignored:
+        kindDesc = "ignored";
+        break;
+      case UserContKind.tagFollow:
+        kindDesc = "tag-follows";
+        break;
+      default:
+        return [];
+    }
+
+    final obj = await get(["users", "content", kindDesc], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, Author.fromJson);
   }
 
   //----------------------------------------------------------------------------
@@ -1038,6 +1142,9 @@ class NewSource {
     required int userId,
     required int amount,
   }) async {
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
     var args = <String>[];
     await addSecret(args);
     final location = await getCurrentLocation();
@@ -1064,6 +1171,9 @@ class NewSource {
     required int userId,
     required int amount,
   }) async {
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
     var args = <String>[];
     await addSecret(args);
     final path = ["posts", "$postId", "comments", "$commentId"];
@@ -1086,6 +1196,9 @@ class NewSource {
   }
 
   static Future<bool> watchPost(int uid, int pid, int amount) async {
+    if (!currentUserIsValidated()) {
+      return false;
+    }
     var args = <String>[];
     await addSecret(args);
     final obj =
@@ -1106,6 +1219,9 @@ class NewSource {
     required UserContKind kind,
     required int pid,
   }) async {
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
     if (uid == pid) {
       return Future(() => false);
     }
@@ -1155,7 +1271,10 @@ class NewSource {
       return false;
     }
     final path = ["users", "${User.current!.id}", "content", "onboard"];
-    final obj = await post(path, [], {"tags": tags, "users": users});
+    final obj = await post(path, [], {
+      "tags": tags.map((e) => "$e").toList(),
+      "users": users.map((e) => "$e").toList(),
+    });
     if (obj == null) {
       throw unknownError;
     }
@@ -1317,6 +1436,9 @@ class NewSource {
     FlagReason kind,
     String reason,
   ) async {
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
     var path = ["flags"];
     var args = <String>[];
     await addSecret(args);
@@ -1499,6 +1621,7 @@ NSError err(String message) {
 final unknownError = err(TRError.unknown);
 final userNotSignedIn = err(TRError.notSignedIn);
 final contentLengthTooLong = err(TRError.tooLong);
+final notValidated = err(TRError.notValidated);
 
 void addS(String name, String? value, List<String> args) {
   if (value != null) {
@@ -1554,6 +1677,10 @@ Future<void> addSecret(List<String> args) async {
     final id = await deviceId();
     args.add(id);
   }
+}
+
+bool currentUserIsValidated() {
+  return User.current != null && User.current?.validationKey == 0;
 }
 
 enum UserContKind {

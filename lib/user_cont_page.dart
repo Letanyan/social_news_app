@@ -15,15 +15,22 @@ class UserContPage extends StatefulWidget {
   final bool isReview;
   final Author user;
   final String title;
+  final bool forContent;
+  final int? pid;
+  final int? sid;
 
-  const UserContPage(
-      {super.key,
-      required this.title,
-      required this.showSearch,
-      required this.kind,
-      required this.playlist,
-      required this.isReview,
-      required this.user});
+  const UserContPage({
+    super.key,
+    required this.title,
+    required this.showSearch,
+    required this.kind,
+    required this.playlist,
+    required this.isReview,
+    required this.user,
+    required this.forContent,
+    this.pid,
+    this.sid,
+  });
 
   @override
   State<UserContPage> createState() => _UserContPageState();
@@ -42,10 +49,14 @@ class _UserContPageState extends State<UserContPage> {
   var count = [0];
   var hasMore = [true];
   var isLoading = [false];
+  var forContent = false;
   late FilterBoxState filterState;
   var filterKey = GlobalKey();
   bool showingFilter = false;
   double? filterHeight;
+  UserContKind playlist = UserContKind.created;
+  int? pid;
+  int? sid;
 
   @override
   void initState() {
@@ -53,25 +64,38 @@ class _UserContPageState extends State<UserContPage> {
 
     controller = TextEditingController();
     current = widget.kind;
+    forContent = widget.forContent;
+    playlist = widget.playlist;
+    pid = widget.pid;
+    sid = widget.sid;
     filterState = FilterBoxState(
       current: 0,
       search: "",
       displaySelector: null,
-      displaySorting: sortOrdersIncluding([
-        SortOrder.addedOn,
-        ...(widget.kind == ContentKind.post ? [SortOrder.createdAt] : []),
-      ]),
-      startDate: DateTime(2022),
-      endDate: DateTime.now(),
+      displaySorting: forContent
+          ? [
+              SortOrder.addedOn,
+              SortOrder.controversial,
+              SortOrder.upvotes,
+              SortOrder.downvotes,
+            ]
+          : sortOrdersIncluding([
+              SortOrder.addedOn,
+              ...(widget.kind == ContentKind.post ? [SortOrder.createdAt] : []),
+            ]),
+      startDate: forContent ? null : DateTime(2022),
+      endDate: forContent ? null : DateTime.now(),
       order: SortOrder.addedOn,
-      location: [],
+      location: forContent ? null : [],
     );
 
     posts = Future(() => []);
     comments = Future(() => []);
     users = Future(() => []);
     tags = Future(() => []);
-    if (current == ContentKind.post) {
+    if (forContent) {
+      users = getNewItems<Author>().then(updateItemsState);
+    } else if (current == ContentKind.post) {
       posts = getNewItems<Post>().then(updateItemsState);
     } else if (current == ContentKind.comment) {
       comments = getNewItems<Comment>().then(updateItemsState);
@@ -99,6 +123,8 @@ class _UserContPageState extends State<UserContPage> {
       return 2;
     } else if (isTypeEqual<T, Tag>()) {
       return 3;
+    } else if (forContent) {
+      return 4;
     } else {
       return 100;
     }
@@ -111,7 +137,17 @@ class _UserContPageState extends State<UserContPage> {
         filterState.location?.isEmpty == true ? null : filterState.location;
     final srt = filterState.order;
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
-    if (isTypeEqual<T, Post>()) {
+    if (forContent && pid != null && sid != null) {
+      return NewSource.getUserContFor(
+        playlist,
+        pid!,
+        sid!,
+        search: src,
+        order: srt,
+        limit: pageSize,
+        offset: offset[0],
+      ) as Future<List<T>>;
+    } else if (isTypeEqual<T, Post>()) {
       return NewSource.getUserContPost(
         uid: widget.user.id,
         kind: widget.playlist,
@@ -184,7 +220,9 @@ class _UserContPageState extends State<UserContPage> {
       offset[0] = 0;
       isLoading[0] = true;
       hasMore[0] = true;
-      if (current == ContentKind.post) {
+      if (forContent) {
+        users = getNewItems<Author>().then(updateItemsState);
+      } else if (current == ContentKind.post) {
         posts = getNewItems<Post>().then(updateItemsState);
       } else if (current == ContentKind.comment) {
         comments = getNewItems<Comment>().then(updateItemsState);
@@ -257,7 +295,9 @@ class _UserContPageState extends State<UserContPage> {
     );
 
     late final Widget list;
-    if (current == ContentKind.post) {
+    if (forContent) {
+      list = buildList(users);
+    } else if (current == ContentKind.post) {
       list = buildList(posts);
     } else if (current == ContentKind.comment) {
       list = buildList(comments);

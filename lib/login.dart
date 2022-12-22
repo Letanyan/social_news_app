@@ -56,6 +56,10 @@ class _LoginPageState extends State<LoginPage> {
     });
     if (User.current != null) {
       late Widget page;
+      /*if (User.current?.following.isEmpty == true &&
+          User.current?.favourites.isEmpty == true) {
+        page = const Onboard();
+      } else */
       if (User.current?.validationKey != 0) {
         page = const EmailVerificationPage();
       } else {
@@ -120,12 +124,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       isLoading = true;
     });
-
-    // await Future.delayed(Duration(seconds: 5));
-
-    // setState(() {
-    //   isLoading = false;
-    // });
 
     signInTemplate(email, password);
   }

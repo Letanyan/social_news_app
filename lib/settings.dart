@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/home.dart';
+import 'package:social_news_app/main.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -156,7 +158,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(Colors.red),
                     ),
-                    onPressed: null,
+                    onPressed: () {
+                      NewSource.deleteUser(User.current?.id ?? 0);
+                      User.removeUser().then((value) {
+                        User.current = null;
+                        Navigator.pop(context);
+                        Navigator.push(
+                            context, route(builder: (c) => const MainApp()));
+                      });
+                    },
                     child: Text(TRGeneral.delete)),
               ],
             );

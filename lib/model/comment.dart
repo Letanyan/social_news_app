@@ -174,7 +174,7 @@ class Comment {
     final urlParser = ParserMapping.url(ParserMapping.defaultMap);
     final firstUrl = urlParser.pattern.firstMatch(content);
     late String newContent;
-    if (flagCount >= 0) {
+    if (flagCount >= flagReasonLimit) {
       newContent = TRFlag.flaggedContentMessage;
     } else if (firstUrl != null && firstUrl.start == 0) {
       newContent = content.substring(firstUrl.end);
@@ -242,7 +242,16 @@ class Comment {
       buttonRowItems.add(replyCountChip);
     }
 
-    var items = <Widget>[text, meta];
+    var items = <Widget>[
+      Padding(
+        padding: const EdgeInsets.all(8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: text,
+        ),
+      ),
+      meta,
+    ];
 
     final removeComment = PopupMenuItem(
       onTap: () {
@@ -317,7 +326,7 @@ class Comment {
       child: InkWell(
         onTap: showReplyField != null
             ? () => showReplyField()
-            : showParentPost(context),
+            : (onTap == null ? null : showParentPost(context)),
         child: body,
       ),
     );

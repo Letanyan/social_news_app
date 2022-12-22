@@ -9,17 +9,22 @@ import 'package:social_news_app/model/user_pref.dart';
 class UserPrefPage extends StatefulWidget {
   final bool showSearch;
   final ContentKind prefKind;
-  final Author user;
+  final Author? user;
   final bool isViewed;
   final String title;
+  final int? pid;
+  final int? sid;
 
-  const UserPrefPage(
-      {super.key,
-      required this.title,
-      required this.showSearch,
-      required this.prefKind,
-      required this.user,
-      required this.isViewed});
+  const UserPrefPage({
+    super.key,
+    required this.title,
+    required this.showSearch,
+    required this.prefKind,
+    required this.user,
+    required this.isViewed,
+    this.pid,
+    this.sid,
+  });
 
   @override
   State<UserPrefPage> createState() => _UserPrefPageState();
@@ -30,6 +35,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
   late Future<List<UserPrefPost>> posts;
   late Future<List<UserPrefUser>> users;
   late Future<List<UserPrefComment>> comments;
+  late Future<List<Author>> authors;
 
   var current = ContentKind.tag;
   var offset = [0];
@@ -41,18 +47,24 @@ class _UserPrefPageState extends State<UserPrefPage> {
   var filterKey = GlobalKey();
   bool showingFilter = false;
   double? filterHeight;
+  int? pid;
+  int? sid;
 
   @override
   void initState() {
     super.initState();
 
     current = widget.prefKind;
+    pid = widget.pid;
+    sid = widget.sid;
     filterState = FilterBoxState(
       current: 0,
       search: "",
-      startDate: DateTime(2022),
-      endDate: DateTime.now(),
-      location: widget.prefKind == ContentKind.post ? [] : null,
+      startDate: pid != null ? null : DateTime(2022),
+      endDate: pid != null ? null : DateTime.now(),
+      location: widget.prefKind == ContentKind.post
+          ? (pid != null ? null : [])
+          : null,
       displaySorting: sortOrdersIncluding([SortOrder.updatedOn]),
       order: SortOrder.updatedOn,
     );
@@ -61,7 +73,10 @@ class _UserPrefPageState extends State<UserPrefPage> {
     posts = Future(() => []);
     users = Future(() => []);
     comments = Future(() => []);
-    if (current == ContentKind.tag) {
+    authors = Future(() => []);
+    if (pid != null && sid != null) {
+      authors = getNewItems<Author>().then(updateItemsState);
+    } else if (current == ContentKind.tag) {
       tags = getNewItems<UserPrefTag>().then(updateItemsState);
     } else if (current == ContentKind.post) {
       posts = getNewItems<UserPrefPost>().then(updateItemsState);
@@ -83,6 +98,8 @@ class _UserPrefPageState extends State<UserPrefPage> {
       return 2;
     } else if (isTypeEqual<T, UserPrefComment>()) {
       return 3;
+    } else if (isTypeEqual<T, Author>()) {
+      return 4;
     } else {
       return 100;
     }
@@ -95,9 +112,34 @@ class _UserPrefPageState extends State<UserPrefPage> {
         filterState.location?.isEmpty == true ? null : filterState.location;
     final srt = filterState.order;
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
-    if (isTypeEqual<T, UserPrefTag>()) {
+    if (isTypeEqual<T, Author>()) {
+      late final UserPrefKind kind;
+      switch (current) {
+        case ContentKind.user:
+          kind = UserPrefKind.user;
+          break;
+        case ContentKind.post:
+          kind = UserPrefKind.post;
+          break;
+        case ContentKind.comment:
+          kind = UserPrefKind.comment;
+          break;
+        case ContentKind.tag:
+          kind = UserPrefKind.tag;
+          break;
+      }
+      return NewSource.getUserPrefsFor(
+        kind,
+        pid!,
+        sid!,
+        search: src,
+        order: srt,
+        limit: pageSize,
+        offset: offset[0],
+      ) as Future<List<T>>;
+    } else if (isTypeEqual<T, UserPrefTag>()) {
       return NewSource.getUserPrefTags(
-        uid: widget.user.id,
+        uid: widget.user?.id,
         startVoted: sd,
         endVoted: ed,
         offset: offset[0],
@@ -108,7 +150,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefPost>()) {
       return NewSource.getUserPrefPosts(
-        uid: widget.user.id,
+        uid: widget.user?.id,
         location: loc,
         startVoted: sd,
         endVoted: ed,
@@ -119,7 +161,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefUser>()) {
       return NewSource.getUserPrefUsers(
-        uid: widget.user.id,
+        uid: widget.user?.id,
         startVoted: sd,
         endVoted: ed,
         offset: offset[0],
@@ -129,7 +171,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       ) as Future<List<T>>;
     } else if (isTypeEqual<T, UserPrefComment>()) {
       return NewSource.getUserPrefComments(
-        uid: widget.user.id,
+        uid: widget.user?.id,
         startVoted: sd,
         endVoted: ed,
         offset: offset[0],
@@ -155,7 +197,9 @@ class _UserPrefPageState extends State<UserPrefPage> {
       offset[0] = 0;
       isLoading[0] = true;
       hasMore[0] = true;
-      if (current == ContentKind.tag) {
+      if (pid != null && sid != null) {
+        authors = getNewItems<Author>().then(updateItemsState);
+      } else if (current == ContentKind.tag) {
         tags = getNewItems<UserPrefTag>().then(updateItemsState);
       } else if (current == ContentKind.post) {
         posts = getNewItems<UserPrefPost>().then(updateItemsState);
@@ -217,7 +261,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       updateState,
       Future(() => []),
       Future(() => []),
-      Future(() => []),
+      authors,
       Future(() => []),
       Future(() => []),
       Future(() => []),
@@ -228,7 +272,9 @@ class _UserPrefPageState extends State<UserPrefPage> {
     );
 
     late final Widget list;
-    if (current == ContentKind.post) {
+    if (pid != null && sid != null) {
+      list = buildList(authors);
+    } else if (current == ContentKind.post) {
       list = buildList(posts);
     } else if (current == ContentKind.comment) {
       list = buildList(comments);

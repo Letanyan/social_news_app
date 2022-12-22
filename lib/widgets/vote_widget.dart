@@ -84,8 +84,12 @@ class _VoteWidgetState extends State<VoteWidget> {
     }
 
     if (User.current == null || User.current?.validationKey != 0) {
+      String message = TRGeneral.signInRequired;
+      if (User.current?.validationKey != 0) {
+        message = TRError.notValidated;
+      }
       return AlertDialog(
-        title: Text(TRGeneral.signInRequired),
+        title: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 
 class MyTheme {
-  static var primary = Colors.grey;
-  static var mode = ThemeMode.system;
+  static var primary = Colors.blueGrey;
+  static var mode = ThemeMode.dark;
   static var safe = true;
   static get isDark =>
       MyTheme.mode == ThemeMode.dark ||

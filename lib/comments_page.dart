@@ -460,17 +460,21 @@ class _CommentsPageState extends State<CommentsPage> {
             }
             return item.comment.card(
               context,
-              true,
+              !isReview,
               item.indent,
               calcReplyCount,
-              (c) {
-                toggleComments(c.id);
-                setState(() {});
-              },
+              isReview
+                  ? null
+                  : (c) {
+                      toggleComments(c.id);
+                      setState(() {});
+                    },
               updateState,
-              () => setState(() {
-                replyingTo = item.comment;
-              }),
+              isReview
+                  ? null
+                  : () => setState(() {
+                        replyingTo = item.comment;
+                      }),
               replyingTo?.id == item.comment.id,
               visibleReplyIds.contains(item.comment.id),
               postAuthor: widget.post.creator.id,

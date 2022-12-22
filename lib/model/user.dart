@@ -137,7 +137,7 @@ class User {
       downvotes: json["Downvotes"],
       credits: json["Credits"],
       investment: json["Investment"],
-      validationKey: json["ValidationKey"],
+      validationKey: int.parse(json["ValidationKey"]),
       publicViews: json["PublicViews"],
       publicReadLater: json["PublicReadLater"],
       publicFollowing: json["PublicFollowing"],
@@ -162,7 +162,7 @@ class User {
       downvotes: obj["Downvotes"],
       credits: obj["Credits"],
       investment: obj["Investment"],
-      validationKey: obj["ValidationKey"],
+      validationKey: int.parse(obj["ValidationKey"]),
       publicViews: obj["PublicViews"],
       publicReadLater: obj["PublicReadLater"],
       publicFollowing: obj["PublicFollowing"],
@@ -185,11 +185,16 @@ class User {
     final n = DateTime.now().toUtc();
     final end = DateTime.utc(n.year, n.month, n.day).add(Duration(days: 1));
     final dur = end.difference(n).inSeconds + 5;
+    print("Set up user for streak");
     user.streakUpdate = Future.delayed(Duration(seconds: dur), () async {
       if (User.current == null) {
         return;
       }
-      await NewSource.getUser(User.current!.id);
+      // Credits = 609
+      print("Getting user for streak at ${DateTime.now()}");
+      final secret = User.current!.secret;
+      User.current = await NewSource.getUser(User.current!.id);
+      User.current!.secret = secret;
     });
   }
 
