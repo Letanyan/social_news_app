@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -68,6 +69,7 @@ class _FlagDialogState extends State<FlagDialog> {
         ),
         TextButton(
           onPressed: () {
+            final ctx = WeakReference(context);
             if (User.current != null) {
               NewSource.createFlag(
                 User.current!.id,
@@ -75,7 +77,9 @@ class _FlagDialogState extends State<FlagDialog> {
                 widget.sid,
                 selectReason,
                 controller.text,
-              );
+              ).catchError((e) {
+                displayError(ctx.target, e);
+              });
             }
             Navigator.pop(context);
           },
@@ -115,8 +119,7 @@ class FlaggedPost {
   void handleFlag(
       BuildContext context, FlagHandle handle, Function() updateState) {
     NewSource.handleFlag(id, content.id, -1, handle).then((value) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(flagHandleKind(handle))));
+      displayString(context, flagHandleKind(handle));
       handled = true;
       updateState();
       return value;
@@ -251,8 +254,7 @@ class FlaggedComment {
   void handleFlag(
       BuildContext context, FlagHandle handle, Function() updateState) {
     NewSource.handleFlag(id, content.postId, content.id, handle).then((value) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(flagHandleKind(handle))));
+      displayString(context, flagHandleKind(handle));
       handled = true;
       updateState();
       return value;

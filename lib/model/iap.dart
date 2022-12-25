@@ -36,7 +36,7 @@ Future<List<PurchasableCredit>> loadPurchases() async {
   if (!await iap.isAvailable()) {
     return [];
   }
-  if (!await NewSource.isAvailable()) {
+  if (!await NewSource.isAvailable().catchError((e) => false)) {
     return [];
   }
   final response =
@@ -53,7 +53,7 @@ Future<List<PurchasableCredit>> loadPurchases() async {
 Future<bool> buyCredit(PurchasableCredit product) async {
   final purchase = PurchaseParam(productDetails: product.details);
   final credit = PurchasableCredit.ids[product.id];
-  final available = await NewSource.isAvailable();
+  final available = await NewSource.isAvailable().catchError((e) => false);
   if (credit != null && available) {
     return await IAPConnection.instance
         .buyConsumable(purchaseParam: purchase, autoConsume: true);

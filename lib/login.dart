@@ -91,8 +91,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         message = e.toString();
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      displayString(context, message);
     } finally {
       openApp();
     }
@@ -173,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
         openApp();
       }
     } catch (e) {
-      print(e);
+      displayError(context, e);
     }
   }
 
@@ -189,13 +188,14 @@ class _LoginPageState extends State<LoginPage> {
   void resetPassword() async {
     final email = emailController.text;
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(TRSignIn.provideEmail)));
+      displayString(context, TRSignIn.provideEmail);
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(TRSignIn.sentPasswordReset)));
-    await NewSource.sendPasswordResetLink(email);
+    displayString(context, TRSignIn.sentPasswordReset);
+    final ctx = WeakReference(context);
+    await NewSource.sendPasswordResetLink(email).catchError((e) {
+      displayError(ctx.target, e);
+    });
   }
 
   @override

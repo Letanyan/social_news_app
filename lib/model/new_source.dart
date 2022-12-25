@@ -653,7 +653,7 @@ class NewSource {
     return handlePayload(obj, UserPrefTag.fromJson);
   }
 
-  static Future<List<Author>> getUserPrefsFor(
+  static Future<List<UserPrefUser>> getUserPrefsFor(
     UserPrefKind kind,
     int pid,
     int sid, {
@@ -661,6 +661,7 @@ class NewSource {
     SortOrder? order,
     int? limit,
     int? offset,
+    bool? onlyCount,
   }) async {
     var args = <String>[];
     addSO("order", order, args);
@@ -669,6 +670,7 @@ class NewSource {
     addI("pid", pid, args);
     addI("sid", sid, args);
     addS("search", search, args);
+    addS("onlyCount", onlyCount ?? false ? "1" : "0", args);
     await addSecret(args);
 
     var kindDesc = "";
@@ -692,7 +694,11 @@ class NewSource {
       throw unknownError;
     }
 
-    return handlePayload(obj, Author.fromJson);
+    if (onlyCount == true) {
+      return [UserPrefUser.fromInt(obj["payload"])];
+    } else {
+      return handlePayload(obj, UserPrefUser.fromJson);
+    }
   }
 
   static Future<List<Post>> getUserContPost({
@@ -839,6 +845,7 @@ class NewSource {
     SortOrder? order,
     int? limit,
     int? offset,
+    bool? onlyCount,
   }) async {
     var args = <String>[];
     addSO("order", order, args);
@@ -847,6 +854,7 @@ class NewSource {
     addI("pid", pid, args);
     addI("sid", sid, args);
     addS("search", search, args);
+    addS("onlyCount", onlyCount ?? false ? "1" : "0", args);
     await addSecret(args);
 
     var kindDesc = "";
@@ -875,7 +883,11 @@ class NewSource {
       throw unknownError;
     }
 
-    return handlePayload(obj, Author.fromJson);
+    if (onlyCount == true) {
+      return [Author.fromInt(obj["payload"])];
+    } else {
+      return handlePayload(obj, Author.fromJson);
+    }
   }
 
   //----------------------------------------------------------------------------

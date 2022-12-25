@@ -375,12 +375,40 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
   };
 }
 
+Widget buildCountItemList(Future<int> item) {
+  return FutureBuilder(
+    future: item,
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        final circle = Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [CircularProgressIndicator()],
+        );
+        return SliverList(
+          delegate: SliverChildListDelegate.fixed([circle]),
+        );
+      }
+      if (snapshot.data == null || snapshot.data! <= 0) {
+        return SliverList(delegate: SliverChildListDelegate.fixed([]));
+      }
+      return SliverList(
+        delegate: SliverChildListDelegate.fixed([
+          Center(
+            child: Text(TRHelper.numberOfUsers(snapshot.data!)),
+          )
+        ]),
+      );
+    },
+  );
+}
+
 Widget buildFilteredList<T>(
   Widget list,
   FilterBoxState filterState,
   void Function(FilterBoxState) updateFilterState,
   bool showingFilter,
   void Function(void Function()) updateFilter,
+  Widget? header,
 ) {
   late final Widget sliver;
   final filterBox = FilterBox(
@@ -390,9 +418,14 @@ Widget buildFilteredList<T>(
   );
 
   var stack = <Widget>[];
+  var finalHeader = [];
+  if (header != null) {
+    finalHeader.add(header);
+  }
   if (showingFilter) {
     sliver = CustomScrollView(
       slivers: [
+        ...finalHeader,
         list,
       ],
     );
@@ -404,6 +437,7 @@ Widget buildFilteredList<T>(
     sliver = CustomScrollView(
       slivers: [
         SliverList(delegate: SliverChildListDelegate([filterBox])),
+        ...finalHeader,
         list,
       ],
     );
@@ -451,4 +485,17 @@ Map<K, V> combineMaps<K, V>(List<Map<K, V>> operands) {
     result.addAll(op);
   }
   return result;
+}
+
+void displayError(BuildContext? context, Object e) {
+  if (context != null) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(e.toString())));
+  }
+}
+
+void displayString(BuildContext? context, String s) {
+  if (context != null) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
+  }
 }

@@ -67,8 +67,7 @@ class _SignUpPageState extends State<SignUpPage> {
       final user = await NewSource.signUpUser(un, em, p1);
       User.current = user;
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      displayError(context, e);
     } finally {
       setState(() {
         isLoading = false;

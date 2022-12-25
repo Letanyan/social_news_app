@@ -45,7 +45,9 @@ class NewsAgent {
                     removed = true;
                     updateState(null);
                   },
-                );
+                ).catchError((e) {
+                  displayError(context, e);
+                });
               },
               child: const Text("DELETE"),
             );
@@ -101,19 +103,23 @@ class NewsAgent {
           final save = ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              if (agent != null) {
-                final result = await NewSource.editAgent(
-                  agent.id,
-                  nameController.text,
-                  originController.text,
-                );
-                updateState(result);
-              } else {
-                final result = await NewSource.createAgent(
-                  nameController.text,
-                  originController.text,
-                );
-                updateState(result);
+              try {
+                if (agent != null) {
+                  final result = await NewSource.editAgent(
+                    agent.id,
+                    nameController.text,
+                    originController.text,
+                  );
+                  updateState(result);
+                } else {
+                  final result = await NewSource.createAgent(
+                    nameController.text,
+                    originController.text,
+                  );
+                  updateState(result);
+                }
+              } catch (e) {
+                displayError(context, e);
               }
             },
             child: const Text("Save"),
@@ -134,7 +140,9 @@ class NewsAgent {
   PopupMenuItem buildUpdateAgent(BuildContext context) {
     return PopupMenuItem(
       onTap: () {
-        NewSource.updateAgent(id);
+        NewSource.updateAgent(id).catchError((e) {
+          displayError(context, e);
+        });
       },
       child: const Text("Update"),
     );

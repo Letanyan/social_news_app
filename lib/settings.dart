@@ -159,7 +159,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       backgroundColor: MaterialStateProperty.all(Colors.red),
                     ),
                     onPressed: () {
-                      NewSource.deleteUser(User.current?.id ?? 0);
+                      final ctx = WeakReference(context);
+                      NewSource.deleteUser(User.current?.id ?? 0)
+                          .catchError((e) {
+                        displayError(ctx.target, e);
+                      });
                       User.removeUser().then((value) {
                         User.current = null;
                         Navigator.pop(context);

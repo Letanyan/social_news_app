@@ -91,34 +91,39 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   Future<List<T>> getNewItems<T>() {
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
     final so = filterState.order;
-    if (pageKind == _PostsPageKind.similar) {
-      return NewSource.getSimilarPost(
-        widget.forUser!,
-        start: widget.start,
-        end: widget.end,
-        order: so,
-        offset: offset[0],
-        limit: pageSize,
-        postId: widget.postId,
-      ) as Future<List<T>>;
-    } else {
-      return NewSource.getPosts(
-        userId: widget.userId,
-        origin: widget.origin,
-        tags: widget.tags,
-        popularIn: widget.popularIn,
-        upvotes: widget.upvotes,
-        downvotes: widget.downvotes,
-        order: so,
-        offset: offset[0],
-        limit: pageSize,
-        start: widget.start,
-        end: widget.end,
-        startCreated: widget.startCreated,
-        endCreated: widget.endCreated,
-        search: src,
-        forUser: widget.forUser,
-      ) as Future<List<T>>;
+    try {
+      if (pageKind == _PostsPageKind.similar) {
+        return NewSource.getSimilarPost(
+          widget.forUser!,
+          start: widget.start,
+          end: widget.end,
+          order: so,
+          offset: offset[0],
+          limit: pageSize,
+          postId: widget.postId,
+        ) as Future<List<T>>;
+      } else {
+        return NewSource.getPosts(
+          userId: widget.userId,
+          origin: widget.origin,
+          tags: widget.tags,
+          popularIn: widget.popularIn,
+          upvotes: widget.upvotes,
+          downvotes: widget.downvotes,
+          order: so,
+          offset: offset[0],
+          limit: pageSize,
+          start: widget.start,
+          end: widget.end,
+          startCreated: widget.startCreated,
+          endCreated: widget.endCreated,
+          search: src,
+          forUser: widget.forUser,
+        ) as Future<List<T>>;
+      }
+    } catch (e) {
+      displayError(context, e);
+      return Future(() => []) as Future<List<T>>;
     }
   }
 
@@ -191,7 +196,9 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
             User.current!.id,
             tag,
             UserContKind.tagFollow,
-          );
+          ).catchError((e) {
+            displayError(context, e);
+          });
         } else {
           final t = Tag.getTag(tag);
           User.current?.favourites.add(t);
@@ -199,7 +206,9 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
             uid: User.current!.id,
             kind: UserContKind.tagFollow,
             pid: tag,
-          );
+          ).catchError((e) {
+            displayError(context, e);
+          });
         }
         setState(() {});
       },
@@ -238,6 +247,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
       updateFilterState,
       showingFilter,
       updateFilter,
+      null,
     );
 
     return Scaffold(

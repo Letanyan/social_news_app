@@ -130,7 +130,7 @@ class _UserContPageState extends State<UserContPage> {
     }
   }
 
-  Future<List<T>> getNewItems<T>() async {
+  Future<int> getItemsCount() async {
     final sd = filterState.startDate;
     final ed = filterState.endDate;
     final loc =
@@ -146,57 +146,86 @@ class _UserContPageState extends State<UserContPage> {
         order: srt,
         limit: pageSize,
         offset: offset[0],
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Post>()) {
-      return NewSource.getUserContPost(
-        uid: widget.user.id,
-        kind: widget.playlist,
-        location: loc,
-        startCreated: sd,
-        endCreated: ed,
-        offset: offset[0],
-        limit: pageSize,
-        order: srt,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Comment>()) {
-      return NewSource.getUserContComments(
-        uid: widget.user.id,
-        startCreated: sd,
-        endCreated: ed,
-        offset: offset[0],
-        limit: pageSize,
-        order: srt,
-        search: src,
-        isReview: widget.isReview,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Author>()) {
-      if (widget.playlist == UserContKind.userFollow) {
-        return NewSource.getUserContUsers(
-          widget.user.id,
-          UserContKind.userFollow,
-          pageSize,
-          offset[0],
-          startDate: sd,
-          endDate: ed,
+        onlyCount: true,
+      ).then((value) => value[0].id).catchError((e) {
+        displayError(context, e);
+      });
+    }
+    return 0;
+  }
+
+  Future<List<T>> getNewItems<T>() async {
+    final sd = filterState.startDate;
+    final ed = filterState.endDate;
+    final loc =
+        filterState.location?.isEmpty == true ? null : filterState.location;
+    final srt = filterState.order;
+    final src = filterState.search?.isEmpty == true ? null : filterState.search;
+    try {
+      if (forContent && pid != null && sid != null) {
+        return NewSource.getUserContFor(
+          playlist,
+          pid!,
+          sid!,
+          search: src,
+          order: srt,
+          limit: pageSize,
+          offset: offset[0],
         ) as Future<List<T>>;
-      } else if (widget.playlist == UserContKind.ignored) {
-        return NewSource.getUserContUsers(
-          widget.user.id,
-          UserContKind.ignored,
-          pageSize,
-          offset[0],
-          startDate: sd,
-          endDate: ed,
+      } else if (isTypeEqual<T, Post>()) {
+        return NewSource.getUserContPost(
+          uid: widget.user.id,
+          kind: widget.playlist,
+          location: loc,
+          startCreated: sd,
+          endCreated: ed,
+          offset: offset[0],
+          limit: pageSize,
+          order: srt,
+          search: src,
         ) as Future<List<T>>;
+      } else if (isTypeEqual<T, Comment>()) {
+        return NewSource.getUserContComments(
+          uid: widget.user.id,
+          startCreated: sd,
+          endCreated: ed,
+          offset: offset[0],
+          limit: pageSize,
+          order: srt,
+          search: src,
+          isReview: widget.isReview,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, Author>()) {
+        if (widget.playlist == UserContKind.userFollow) {
+          return NewSource.getUserContUsers(
+            widget.user.id,
+            UserContKind.userFollow,
+            pageSize,
+            offset[0],
+            startDate: sd,
+            endDate: ed,
+          ) as Future<List<T>>;
+        } else if (widget.playlist == UserContKind.ignored) {
+          return NewSource.getUserContUsers(
+            widget.user.id,
+            UserContKind.ignored,
+            pageSize,
+            offset[0],
+            startDate: sd,
+            endDate: ed,
+          ) as Future<List<T>>;
+        } else {
+          return Future(() => <T>[]);
+        }
+      } else if (isTypeEqual<T, Tag>()) {
+        return NewSource.getUserContTag(
+                widget.user.id, UserContKind.tagFollow, pageSize, offset[0])
+            as Future<List<T>>;
       } else {
         return Future(() => <T>[]);
       }
-    } else if (isTypeEqual<T, Tag>()) {
-      return NewSource.getUserContTag(
-              widget.user.id, UserContKind.tagFollow, pageSize, offset[0])
-          as Future<List<T>>;
-    } else {
+    } catch (e) {
+      displayError(context, e);
       return Future(() => <T>[]);
     }
   }
@@ -295,8 +324,10 @@ class _UserContPageState extends State<UserContPage> {
     );
 
     late final Widget list;
+    late Widget? header = null;
     if (forContent) {
       list = buildList(users);
+      header = buildCountItemList(getItemsCount());
     } else if (current == ContentKind.post) {
       list = buildList(posts);
     } else if (current == ContentKind.comment) {
@@ -314,6 +345,7 @@ class _UserContPageState extends State<UserContPage> {
       updateFilterState,
       showingFilter,
       updateFilter,
+      header,
     );
 
     return Scaffold(

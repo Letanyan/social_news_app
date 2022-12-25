@@ -86,12 +86,16 @@ class _FilterBoxState extends State<FilterBox> {
     super.initState();
 
     final defaultSelector = widget.state.displaySelector;
-    final defaultStart = startOfDay(
-        widget.state.startDate ?? DateTime.now().add(const Duration(days: -7)));
-    final defaultEnd = endOfDay(widget.state.endDate ?? DateTime.now());
-    final defaultLocation = widget.state.location ?? [];
+    final defaultStart = widget.state.startDate == null
+        ? null
+        : startOfDay(widget.state.startDate ??
+            DateTime.now().add(const Duration(days: -7)));
+    final defaultEnd = widget.state.endDate == null
+        ? null
+        : endOfDay(widget.state.endDate ?? DateTime.now());
+    final defaultLocation = widget.state.location;
     final defaultSearch = widget.state.search;
-    final defaultOrder = widget.state.order ?? SortOrder.upvotes;
+    final defaultOrder = widget.state.order;
     current = widget.state.current;
 
     if (widget.state.displaySelector == null) {

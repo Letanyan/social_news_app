@@ -21,6 +21,14 @@ class UserPrefUser {
       downvotes: json["Downvotes"],
     );
   }
+
+  factory UserPrefUser.fromInt(int value) {
+    return UserPrefUser(
+      author: Author.fromInt(value),
+      upvotes: 0,
+      downvotes: 0,
+    );
+  }
 }
 
 class UserPrefPost {

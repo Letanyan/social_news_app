@@ -35,7 +35,6 @@ class _UserPrefPageState extends State<UserPrefPage> {
   late Future<List<UserPrefPost>> posts;
   late Future<List<UserPrefUser>> users;
   late Future<List<UserPrefComment>> comments;
-  late Future<List<Author>> authors;
 
   var current = ContentKind.tag;
   var offset = [0];
@@ -73,9 +72,8 @@ class _UserPrefPageState extends State<UserPrefPage> {
     posts = Future(() => []);
     users = Future(() => []);
     comments = Future(() => []);
-    authors = Future(() => []);
     if (pid != null && sid != null) {
-      authors = getNewItems<Author>().then(updateItemsState);
+      users = getNewItems<UserPrefUser>().then(updateItemsState);
     } else if (current == ContentKind.tag) {
       tags = getNewItems<UserPrefTag>().then(updateItemsState);
     } else if (current == ContentKind.post) {
@@ -89,20 +87,40 @@ class _UserPrefPageState extends State<UserPrefPage> {
     offset[0] = pageSize;
   }
 
-  int currentIndex<T>() {
-    if (isTypeEqual<T, UserPrefTag>()) {
-      return 0;
-    } else if (isTypeEqual<T, UserPrefPost>()) {
-      return 1;
-    } else if (isTypeEqual<T, UserPrefUser>()) {
-      return 2;
-    } else if (isTypeEqual<T, UserPrefComment>()) {
-      return 3;
-    } else if (isTypeEqual<T, Author>()) {
-      return 4;
-    } else {
-      return 100;
+  Future<int> getItemsCount() async {
+    final sd = filterState.startDate;
+    final ed = filterState.endDate;
+    final loc =
+        filterState.location?.isEmpty == true ? null : filterState.location;
+    final srt = filterState.order;
+    final src = filterState.search?.isEmpty == true ? null : filterState.search;
+    late final UserPrefKind kind;
+    switch (current) {
+      case ContentKind.user:
+        kind = UserPrefKind.user;
+        break;
+      case ContentKind.post:
+        kind = UserPrefKind.post;
+        break;
+      case ContentKind.comment:
+        kind = UserPrefKind.comment;
+        break;
+      case ContentKind.tag:
+        kind = UserPrefKind.tag;
+        break;
     }
+    return NewSource.getUserPrefsFor(
+      kind,
+      pid!,
+      sid!,
+      search: src,
+      order: srt,
+      limit: pageSize,
+      offset: offset[0],
+      onlyCount: true,
+    ).then((value) => value[0].author.id).catchError((e) {
+      displayError(context, e);
+    });
   }
 
   Future<List<T>> getNewItems<T>() async {
@@ -112,74 +130,79 @@ class _UserPrefPageState extends State<UserPrefPage> {
         filterState.location?.isEmpty == true ? null : filterState.location;
     final srt = filterState.order;
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
-    if (isTypeEqual<T, Author>()) {
-      late final UserPrefKind kind;
-      switch (current) {
-        case ContentKind.user:
-          kind = UserPrefKind.user;
-          break;
-        case ContentKind.post:
-          kind = UserPrefKind.post;
-          break;
-        case ContentKind.comment:
-          kind = UserPrefKind.comment;
-          break;
-        case ContentKind.tag:
-          kind = UserPrefKind.tag;
-          break;
+    try {
+      if (pid != null && sid != null) {
+        late final UserPrefKind kind;
+        switch (current) {
+          case ContentKind.user:
+            kind = UserPrefKind.user;
+            break;
+          case ContentKind.post:
+            kind = UserPrefKind.post;
+            break;
+          case ContentKind.comment:
+            kind = UserPrefKind.comment;
+            break;
+          case ContentKind.tag:
+            kind = UserPrefKind.tag;
+            break;
+        }
+        return NewSource.getUserPrefsFor(
+          kind,
+          pid!,
+          sid!,
+          search: src,
+          order: srt,
+          limit: pageSize,
+          offset: offset[0],
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, UserPrefTag>()) {
+        return NewSource.getUserPrefTags(
+          uid: widget.user?.id,
+          startVoted: sd,
+          endVoted: ed,
+          offset: offset[0],
+          limit: pageSize,
+          order: srt,
+          search: src,
+          isWatched: widget.isViewed,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, UserPrefPost>()) {
+        return NewSource.getUserPrefPosts(
+          uid: widget.user?.id,
+          location: loc,
+          startVoted: sd,
+          endVoted: ed,
+          offset: offset[0],
+          limit: pageSize,
+          order: srt,
+          search: src,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, UserPrefUser>()) {
+        return NewSource.getUserPrefUsers(
+          uid: widget.user?.id,
+          startVoted: sd,
+          endVoted: ed,
+          offset: offset[0],
+          limit: pageSize,
+          order: srt,
+          search: src,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, UserPrefComment>()) {
+        return NewSource.getUserPrefComments(
+          uid: widget.user?.id,
+          startVoted: sd,
+          endVoted: ed,
+          offset: offset[0],
+          limit: pageSize,
+          order: srt,
+          search: src,
+        ) as Future<List<T>>;
+      } else {
+        return Future(() => <T>[]);
       }
-      return NewSource.getUserPrefsFor(
-        kind,
-        pid!,
-        sid!,
-        search: src,
-        order: srt,
-        limit: pageSize,
-        offset: offset[0],
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, UserPrefTag>()) {
-      return NewSource.getUserPrefTags(
-        uid: widget.user?.id,
-        startVoted: sd,
-        endVoted: ed,
-        offset: offset[0],
-        limit: pageSize,
-        order: srt,
-        search: src,
-        isWatched: widget.isViewed,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, UserPrefPost>()) {
-      return NewSource.getUserPrefPosts(
-        uid: widget.user?.id,
-        location: loc,
-        startVoted: sd,
-        endVoted: ed,
-        offset: offset[0],
-        limit: pageSize,
-        order: srt,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, UserPrefUser>()) {
-      return NewSource.getUserPrefUsers(
-        uid: widget.user?.id,
-        startVoted: sd,
-        endVoted: ed,
-        offset: offset[0],
-        limit: pageSize,
-        order: srt,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, UserPrefComment>()) {
-      return NewSource.getUserPrefComments(
-        uid: widget.user?.id,
-        startVoted: sd,
-        endVoted: ed,
-        offset: offset[0],
-        limit: pageSize,
-        order: srt,
-        search: src,
-      ) as Future<List<T>>;
-    } else {
+    } catch (e) {
+      displayError(context, e);
       return Future(() => <T>[]);
     }
   }
@@ -197,9 +220,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       offset[0] = 0;
       isLoading[0] = true;
       hasMore[0] = true;
-      if (pid != null && sid != null) {
-        authors = getNewItems<Author>().then(updateItemsState);
-      } else if (current == ContentKind.tag) {
+      if (current == ContentKind.tag) {
         tags = getNewItems<UserPrefTag>().then(updateItemsState);
       } else if (current == ContentKind.post) {
         posts = getNewItems<UserPrefPost>().then(updateItemsState);
@@ -261,7 +282,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       updateState,
       Future(() => []),
       Future(() => []),
-      authors,
+      Future(() => []),
       Future(() => []),
       Future(() => []),
       Future(() => []),
@@ -272,8 +293,10 @@ class _UserPrefPageState extends State<UserPrefPage> {
     );
 
     late final Widget list;
+    Widget? header = null;
     if (pid != null && sid != null) {
-      list = buildList(authors);
+      list = buildList(users);
+      header = buildCountItemList(getItemsCount());
     } else if (current == ContentKind.post) {
       list = buildList(posts);
     } else if (current == ContentKind.comment) {
@@ -291,6 +314,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       updateFilterState,
       showingFilter,
       updateFilter,
+      header,
     );
 
     return Scaffold(

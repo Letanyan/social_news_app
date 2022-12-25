@@ -97,55 +97,60 @@ class SearchPageState extends State<SearchPage> {
     final are = !widget.isTrending ? filterState.location : null;
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
     final so = filterState.order;
-    if (src == null && !widget.isTrending) {
-      return Future(() => []);
-    }
-    if (isTypeEqual<T, Tag>()) {
-      return NewSource.getTags(
-        offset: offset[idx],
-        limit: pageSize,
-        order: so,
-        start: sd,
-        end: ed,
-        location: loc,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Post>()) {
-      return NewSource.getPosts(
-        offset: offset[idx],
-        limit: pageSize,
-        order: so,
-        start: sd,
-        end: ed,
-        origin: are,
-        startCreated: ssd,
-        endCreated: sed,
-        popularIn: loc,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Author>()) {
-      return NewSource.getUsers(
-        offset: offset[idx],
-        limit: pageSize,
-        order: so,
-        start: sd,
-        end: ed,
-        popularIn: loc,
-        search: src,
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, Comment>()) {
-      return NewSource.getComments(
-        offset: offset[idx],
-        limit: pageSize,
-        order: so,
-        start: sd,
-        end: ed,
-        startCreated: ssd,
-        endCreated: sed,
-        popularIn: loc,
-        search: src,
-      ) as Future<List<T>>;
-    } else {
+    try {
+      if (src == null && !widget.isTrending) {
+        return Future(() => []);
+      }
+      if (isTypeEqual<T, Tag>()) {
+        return NewSource.getTags(
+          offset: offset[idx],
+          limit: pageSize,
+          order: so,
+          start: sd,
+          end: ed,
+          location: loc,
+          search: src,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, Post>()) {
+        return NewSource.getPosts(
+          offset: offset[idx],
+          limit: pageSize,
+          order: so,
+          start: sd,
+          end: ed,
+          origin: are,
+          startCreated: ssd,
+          endCreated: sed,
+          popularIn: loc,
+          search: src,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, Author>()) {
+        return NewSource.getUsers(
+          offset: offset[idx],
+          limit: pageSize,
+          order: so,
+          start: sd,
+          end: ed,
+          popularIn: loc,
+          search: src,
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, Comment>()) {
+        return NewSource.getComments(
+          offset: offset[idx],
+          limit: pageSize,
+          order: so,
+          start: sd,
+          end: ed,
+          startCreated: ssd,
+          endCreated: sed,
+          popularIn: loc,
+          search: src,
+        ) as Future<List<T>>;
+      } else {
+        return Future(() => <T>[]);
+      }
+    } catch (e) {
+      displayError(context, e);
       return Future(() => <T>[]);
     }
   }
@@ -270,6 +275,7 @@ class SearchPageState extends State<SearchPage> {
       updateFilterState,
       showingFilter,
       updateFilter,
+      null,
     );
 
     return Scaffold(

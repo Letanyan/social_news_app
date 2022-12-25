@@ -27,8 +27,11 @@ class _OnboardState extends State<Onboard> {
 
   @override
   Widget build(BuildContext context) {
+    final ctx = WeakReference(context);
     final tags = FutureBuilder(
-      future: NewSource.onboardTags(),
+      future: NewSource.onboardTags().catchError((e) {
+        displayError(ctx.target, e);
+      }),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Row(
@@ -66,7 +69,9 @@ class _OnboardState extends State<Onboard> {
       },
     );
     final agents = FutureBuilder(
-      future: NewSource.onboardAgents(),
+      future: NewSource.onboardAgents().catchError((e) {
+        displayError(ctx.target, e);
+      }),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Row(
@@ -130,7 +135,9 @@ class _OnboardState extends State<Onboard> {
         NewSource.onboardCurrentUser(
           selectedTags.toList(),
           selectedAgents.toList(),
-        );
+        ).catchError((e) {
+          displayError(ctx.target, e);
+        });
         Navigator.pop(context);
         final page = User.current?.validationKey == 0
             ? const EmailVerificationPage()

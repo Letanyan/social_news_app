@@ -26,10 +26,10 @@ class Geo {
             .map((key, value) => MapEntry(key as String, value as String))));
     final mc = c.map((key, value) => MapEntry(key as String, value as String));
 
-    final myLocation = await NewSource.getCurrentLocation();
+    final myLocation =
+        await NewSource.getCurrentLocation().catchError((e) => <String>[]);
     final myCountry = myLocation.isNotEmpty ? myLocation[0] : "";
     final myRegion = myLocation.length > 1 ? myLocation[1] : "";
-
     return Geo(mr, mc, myCountry, myRegion);
   }
 

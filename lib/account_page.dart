@@ -92,7 +92,10 @@ class _AccountPageState extends State<AccountPage> {
       var page = WillPopScope(
         onWillPop: () async {
           if (User.current != null) {
-            NewSource.updateUserDetails(User.current!);
+            final ctx = WeakReference(context);
+            NewSource.updateUserDetails(User.current!).catchError((e) {
+              displayError(ctx.target, e);
+            });
           }
           return true;
         },
@@ -133,7 +136,10 @@ class _AccountPageState extends State<AccountPage> {
           Text("${TRGeneral.credits}: ${User.current!.creditAmount()}");
       action = TextButton(
         onPressed: () {
-          NewSource.signOut(User.current?.id ?? 0);
+          final ctx = WeakReference(context);
+          NewSource.signOut(User.current?.id ?? 0).catchError((e) {
+            displayError(ctx.target, e);
+          });
           User.removeUser().then((value) {
             User.current = null;
             Navigator.pop(context);

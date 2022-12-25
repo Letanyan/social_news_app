@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/flag.dart';
@@ -9,6 +10,7 @@ import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
+import 'package:social_news_app/user_pref_page.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
 
 class Comment {
@@ -77,16 +79,20 @@ class Comment {
 
   void Function() showParentPost(BuildContext context) {
     return () {
-      NewSource.getPost(postId).then(((value) {
-        final page = Scaffold(
-          appBar: AppBar(title: Text(TRGeneral.comments)),
-          body: CommentsPage(post: value, scrollComments: this),
-        );
-        Navigator.push(
-          context,
-          route(builder: (context) => page),
-        );
-      }));
+      NewSource.getPost(postId).then(
+        ((value) {
+          final page = Scaffold(
+            appBar: AppBar(title: Text(TRGeneral.comments)),
+            body: CommentsPage(post: value, scrollComments: this),
+          );
+          Navigator.push(
+            context,
+            route(builder: (context) => page),
+          );
+        }),
+      ).catchError((e) {
+        displayError(context, e);
+      });
     };
   }
 
@@ -135,13 +141,11 @@ class Comment {
                 amount: amount)
             .then((value) {
           User.current!.credits = value;
-        }).onError((error, stackTrace) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(error.toString())));
+        }).catchError((e) {
+          displayError(context, e);
         });
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+        displayError(context, e);
       }
     };
   }
@@ -255,11 +259,12 @@ class Comment {
 
     final removeComment = PopupMenuItem(
       onTap: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRGeneral.removed)));
+        displayString(context, TRGeneral.removed);
         trashed = true;
         updateState();
-        NewSource.deleteComment(postId, id);
+        NewSource.deleteComment(postId, id).catchError((e) {
+          displayError(context, e);
+        });
       },
       child: Text(TRGeneral.remove),
     );
@@ -268,7 +273,31 @@ class Comment {
       onTap: () {},
       child: Text(TRGeneral.edit),
     );
+
+    final votedFor = PopupMenuItem(
+      onTap: () {
+        final title = contentKindToString(ContentKind.user);
+
+        final body = UserPrefPage(
+          title: title,
+          showSearch: true,
+          prefKind: ContentKind.comment,
+          user: User.current?.toAuthor(),
+          isViewed: false,
+          pid: postId,
+          sid: id,
+        );
+        WidgetsBinding.instance.addPostFrameCallback((ts) {
+          Navigator.push(
+            context,
+            route(builder: (context) => body),
+          );
+        });
+      },
+      child: Text(TRGeneral.votedBy),
+    );
     final userActionsList = <PopupMenuItem>[];
+    userActionsList.add(votedFor);
     if (author.id == User.current?.id ||
         (User.current?.id == postAuthor && postAuthor != null)) {
       userActionsList.add(removeComment);
@@ -307,10 +336,16 @@ class Comment {
     if (up != null && down != null) {
       final upChip = buildVoteChip(context, up, true);
       final downChip = buildVoteChip(context, down, false);
+      final desc = Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(TRGeneral.votesFromUser),
+      );
 
       items.add(Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          desc,
+          const SizedBox(width: 4),
           upChip,
           downChip,
           const SizedBox(width: 8),

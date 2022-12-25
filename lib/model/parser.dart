@@ -237,12 +237,16 @@ class Parser {
         t.endsWith(".gif");
 
     if (!validPath) {
-      final response = await NewSource.head(s);
-      final c = response?.headers["content-type"];
-      validPath = c == "image/gif" ||
-          c == "image/jpeg" ||
-          c == "image/jpg" ||
-          c == "image/png";
+      try {
+        final response = await NewSource.head(s);
+        final c = response?.headers["content-type"];
+        validPath = c == "image/gif" ||
+            c == "image/jpeg" ||
+            c == "image/jpg" ||
+            c == "image/png";
+      } catch (e) {
+        validPath = false;
+      }
     }
 
     return canLoadImage && validPath;

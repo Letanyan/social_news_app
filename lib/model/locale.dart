@@ -297,6 +297,42 @@ abstract class TRGeneral {
     }
   }
 
+  static String get votedBy {
+    switch (locale) {
+      case LC.en:
+        return "Voted By";
+      case LC.es:
+        return "Votado Por";
+    }
+  }
+
+  static String get votesFromUser {
+    switch (locale) {
+      case LC.en:
+        return "Votes From User";
+      case LC.es:
+        return "Votos De La Usuaria";
+    }
+  }
+
+  static String get viewedBy {
+    switch (locale) {
+      case LC.en:
+        return "Viewed By";
+      case LC.es:
+        return "Visto Por";
+    }
+  }
+
+  static String get readLaterBy {
+    switch (locale) {
+      case LC.en:
+        return "To Read Later By";
+      case LC.es:
+        return "Para Leer Más Tarde Por";
+    }
+  }
+
   static String get edited {
     switch (locale) {
       case LC.en:
@@ -1189,9 +1225,27 @@ abstract class TRHelper {
   static String get noResults {
     switch (locale) {
       case LC.en:
-        return "No Results";
+        return "No Items";
       case LC.es:
-        return "No Hay Resultados";
+        return "No Hay Artículos";
+    }
+  }
+
+  static String numberOfItems(int count) {
+    switch (locale) {
+      case LC.en:
+        return "$count Items";
+      case LC.es:
+        return "$count Artículos";
+    }
+  }
+
+  static String numberOfUsers(int count) {
+    switch (locale) {
+      case LC.en:
+        return "$count Users";
+      case LC.es:
+        return "$count Usuarias";
     }
   }
 

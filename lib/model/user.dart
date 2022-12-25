@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/main.dart';
@@ -193,8 +194,16 @@ class User {
       // Credits = 609
       print("Getting user for streak at ${DateTime.now()}");
       final secret = User.current!.secret;
-      User.current = await NewSource.getUser(User.current!.id);
-      User.current!.secret = secret;
+      try {
+        User.current = await NewSource.getUser(User.current!.id);
+        User.current!.secret = secret;
+      } catch (e) {
+        NewSource.signOut(User.current?.id ?? 0).catchError((e) {});
+        User.removeUser().then((value) {
+          User.current = null;
+          Get.offAll(const MainApp());
+        });
+      }
     });
   }
 
@@ -345,15 +354,24 @@ class Author {
           Navigator.push(context, route(builder: (c) => const MainApp()));
         } else if (isIgnored) {
           User.current?.ignored.removeWhere((u) => u.id == id);
-          NewSource.deleteUserCont(User.current!.id, id, UserContKind.ignored);
+          NewSource.deleteUserCont(User.current!.id, id, UserContKind.ignored)
+              .catchError((e) {
+            displayError(context, e);
+          });
         } else if (isFollowing) {
           User.current?.following.removeWhere((u) => u.id == id);
           NewSource.deleteUserCont(
-              User.current!.id, id, UserContKind.userFollow);
+                  User.current!.id, id, UserContKind.userFollow)
+              .catchError((e) {
+            displayError(context, e);
+          });
         } else {
           User.current?.following.add(this);
           NewSource.addUserCont(
-              uid: User.current!.id, kind: UserContKind.userFollow, pid: id);
+                  uid: User.current!.id, kind: UserContKind.userFollow, pid: id)
+              .catchError((e) {
+            displayError(context, e);
+          });
         }
         updateState();
       },
@@ -413,12 +431,16 @@ class Author {
     if (up != null && down != null) {
       final upChip = buildVoteChip(context, up, true);
       final downChip = buildVoteChip(context, down, false);
+      final desc = Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(TRGeneral.votesFromUser),
+      );
       body = Column(
         children: [
           primary,
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [upChip, downChip],
+            children: [desc, SizedBox(width: 4), upChip, downChip],
           ),
         ],
       );

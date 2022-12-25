@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/posts_page.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/widgets/vote_widget.dart';
@@ -107,7 +108,8 @@ class Tag {
       }
     }
 
-    final newTags = await NewSource.getTagsFromIds(uncached);
+    final newTags =
+        await NewSource.getTagsFromIds(uncached).catchError((e) => <Tag>[]);
 
     for (final tag in newTags) {
       stored[tag.id] = tag;
@@ -145,12 +147,16 @@ class Tag {
     if (up != null && down != null) {
       final upChip = buildVoteChip(context, up, true);
       final downChip = buildVoteChip(context, down, false);
+      final desc = Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(TRGeneral.votesFromUser),
+      );
       body = Column(
         children: [
           primary,
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [upChip, downChip],
+            children: [desc, SizedBox(width: 4), upChip, downChip],
           ),
         ],
       );

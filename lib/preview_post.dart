@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
@@ -73,8 +74,7 @@ class _PostPreviewState extends State<PostPreview> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      displayError(context, e);
     }
   }
 
@@ -121,7 +121,9 @@ class _PostPreviewState extends State<PostPreview> {
         urls.first.start == 0 &&
         urls.first.end == trimContent.length) {
       preview = FutureBuilder(
-        future: NewSource.createPost(trimContent, true),
+        future: NewSource.createPost(trimContent, true).catchError((e) {
+          displayError(context, e);
+        }),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Row(

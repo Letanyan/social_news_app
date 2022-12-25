@@ -34,8 +34,12 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         if (User.current == null) {
           return;
         }
-        await NewSource.sendVerificationLink(
-            User.current!.id, User.current!.email, User.current!.validationKey);
+        try {
+          await NewSource.sendVerificationLink(User.current!.id,
+              User.current!.email, User.current!.validationKey);
+        } catch (e) {
+          displayError(context, e);
+        }
       },
       child: Text(TREmailVerify.resend),
     );

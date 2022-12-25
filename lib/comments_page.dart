@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:social_news_app/model/comment.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
@@ -77,7 +78,10 @@ class _CommentsPageState extends State<CommentsPage> {
       if (!isTop) {
         return;
       }
-      NewSource.watchPost(User.current!.id, widget.post.id, 1);
+      final ctx = WeakReference(context);
+      NewSource.watchPost(User.current!.id, widget.post.id, 1).catchError((e) {
+        displayError(ctx.target, e);
+      });
     });
   }
 
@@ -90,12 +94,15 @@ class _CommentsPageState extends State<CommentsPage> {
   }
 
   Future<void> loadComments(int commentId) async {
+    final ctx = WeakReference(context);
     allComments = NewSource.getComments(
       postId: widget.post.id,
       replyId: commentId,
       order: SortOrder.createdAt,
       isReview: -1,
-    );
+    ).catchError((e) {
+      displayError(ctx.target, e);
+    });
 
     // sortComments uses the keys from comments to decide which comments to
     // show. So we include the 0 key here so the top level comments are shown
@@ -278,8 +285,7 @@ class _CommentsPageState extends State<CommentsPage> {
       replyingTo = null;
       controller.text = "";
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      displayError(context, e);
     }
   }
 

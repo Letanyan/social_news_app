@@ -71,19 +71,24 @@ class _FlagsPageState extends State<FlagsPage> {
     //     filterState.location?.isEmpty == true ? null : filterState.location;
     // final src = filterState.search?.isEmpty == true ? null : filterState.search;
     final rsn = filterState.current;
-    if (isTypeEqual<T, FlaggedPost>()) {
-      return NewSource.getFlaggedPosts(
-        FlagReason.values[rsn],
-        pageSize,
-        offset[filterState.current],
-      ) as Future<List<T>>;
-    } else if (isTypeEqual<T, FlaggedComment>()) {
-      return NewSource.getFlaggedComments(
-        FlagReason.values[rsn],
-        pageSize,
-        offset[filterState.current],
-      ) as Future<List<T>>;
-    } else {
+    try {
+      if (isTypeEqual<T, FlaggedPost>()) {
+        return NewSource.getFlaggedPosts(
+          FlagReason.values[rsn],
+          pageSize,
+          offset[filterState.current],
+        ) as Future<List<T>>;
+      } else if (isTypeEqual<T, FlaggedComment>()) {
+        return NewSource.getFlaggedComments(
+          FlagReason.values[rsn],
+          pageSize,
+          offset[filterState.current],
+        ) as Future<List<T>>;
+      } else {
+        return Future(() => <T>[]);
+      }
+    } catch (e) {
+      displayError(context, e);
       return Future(() => <T>[]);
     }
   }

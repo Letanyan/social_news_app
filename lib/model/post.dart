@@ -93,9 +93,8 @@ class Post {
       if (User.current?.readLater.contains(id) ?? false) {
         actions.add(IconButton(
           onPressed: () {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(TRPosts.postMarkedRead)));
-            markAsRead();
+            displayString(context, TRPosts.postMarkedRead);
+            markAsRead(context);
           },
           icon: const Icon(Icons.mark_chat_read),
         ));
@@ -110,7 +109,10 @@ class Post {
       );
       if (User.current != null) {
         NewSource.addUserCont(
-            uid: User.current!.id, kind: UserContKind.viewed, pid: id);
+                uid: User.current!.id, kind: UserContKind.viewed, pid: id)
+            .catchError((e) {
+          displayError(context, e);
+        });
       }
       Navigator.push(
         context,
@@ -151,13 +153,11 @@ class Post {
                 postId: id, userId: User.current!.id, amount: amount)
             .then((value) {
           User.current!.credits = value;
-        }).onError((error, stackTrace) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(error.toString())));
+        }).catchError((e) {
+          displayError(context, e);
         });
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+        displayError(context, e);
       }
     };
   }
@@ -218,14 +218,16 @@ class Post {
     return PopupMenuItem(
       onTap: () {
         trashed = true;
-        NewSource.deletePost(id);
+        NewSource.deletePost(id).catchError((e) {
+          displayError(context, e);
+        });
         Navigator.of(context).pop();
       },
       child: Text(TRGeneral.remove),
     );
   }
 
-  Future<void> markAsRead() async {
+  Future<void> markAsRead(BuildContext context) async {
     if (User.current == null) {
       return;
     }
@@ -234,10 +236,12 @@ class Post {
       User.current!.id,
       id,
       UserContKind.readLater,
-    );
+    ).catchError((e) {
+      displayError(context, e);
+    });
   }
 
-  Future<void> readLater() async {
+  Future<void> readLater(BuildContext context) async {
     if (User.current == null) {
       return;
     }
@@ -246,7 +250,9 @@ class Post {
       uid: User.current!.id,
       kind: UserContKind.readLater,
       pid: id,
-    );
+    ).catchError((e) {
+      displayError(context, e);
+    });
   }
 
   void openVotedFor(BuildContext context) {
@@ -272,7 +278,7 @@ class Post {
   PopupMenuItem buildVotedFor(BuildContext context) {
     return PopupMenuItem(
       onTap: () => openVotedFor(context),
-      child: Text(TRAccountPage.votedFor),
+      child: Text(TRGeneral.votedBy),
     );
   }
 
@@ -302,10 +308,10 @@ class Post {
     late final String text;
     switch (kind) {
       case UserContKind.viewed:
-        text = TRAccountPage.viewed;
+        text = TRGeneral.viewedBy;
         break;
       case UserContKind.readLater:
-        text = TRAccountPage.readLater;
+        text = TRGeneral.readLaterBy;
         break;
       default:
         text = "";
@@ -319,9 +325,8 @@ class Post {
   PopupMenuItem buildReadLater(BuildContext context) {
     return PopupMenuItem(
       onTap: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRPosts.addedToReadLater)));
-        readLater();
+        displayString(context, TRPosts.addedToReadLater);
+        readLater(context);
       },
       child: Text(TRAccountPage.readLater),
     );
@@ -330,9 +335,8 @@ class Post {
   Widget buildReadLaterSlide(BuildContext context) {
     return CustomSlidableAction(
       onPressed: (context) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRPosts.addedToReadLater)));
-        readLater();
+        displayString(context, TRPosts.addedToReadLater);
+        readLater(context);
       },
       backgroundColor: Colors.blue,
       child: Column(
@@ -345,7 +349,7 @@ class Post {
     );
   }
 
-  Future<void> ignoreUser() async {
+  Future<void> ignoreUser(BuildContext context) async {
     if (User.current == null) {
       return;
     }
@@ -353,15 +357,16 @@ class Post {
       uid: User.current!.id,
       kind: UserContKind.ignored,
       pid: creator.id,
-    );
+    ).catchError((e) {
+      displayError(context, e);
+    });
   }
 
   PopupMenuItem buildIgnoreUser(BuildContext context) {
     return PopupMenuItem(
       onTap: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRPosts.confirmIgnoreUser)));
-        ignoreUser();
+        displayString(context, TRPosts.confirmIgnoreUser);
+        ignoreUser(context);
       },
       child: Text(TRPosts.ignoreUser),
     );
@@ -370,9 +375,8 @@ class Post {
   Widget buildIgnoreUserSlide(BuildContext context) {
     return CustomSlidableAction(
       onPressed: (context) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRPosts.confirmIgnoreUser)));
-        ignoreUser();
+        displayString(context, TRPosts.confirmIgnoreUser);
+        ignoreUser(context);
       },
       backgroundColor: Colors.orange,
       child: Column(
@@ -519,6 +523,11 @@ class Post {
     if (up != null && down != null) {
       final upChip = buildVoteChip(context, upvotes, true);
       final downChip = buildVoteChip(context, downvotes, false);
+      final desc = Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(TRGeneral.votesFromUser),
+      );
+      reviewItems.add(desc);
       reviewItems.add(upChip);
       reviewItems.add(downChip);
     }
@@ -754,11 +763,15 @@ class Post {
     if (up != null && down != null) {
       final upChip = buildVoteChip(context, up, true);
       final downChip = buildVoteChip(context, down, false);
+      final desc = Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(TRGeneral.votesFromUser),
+      );
       personal = Padding(
           padding: const EdgeInsets.all(8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [upChip, downChip],
+            children: [desc, SizedBox(width: 4), upChip, downChip],
           ));
     } else {
       personal = const SizedBox();

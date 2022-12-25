@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/news_agent.dart';
 
@@ -21,10 +22,13 @@ class _NewsAgentPageState extends State<NewsAgentPage> {
   @override
   void initState() {
     super.initState();
+    final ctx = WeakReference(context);
     agents = loadAgents().then((value) {
       isLoading = false;
       count = value.length;
       return value;
+    }).catchError((e) {
+      displayError(ctx.target, e);
     });
     count = 0;
   }
@@ -144,12 +148,16 @@ class _SubNewsAgentPageState extends State<SubNewsAgentPage> {
                   child: const Text("Cancel"),
                 );
                 final confirm = ElevatedButton(
-                  onPressed: () async {
+                  onPressed: () {
                     final sub = subs[index];
                     subs.removeAt(index);
                     updateState();
                     Navigator.pop(context);
-                    await NewSource.editSubAgent(aid, sub, add: false);
+                    final ctx = WeakReference(context);
+                    NewSource.editSubAgent(aid, sub, add: false)
+                        .catchError((e) {
+                      displayError(ctx.target, e);
+                    });
                   },
                   child: const Text("Remove"),
                 );
@@ -178,12 +186,15 @@ class _SubNewsAgentPageState extends State<SubNewsAgentPage> {
                 decoration: const InputDecoration(hintText: "Name"),
               );
               final add = ElevatedButton(
-                onPressed: () async {
+                onPressed: () {
                   final sub = nameController.text;
                   subs.add(sub);
                   updateState();
                   Navigator.pop(context);
-                  await NewSource.editSubAgent(aid, sub, add: true);
+                  final ctx = WeakReference(context);
+                  NewSource.editSubAgent(aid, sub, add: true).catchError((e) {
+                    displayError(ctx.target, e);
+                  });
                 },
                 child: const Text("Add"),
               );
