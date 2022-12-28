@@ -225,8 +225,7 @@ class _CommentsPageState extends State<CommentsPage> {
       if (chain == scrollToComment?.replyId) {
         // some parent comment was deleted so impossible to show thread
         scrollToComment = null;
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(TRCommentsPage.threadWasDeleted)));
+        displayString(context, TRCommentsPage.threadWasDeleted);
         break;
       }
       comments[oldChain] = [];

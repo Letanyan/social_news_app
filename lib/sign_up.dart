@@ -25,13 +25,11 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool validateLength(String name, String value, int min, int max) {
     if (value.length > max) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(TRSignUp.tooLong(name, max))));
+      displayString(context, TRSignUp.tooLong(name, max));
       return false;
     }
     if (value.length < min) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(TRSignUp.tooShort(name, min))));
+      displayString(context, TRSignUp.tooShort(name, min));
       return false;
     }
     return true;
@@ -45,8 +43,7 @@ class _SignUpPageState extends State<SignUpPage> {
       final em = emailController.text;
 
       if (p1 != p2) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRSignUp.passwordMismatch)));
+        displayString(context, TRSignUp.passwordMismatch);
         return;
       }
       if (!validateLength(TRGeneral.displayName.toLowerCase(), un, 3, 15)) {
@@ -56,8 +53,7 @@ class _SignUpPageState extends State<SignUpPage> {
         return;
       }
       if (!RegexPatterns.email.hasMatch(em)) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRSignUp.emailInvalid)));
+        displayString(context, TRSignUp.emailInvalid);
         return;
       }
 

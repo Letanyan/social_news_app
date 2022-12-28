@@ -261,9 +261,10 @@ Widget buildReplyCountButton(BuildContext context, int replyCount,
     child: Padding(
       padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
       child: Text(
-        replyCount == 1
+        " $replyCount",
+        /*replyCount == 1
             ? " $replyCount ${TRGeneral.reply}"
-            : " $replyCount ${TRGeneral.replies}",
+            : " $replyCount ${TRGeneral.replies}",*/
         style: TextStyle(
             color: highlightedReplies
                 ? MyTheme.primary

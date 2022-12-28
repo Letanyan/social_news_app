@@ -17,6 +17,7 @@ class Onboard extends StatefulWidget {
 class _OnboardState extends State<Onboard> {
   late Set<int> selectedTags;
   late Set<int> selectedAgents;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -131,12 +132,18 @@ class _OnboardState extends State<Onboard> {
     );
 
     final done = TextButton(
-      onPressed: () {
-        NewSource.onboardCurrentUser(
+      onPressed: () async {
+        setState(() {
+          isLoading = true;
+        });
+        await NewSource.onboardCurrentUser(
           selectedTags.toList(),
           selectedAgents.toList(),
         ).catchError((e) {
           displayError(ctx.target, e);
+        });
+        setState(() {
+          isLoading = false;
         });
         Navigator.pop(context);
         final page = User.current?.validationKey == 0
@@ -147,7 +154,7 @@ class _OnboardState extends State<Onboard> {
           route(builder: (context) => page),
         );
       },
-      child: Text(TRGeneral.done),
+      child: isLoading ? CircularProgressIndicator() : Text(TRGeneral.done),
     );
 
     final page = Scaffold(

@@ -32,6 +32,7 @@ class Post {
   bool trashed;
   DateTime edited;
   int flagCount;
+  int views;
   num score;
   num cred;
   num rank;
@@ -52,6 +53,7 @@ class Post {
     required this.trashed,
     required this.edited,
     required this.flagCount,
+    required this.views,
     required this.score,
     required this.cred,
     required this.rank,
@@ -72,6 +74,7 @@ class Post {
       trashed: json["Trashed"],
       edited: DateTime.parse(json["Edited"]).toLocal(),
       flagCount: int.parse(json["FlagCount"]),
+      views: json["Views"],
       score: json["Score"],
       cred: json["Cred"],
       rank: json["Rank"],
@@ -160,6 +163,22 @@ class Post {
         displayError(context, e);
       }
     };
+  }
+
+  Widget buildViewCount(BuildContext context) {
+    return InkWell(
+      onTap: () => openContFor(context, UserContKind.viewed),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Icon(size: 16, Icons.remove_red_eye_rounded),
+            SizedBox(width: 8),
+            Text(" $views"),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget buildCreator(BuildContext context) {
@@ -513,8 +532,8 @@ class Post {
           buildIgnoreUser(context),
           buildReport(context),
           buildVotedFor(context),
-          buildContFor(context, UserContKind.viewed),
-          buildContFor(context, UserContKind.readLater),
+          // buildContFor(context, UserContKind.viewed),
+          // buildContFor(context, UserContKind.readLater),
         ],
       ),
     );
@@ -534,6 +553,7 @@ class Post {
 
     // final showSimilar = TextButton(
     //     onPressed: () => openSimilar(context), child: const Text("Similar"));
+    final viewItem = buildViewCount(context);
 
     final voteItems = Row(children: [
       upvoteButton,
@@ -557,6 +577,7 @@ class Post {
             children: [
               voteItems,
               replyItems,
+              viewItem,
               // showSimilar,
               moreButton,
             ],
@@ -746,6 +767,7 @@ class Post {
     if (creator.id == User.current?.id) {
       removePostList.add(removePost);
     }
+    final viewCount = buildViewCount(context);
     final upvoteButton = buildVoteButton(
         context, upvotes, true, UserVoteKind.post, updateVote(updateState));
     final downvoteButton = buildVoteButton(
@@ -755,6 +777,7 @@ class Post {
       children: [
         Row(children: [upvoteButton, downvoteButton]),
         Row(children: [reply, replyCount]),
+        viewCount,
         Flexible(child: meta),
       ],
     );

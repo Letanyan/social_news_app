@@ -11,4 +11,6 @@
         "updatedon"
     ],
     "cSpell.language": "en-GB,en-US"
+    // "workbench.editor.wrapTabs": true,
+    // "workbench.editor.tabSizing": "shrink"
 }

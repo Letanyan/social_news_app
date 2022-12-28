@@ -668,9 +668,9 @@ abstract class TRHome {
   static String addCreditsBody(int amount, int nextAmount) {
     switch (locale) {
       case LC.en:
-        return "Added $amount Credit for daily login. Login again at ${utcMidnight()} for an additional $nextAmount credit from your streak.";
+        return "Added $amount Credit for daily login. Login again within 24 hours after ${utcMidnight()} for an additional ${nextAmount} credits";
       case LC.es:
-        return "Se agregó $amount crédito por inicio de sesión diario. Vuelva a iniciar sesión a las ${utcMidnight()} para obtener $nextAmount crédito adicional de su racha.";
+        return "Se agregó $amount crédito por inicio de sesión diario. Inicie sesión nuevamente dentro de las 24 horas posteriores a las ${utcMidnight()} para obtener ${nextAmount} créditos adicionales";
     }
   }
 }
@@ -1627,6 +1627,46 @@ abstract class TRError {
         return "Your email is not validated. Please confirm by clicking the 'validate' link sent to your email";
       case LC.es:
         return "Su correo electrónico no está validado. Confirme haciendo clic en el enlace 'validar' enviado a su correo electrónico";
+    }
+  }
+}
+
+abstract class TRPreviewPosts {
+  TRPreviewPosts._();
+
+  static String get posted {
+    switch (locale) {
+      case LC.en:
+        return "Posted";
+      case LC.es:
+        return "Al Corriente";
+    }
+  }
+
+  static String get commented {
+    switch (locale) {
+      case LC.en:
+        return "Commented";
+      case LC.es:
+        return "Comentada";
+    }
+  }
+
+  static String get updatedPost {
+    switch (locale) {
+      case LC.en:
+        return "Updated Post";
+      case LC.es:
+        return "Publicación Actualizada";
+    }
+  }
+
+  static String get updatedComment {
+    switch (locale) {
+      case LC.en:
+        return "Updated Comment";
+      case LC.es:
+        return "Comentario Actualizado";
     }
   }
 }

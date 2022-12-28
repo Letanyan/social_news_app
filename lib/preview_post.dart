@@ -44,6 +44,7 @@ class _PostPreviewState extends State<PostPreview> {
         if (widget.comment != null) {
           widget.comment?.content = controller.text;
           widget.comment?.edited = DateTime.now();
+          displayString(context, TRPreviewPosts.updatedComment);
           await NewSource.updateComment(
             widget.comment!.postId,
             widget.comment!.id,
@@ -53,11 +54,13 @@ class _PostPreviewState extends State<PostPreview> {
           int count = 0;
           widget.post?.content = controller.text;
           widget.post?.edited = DateTime.now();
+          displayString(context, TRPreviewPosts.updatedPost);
           await NewSource.updatePost(widget.post!.id, controller.text).then(
               (value) => Navigator.popUntil(context, (route) => count++ >= 2));
         }
       } else {
         if (widget.comment != null) {
+          displayString(context, TRPreviewPosts.commented);
           await NewSource.createComment(
             widget.comment!.postId,
             widget.comment!.id,
@@ -65,10 +68,12 @@ class _PostPreviewState extends State<PostPreview> {
             widget.isReview,
           ).then((value) => Navigator.pop(context));
         } else if (widget.post != null) {
+          displayString(context, TRPreviewPosts.commented);
           await NewSource.createComment(
                   widget.post!.id, 0, controller.text, widget.isReview)
               .then((value) => Navigator.pop(context));
         } else if (toBePosted != null) {
+          displayString(context, TRPreviewPosts.posted);
           await NewSource.createPost(toBePosted!.content, false)
               .then((value) => Navigator.pop(context, "posted"));
         }
@@ -94,6 +99,7 @@ class _PostPreviewState extends State<PostPreview> {
       trashed: false,
       edited: currentTime,
       flagCount: 0,
+      views: 0,
       score: 0,
       cred: 0,
       rank: 0,

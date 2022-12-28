@@ -343,8 +343,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
   void Function() previewPost(BuildContext context, String content) {
     return () {
       if (User.current == null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(TRCommentsPage.mustSignIn)));
+        displayString(context, TRCommentsPage.mustSignIn);
         return;
       }
       Navigator.push(
