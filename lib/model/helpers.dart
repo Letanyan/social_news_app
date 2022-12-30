@@ -248,10 +248,12 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
 
           final list = SliverList(
             delegate: SliverChildBuilderDelegate(
-              childCount: count[filterState.current] + 1,
+              childCount: count[filterState.current] + 1 + 1,
               (context, index) {
                 if (index >= count[filterState.current]) {
-                  if (isLoading[filterState.current]) {
+                  if (index == count[filterState.current] + 1) {
+                    return SizedBox(height: 48);
+                  } else if (isLoading[filterState.current]) {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [CircularProgressIndicator()],

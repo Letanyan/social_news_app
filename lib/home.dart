@@ -27,8 +27,9 @@ class HomeView extends StatefulWidget {
 }
 
 class HomeViewState extends State<HomeView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   int tabIndex = 0;
+  bool showingStreakMessage = false;
 
   late StreamSubscription<List<PurchaseDetails>> subscription;
   late final StreamSubscription<StreakMessage> streakSubscription;
@@ -37,6 +38,8 @@ class HomeViewState extends State<HomeView>
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
 
     // IAPConnection.instance = TestIAPConnection();
     IAPConnection.instance = !kIsWeb && (Platform.isAndroid || Platform.isIOS)
@@ -64,9 +67,27 @@ class HomeViewState extends State<HomeView>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     subscription.cancel();
     streakSubscription.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (User.current != null) {
+        if (User.current?.streakUpdate != null) {
+          User.current?.streakUpdate?.timeout(
+            Duration(seconds: 0),
+            onTimeout: () {},
+          );
+        }
+        User.updateStreak();
+      }
+    }
+
+    super.didChangeAppLifecycleState(state);
   }
 
   void showStreakAmount() {
@@ -75,10 +96,12 @@ class HomeViewState extends State<HomeView>
         if (streakAmount != null && streakAmount?.current != 0) {
           final amount = streakAmount!.current;
           final nextAmount = streakAmount!.next;
+          streakAmount = null;
+          // Credits 76
+          // Check if multiple pop ups
           showPlatformDialog(
             context: context,
             builder: (context) {
-              streakAmount = null;
               return AlertDialog(
                 title: Text(TRHome.addCreditsTitle(amount)),
                 content: Text(TRHome.addCreditsBody(amount, nextAmount)),

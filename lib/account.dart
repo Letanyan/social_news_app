@@ -59,13 +59,13 @@ class AuthService {
 
   final appAuth = const FlutterAppAuth();
 
-  Future<bool> initAuth() async {
+  Future<User?> initAuth() async {
     final storage = await SharedPreferences.getInstance();
     final storedRefreshToken = storage.getString(REFRESH_TOKEN_KEY);
     final TokenResponse? result;
 
     if (storedRefreshToken == null) {
-      return false;
+      return null;
     }
 
     try {
@@ -79,16 +79,16 @@ class AuthService {
         ),
       );
 
-      final bool setResult = await _handleAuthResult(result);
+      final setResult = await _handleAuthResult(result);
       return setResult;
     } catch (e, s) {
       print('error on Refresh Token: $e - stack: $s');
       // logOut() possibly
-      return false;
+      return null;
     }
   }
 
-  Future<bool> login(String issuer) async {
+  Future<User?> login(String issuer) async {
     final AuthorizationTokenRequest authorizationTokenRequest;
 
     try {
@@ -109,10 +109,10 @@ class AuthService {
       return await _handleAuthResult(result);
     } on PlatformException {
       print("User has cancelled or no internet!");
-      return false;
+      return null;
     } catch (e) {
       print(e);
-      return false;
+      return null;
     }
   }
 
@@ -122,7 +122,7 @@ class AuthService {
     return true;
   }
 
-  Future<bool> _handleAuthResult(result) async {
+  Future<User?> _handleAuthResult(result) async {
     final bool isValidResult =
         result != null && result.accessToken != null && result.idToken != null;
     if (isValidResult) {
@@ -139,9 +139,9 @@ class AuthService {
       if (user.id != 0) {
         user.storeUser();
         User.current = user;
-        return true;
+        return user;
       }
     }
-    return false;
+    return null;
   }
 }

@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 
 class MyTheme {
-  static var primary = Colors.blueGrey;
+  static var primary = Colors.pink;
   static var mode = ThemeMode.dark;
   static var safe = true;
   static get isDark =>
@@ -12,7 +12,7 @@ class MyTheme {
 
   static void loadThemeData() {
     SharedPreferences.getInstance().then((value) {
-      final color = value.getInt("theme:color") ?? 16;
+      final color = value.getInt("theme:color") ?? 1;
       final mode = value.getInt("theme:mode") ?? 1;
       MyTheme.safe = value.getBool("theme:safe") ?? true;
 

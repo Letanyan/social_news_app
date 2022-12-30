@@ -39,6 +39,7 @@ class User {
   bool publicTagFollow;
 
   Future<void>? streakUpdate;
+  bool checkedForStreakToday;
 
   String creditAmount() {
     return credits < 0 ? "..." : "$credits";
@@ -125,7 +126,8 @@ class User {
         ignored = [],
         favourites = [],
         readLater = [],
-        secret = "";
+        secret = "",
+        checkedForStreakToday = false;
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -186,25 +188,28 @@ class User {
     final n = DateTime.now().toUtc();
     final end = DateTime.utc(n.year, n.month, n.day).add(Duration(days: 1));
     final dur = end.difference(n).inSeconds + 5;
-    print("Set up user for streak");
+    print("Set up user for streak. Will activate after $dur seconds");
     user.streakUpdate = Future.delayed(Duration(seconds: dur), () async {
-      if (User.current == null) {
-        return;
-      }
-      // Credits = 609
-      print("Getting user for streak at ${DateTime.now()}");
-      final secret = User.current!.secret;
-      try {
-        User.current = await NewSource.getUser(User.current!.id);
-        User.current!.secret = secret;
-      } catch (e) {
-        NewSource.signOut(User.current?.id ?? 0).catchError((e) {});
-        User.removeUser().then((value) {
-          User.current = null;
-          Get.offAll(const MainApp());
-        });
-      }
+      User.updateStreak();
     });
+  }
+
+  static void updateStreak() async {
+    if (User.current == null) {
+      return;
+    }
+    print("Getting user for streak at ${DateTime.now()}");
+    final secret = User.current!.secret;
+    try {
+      User.current = await NewSource.getUser(User.current!.id);
+      User.current!.secret = secret;
+    } catch (e) {
+      NewSource.signOut(User.current?.id ?? 0).catchError((e) {});
+      User.removeUser().then((value) {
+        User.current = null;
+        Get.offAll(const MainApp());
+      });
+    }
   }
 
   static var streakMessage = StreamController<StreakMessage>.broadcast();

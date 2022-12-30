@@ -139,11 +139,23 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       isLoading = true;
     });
+    try {
+      final user = await AuthService.instance.login(GOOGLE_ISSUER);
 
-    final auth = await AuthService.instance.login(GOOGLE_ISSUER);
-
-    if (auth) {
-      openApp();
+      if (user != null) {
+        user.storeUser();
+        User.current = user;
+        openApp();
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      displayError(context, e);
     }
   }
 
@@ -172,6 +184,9 @@ class _LoginPageState extends State<LoginPage> {
         openApp();
       }
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       displayError(context, e);
     }
   }
