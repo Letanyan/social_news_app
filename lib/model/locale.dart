@@ -1671,6 +1671,51 @@ abstract class TRPreviewPosts {
   }
 }
 
+abstract class TRNumber {
+  TRNumber._();
+
+  static String shortSuffix(int groupCount) {
+    switch (groupCount) {
+      case 1:
+        return "k";
+      case 2:
+        return "m";
+      case 3:
+        return "b";
+      case 4:
+        return "t";
+      case 5:
+        return "q";
+      case 6:
+        return "p";
+      case 7:
+        return "s";
+      case 8:
+        return "h";
+      case 9:
+        return "o";
+      case 10:
+        return "n";
+      case 11:
+        return "d";
+    }
+    return "";
+  }
+
+  static String short(int value) {
+    switch (locale) {
+      case LC.en:
+        final n = formatNumberPlaces(value, 3);
+        final suffix = shortSuffix(n.groupCount);
+        return "${n.value}${suffix}";
+      case LC.es:
+        final n = formatNumberPlaces(value, 3);
+        final suffix = shortSuffix(n.groupCount);
+        return "${n.value}${suffix}";
+    }
+  }
+}
+
 enum LC { en, es }
 
 LC get locale {

@@ -204,6 +204,7 @@ class User {
       User.current = await NewSource.getUser(User.current!.id);
       User.current!.secret = secret;
     } catch (e) {
+      print(e);
       NewSource.signOut(User.current?.id ?? 0).catchError((e) {});
       User.removeUser().then((value) {
         User.current = null;

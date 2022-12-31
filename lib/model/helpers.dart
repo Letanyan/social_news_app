@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -111,6 +112,54 @@ DateTime endOfDay(DateTime d) {
 
 DateTime startOfDay(DateTime d) {
   return DateTime(d.year, d.month, d.day);
+}
+
+String formatNumber(int value, int major, int minor) {
+  double shift = (log(value + 1) / log(10)).ceilToDouble() - major;
+  if (shift < 0) {
+    shift = 0;
+  }
+  final j = value / pow(10, shift);
+  String mj = "";
+  String mn = "";
+  if (major == 0 || major > shift) {
+    mj = "#";
+  } else {
+    for (int i = 0; i < major; i += 1) {
+      mj += "0";
+    }
+    if (shift > 0) {
+      for (int i = 0; i < minor; i += 1) {
+        mn += "0";
+      }
+      if (!mn.isEmpty) {
+        mn = ".$mn";
+      }
+    }
+  }
+
+  final formatter = NumberFormat("$mj${mn}");
+  return formatter.format(j);
+}
+
+class TruncatedNumber {
+  final String value;
+  final int groupCount;
+  const TruncatedNumber(this.value, this.groupCount);
+}
+
+TruncatedNumber formatNumberPlaces(int value, int places) {
+  final l = (log(value + 1) / log(10)).ceil();
+  int m = l % places;
+  if (m == 0) {
+    m = places;
+  }
+  final k = (l - 1) ~/ places;
+  int mn = 0;
+  if (m == 1) {
+    mn = 1;
+  }
+  return TruncatedNumber(formatNumber(value, m, mn), k);
 }
 
 bool isTypeEqual<S, T>() => S == T;

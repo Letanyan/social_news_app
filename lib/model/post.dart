@@ -174,7 +174,7 @@ class Post {
           children: [
             Icon(size: 16, Icons.remove_red_eye_rounded),
             SizedBox(width: 8),
-            Text(" $views"),
+            Text(" ${TRNumber.short(views)}"),
           ],
         ),
       ),

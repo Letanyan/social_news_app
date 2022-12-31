@@ -93,7 +93,7 @@ class HomeViewState extends State<HomeView>
   void showStreakAmount() {
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
-        if (streakAmount != null && streakAmount?.current != 0) {
+        if (streakAmount != null /*&& streakAmount?.current != 0*/) {
           final amount = streakAmount!.current;
           final nextAmount = streakAmount!.next;
           streakAmount = null;

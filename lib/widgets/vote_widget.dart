@@ -205,7 +205,7 @@ Widget buildVoteChip(BuildContext context, int votes, bool isUpvote) {
       size: 12,
     ),
     labelStyle: const TextStyle(fontSize: 12),
-    label: Text("$votes"),
+    label: Text(TRNumber.short(votes)),
   );
 }
 
@@ -229,7 +229,7 @@ Widget buildVoteButton(
               ? Icons.keyboard_double_arrow_up_rounded
               : Icons.keyboard_double_arrow_down_rounded,
         ),
-        Text(" $votes"),
+        Text(" ${TRNumber.short(votes)}"),
       ]),
     ),
   );
@@ -261,7 +261,7 @@ Widget buildReplyCountButton(BuildContext context, int replyCount,
     child: Padding(
       padding: const EdgeInsets.only(top: 8, right: 8, bottom: 8),
       child: Text(
-        " $replyCount",
+        " ${TRNumber.short(replyCount)}",
         /*replyCount == 1
             ? " $replyCount ${TRGeneral.reply}"
             : " $replyCount ${TRGeneral.replies}",*/
