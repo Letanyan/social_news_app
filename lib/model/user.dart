@@ -180,18 +180,32 @@ class User {
     user.following = jsonArrayTo(json["following"], Author.fromJson);
     user.ignored = jsonArrayTo(json["ignored"], Author.fromJson);
     user.favourites = jsonArrayTo(json["tags"], Tag.fromJson);
-    checkStreak(user);
+    setStreakTimer(user);
     return user;
   }
 
-  static void checkStreak(User user) {
+  static void setStreakTimer(User user) {
     final n = DateTime.now().toUtc();
     final end = DateTime.utc(n.year, n.month, n.day).add(Duration(days: 1));
     final dur = end.difference(n).inSeconds + 5;
     print("Set up user for streak. Will activate after $dur seconds");
-    user.streakUpdate = Future.delayed(Duration(seconds: dur), () async {
+    user.setStreakUpdate(Duration(seconds: dur));
+  }
+
+  void setStreakUpdate(Duration after) {
+    removeStreakUpdate();
+    streakUpdate = Future.delayed(after, () async {
       User.updateStreak();
     });
+  }
+
+  void removeStreakUpdate() {
+    if (streakUpdate != null) {
+      streakUpdate?.timeout(
+        Duration(seconds: 0),
+        onTimeout: () {},
+      );
+    }
   }
 
   static void updateStreak() async {
@@ -204,7 +218,7 @@ class User {
       User.current = await NewSource.getUser(User.current!.id);
       User.current!.secret = secret;
     } catch (e) {
-      print(e);
+      displayError(Get.context, e);
       NewSource.signOut(User.current?.id ?? 0).catchError((e) {});
       User.removeUser().then((value) {
         User.current = null;

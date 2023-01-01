@@ -76,15 +76,13 @@ class HomeViewState extends State<HomeView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      print("resumed");
       if (User.current != null) {
-        if (User.current?.streakUpdate != null) {
-          User.current?.streakUpdate?.timeout(
-            Duration(seconds: 0),
-            onTimeout: () {},
-          );
-        }
         User.updateStreak();
       }
+    } else if (state == AppLifecycleState.paused) {
+      print("paused");
+      User.current?.removeStreakUpdate();
     }
 
     super.didChangeAppLifecycleState(state);
@@ -93,12 +91,10 @@ class HomeViewState extends State<HomeView>
   void showStreakAmount() {
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
-        if (streakAmount != null /*&& streakAmount?.current != 0*/) {
+        if (streakAmount != null && streakAmount?.current != 0) {
           final amount = streakAmount!.current;
           final nextAmount = streakAmount!.next;
           streakAmount = null;
-          // Credits 76
-          // Check if multiple pop ups
           showPlatformDialog(
             context: context,
             builder: (context) {
