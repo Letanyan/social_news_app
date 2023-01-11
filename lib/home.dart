@@ -77,9 +77,7 @@ class HomeViewState extends State<HomeView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       print("resumed");
-      if (User.current != null) {
-        User.updateStreak();
-      }
+      User.updateStreak();
     } else if (state == AppLifecycleState.paused) {
       print("paused");
       User.current?.removeStreakUpdate();

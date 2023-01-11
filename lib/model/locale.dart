@@ -540,6 +540,15 @@ abstract class TRGeneral {
     }
   }
 
+  static String get showReport {
+    switch (locale) {
+      case LC.en:
+        return "Show Report";
+      case LC.es:
+        return "Mostrar Reporte";
+    }
+  }
+
   static String get select {
     switch (locale) {
       case LC.en:
@@ -1356,6 +1365,15 @@ abstract class TRFlag {
         return "Content was flagged multiple times. Tap to show content.";
       case LC.es:
         return "El contenido se marcó varias veces. Toque para mostrar contenido.";
+    }
+  }
+
+  static String get flaggedContentMessageShowReport {
+    switch (locale) {
+      case LC.en:
+        return "Content was flagged multiple times. Tap to show content. Use \"Show Report\" in the drop down menu for more details.";
+      case LC.es:
+        return "El contenido se marcó varias veces. Toque para mostrar contenido. Utilice \"Mostrar informe\" en el menú desplegable para obtener más detalles.";
     }
   }
 }

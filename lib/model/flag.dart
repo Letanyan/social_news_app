@@ -90,6 +90,60 @@ class _FlagDialogState extends State<FlagDialog> {
   }
 }
 
+class FlagReasonDialog extends StatefulWidget {
+  final int pid;
+  final int sid;
+  const FlagReasonDialog({super.key, required this.pid, required this.sid});
+
+  @override
+  State<FlagReasonDialog> createState() => _FlagReasonDialogState();
+}
+
+class _FlagReasonDialogState extends State<FlagReasonDialog> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(TRFlag.reportContent),
+      content: FutureBuilder(
+        future: NewSource.getFlagsForContent(widget.pid, widget.sid),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return CircularProgressIndicator();
+          }
+          if (snapshot.data == null) {
+            return SizedBox();
+          }
+          var items = <Widget>[];
+          snapshot.data?.forEach(
+            (key, value) {
+              items.add(ListTile(
+                leading: Text("$value"),
+                title: Text(key),
+              ));
+            },
+          );
+          return SingleChildScrollView(
+            child: Column(
+              children: items,
+            ),
+          );
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(TRGeneral.close),
+        ),
+      ],
+    );
+  }
+}
+
 class FlaggedPost {
   final int id;
   final Post content;
@@ -314,9 +368,26 @@ class FlaggedComment {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [total, report, remove, ignore, ignoreAll],
     );
-    final bansRow = ListView(
-      scrollDirection: Axis.horizontal,
-      children: [block1, block2, block7, block14, block21, block28, perm],
+    final bansRow = SizedBox(
+      height: 48,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+          block1,
+          SizedBox(width: 4),
+          block2,
+          SizedBox(width: 4),
+          block7,
+          SizedBox(width: 4),
+          block14,
+          SizedBox(width: 4),
+          block21,
+          SizedBox(width: 4),
+          block28,
+          SizedBox(width: 4),
+          perm
+        ]),
+      ),
     );
 
     final baseColor = Colors.grey[MyTheme.isDark ? 800 : 200]?.withAlpha(192);

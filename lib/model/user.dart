@@ -209,14 +209,15 @@ class User {
   }
 
   static void updateStreak() async {
-    if (User.current == null) {
-      return;
-    }
     print("Getting user for streak at ${DateTime.now()}");
-    final secret = User.current!.secret;
     try {
-      User.current = await NewSource.getUser(User.current!.id);
-      User.current!.secret = secret;
+      User savedUser = await User.fromStore();
+      if (savedUser.id != 0 && savedUser.secret.isNotEmpty) {
+        User.current = savedUser;
+        final user = await NewSource.getUser(savedUser.id);
+        user.secret = savedUser.secret;
+        User.current = user;
+      }
     } catch (e) {
       displayError(Get.context, e);
       NewSource.signOut(User.current?.id ?? 0).catchError((e) {});

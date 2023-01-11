@@ -1521,6 +1521,27 @@ class NewSource {
     return handlePayload(obj, FlaggedComment.fromJson);
   }
 
+  static Future<Map<String, int>> getFlagsForContent(
+    int pid,
+    int sid,
+  ) async {
+    var path = ["flags", "content", "$pid", "$sid"];
+    final obj = await get(path, []);
+    if (obj == null) {
+      throw unknownError;
+    }
+    if (obj["success"] == false) {
+      return <String, int>{};
+    }
+
+    var result = <String, int>{};
+    obj["payload"].forEach((k, v) {
+      result[flagReasonToString(FlagReason.values[int.parse(k)])] = v;
+    });
+
+    return result;
+  }
+
   static Future<bool> handleFlag(
       int id, int pid, int sid, FlagHandle action) async {
     var path = ["trash", "flags", "$id"];

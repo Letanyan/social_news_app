@@ -436,6 +436,20 @@ class Post {
     );
   }
 
+  void reportReasons(BuildContext context) {
+    showPlatformDialog(
+      context: context,
+      builder: (context) => FlagReasonDialog(pid: id, sid: -1),
+    );
+  }
+
+  PopupMenuItem buildReportReasons(BuildContext context) {
+    return PopupMenuItem(
+      onTap: () => reportReasons(context),
+      child: Text(TRGeneral.showReport),
+    );
+  }
+
   PopupMenuItem buildEdit(BuildContext context, void Function() updateState) {
     return PopupMenuItem(
       value: 3517,
@@ -461,7 +475,7 @@ class Post {
     final firstUrl = urlParser.pattern.firstMatch(content);
     late String newContent;
     if (flagCount >= flagReasonLimit) {
-      newContent = TRFlag.flaggedContentMessage;
+      newContent = TRFlag.flaggedContentMessageShowReport;
     } else if (firstUrl != null && firstUrl.start == 0) {
       newContent = content.substring(firstUrl.end);
       sourceUrl = content.substring(firstUrl.start, firstUrl.end);
@@ -512,6 +526,11 @@ class Post {
       userActionsList.add(removePost);
       userActionsList.add(buildEdit(context, updateState));
     }
+    final reportItems = <PopupMenuItem>[buildReport(context)];
+    if (flagCount >= flagReasonLimit) {
+      reportItems.add(buildReportReasons(context));
+    }
+
     final moreButton = Padding(
       padding: const EdgeInsets.all(8),
       child: PopupMenuButton(
@@ -530,8 +549,8 @@ class Post {
           ...userActionsList,
           buildReadLater(context),
           buildIgnoreUser(context),
-          buildReport(context),
           buildVotedFor(context),
+          ...reportItems,
           // buildContFor(context, UserContKind.viewed),
           // buildContFor(context, UserContKind.readLater),
         ],
@@ -628,7 +647,7 @@ class Post {
       card = Material(
         child: InkWell(
           onTap: () {
-            flagCount = 0;
+            flagCount = -1;
             updateState();
           },
           child: particle,

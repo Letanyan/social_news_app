@@ -179,7 +179,11 @@ class Comment {
     final firstUrl = urlParser.pattern.firstMatch(content);
     late String newContent;
     if (flagCount >= flagReasonLimit) {
-      newContent = TRFlag.flaggedContentMessage;
+      if (showReplyField != null) {
+        newContent = TRFlag.flaggedContentMessageShowReport;
+      } else {
+        newContent = TRFlag.flaggedContentMessage;
+      }
     } else if (firstUrl != null && firstUrl.start == 0) {
       newContent = content.substring(firstUrl.end);
     } else {
@@ -304,6 +308,27 @@ class Comment {
       userActionsList.add(editComment);
     }
 
+    final report = PopupMenuItem(
+      onTap: () {
+        showPlatformDialog(
+          context: context,
+          builder: (context) => FlagDialog(pid: postId, sid: id),
+        );
+      },
+      child: Text(TRGeneral.report),
+    );
+    final reportReasons = PopupMenuItem(
+      onTap: () => showPlatformDialog(
+        context: context,
+        builder: (context) => FlagReasonDialog(pid: postId, sid: id),
+      ),
+      child: Text(TRGeneral.showReport),
+    );
+    var reportItems = <PopupMenuItem>[report];
+    if (flagCount >= flagReasonLimit) {
+      reportItems.add(reportReasons);
+    }
+
     final moreButton = PopupMenuButton(
       onSelected: (value) {
         final page = CommentReplyPage(comment: this, isEdit: true);
@@ -315,15 +340,7 @@ class Comment {
       },
       itemBuilder: (context) => [
         ...userActionsList,
-        PopupMenuItem(
-          onTap: () {
-            showPlatformDialog(
-              context: context,
-              builder: (context) => FlagDialog(pid: postId, sid: id),
-            );
-          },
-          child: Text(TRGeneral.report),
-        ),
+        ...reportItems,
       ],
     );
     buttonRowItems.add(Expanded(
@@ -356,12 +373,24 @@ class Comment {
 
     final body = Column(children: items);
 
+    Function()? cardTap = null;
+    if (showReplyField != null) {
+      if (flagCount >= flagReasonLimit) {
+        cardTap = () {
+          flagCount = -1;
+          updateState();
+        };
+      } else {
+        cardTap = () => showReplyField();
+      }
+    } else if (onTap != null) {
+      cardTap = showParentPost(context);
+    }
+
     final card = Material(
       color: scrolledTo == true ? MyTheme.primary.withAlpha(20) : null,
       child: InkWell(
-        onTap: showReplyField != null
-            ? () => showReplyField()
-            : (onTap == null ? null : showParentPost(context)),
+        onTap: cardTap,
         child: body,
       ),
     );
