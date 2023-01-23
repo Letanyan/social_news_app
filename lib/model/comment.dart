@@ -381,7 +381,11 @@ class Comment {
           updateState();
         };
       } else {
-        cardTap = () => showReplyField();
+        if (onTap == null || replyCount == 0) {
+          cardTap = () => showReplyField();
+        } else {
+          cardTap = () => onTap(this);
+        }
       }
     } else if (onTap != null) {
       cardTap = showParentPost(context);
