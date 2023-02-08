@@ -220,7 +220,9 @@ class User {
       }
     } catch (e) {
       displayError(Get.context, e);
-      NewSource.signOut(User.current?.id ?? 0).catchError((e) {});
+      NewSource.signOut(User.current?.id ?? 0).catchError((e) {
+        return false;
+      });
       User.removeUser().then((value) {
         User.current = null;
         Get.offAll(const MainApp());
@@ -293,9 +295,9 @@ class Author {
     required this.rank,
   });
 
-  factory Author.fromInt(int json) {
+  factory Author.fromInt(int id) {
     return Author(
-      id: json,
+      id: id,
       name: "",
       registerDate: DateTime.fromMicrosecondsSinceEpoch(0),
       upvotes: 0,
@@ -378,6 +380,7 @@ class Author {
           NewSource.deleteUserCont(User.current!.id, id, UserContKind.ignored)
               .catchError((e) {
             displayError(context, e);
+            return false;
           });
         } else if (isFollowing) {
           User.current?.following.removeWhere((u) => u.id == id);
@@ -385,6 +388,7 @@ class Author {
                   User.current!.id, id, UserContKind.userFollow)
               .catchError((e) {
             displayError(context, e);
+            return false;
           });
         } else {
           User.current?.following.add(this);
@@ -392,6 +396,7 @@ class Author {
                   uid: User.current!.id, kind: UserContKind.userFollow, pid: id)
               .catchError((e) {
             displayError(context, e);
+            return false;
           });
         }
         updateState();

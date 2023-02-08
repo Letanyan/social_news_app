@@ -29,6 +29,7 @@ class _NewsAgentPageState extends State<NewsAgentPage> {
       return value;
     }).catchError((e) {
       displayError(ctx.target, e);
+      return <NewsAgent>[];
     });
     count = 0;
   }
@@ -157,6 +158,7 @@ class _SubNewsAgentPageState extends State<SubNewsAgentPage> {
                     NewSource.editSubAgent(aid, sub, add: false)
                         .catchError((e) {
                       displayError(ctx.target, e);
+                      return NewsAgent.zero();
                     });
                   },
                   child: const Text("Remove"),
@@ -194,6 +196,7 @@ class _SubNewsAgentPageState extends State<SubNewsAgentPage> {
                   final ctx = WeakReference(context);
                   NewSource.editSubAgent(aid, sub, add: true).catchError((e) {
                     displayError(ctx.target, e);
+                    return NewsAgent.zero();
                   });
                 },
                 child: const Text("Add"),

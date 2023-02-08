@@ -163,6 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       NewSource.deleteUser(User.current?.id ?? 0)
                           .catchError((e) {
                         displayError(ctx.target, e);
+                        return false;
                       });
                       User.removeUser().then((value) {
                         User.current = null;

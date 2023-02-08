@@ -198,6 +198,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
             UserContKind.tagFollow,
           ).catchError((e) {
             displayError(context, e);
+            return false;
           });
         } else {
           final t = Tag.getTag(tag);
@@ -208,6 +209,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
             pid: tag,
           ).catchError((e) {
             displayError(context, e);
+            return false;
           });
         }
         setState(() {});

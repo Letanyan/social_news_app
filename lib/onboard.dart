@@ -32,6 +32,7 @@ class _OnboardState extends State<Onboard> {
     final tags = FutureBuilder(
       future: NewSource.onboardTags().catchError((e) {
         displayError(ctx.target, e);
+        return <String, int>{};
       }),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -72,6 +73,7 @@ class _OnboardState extends State<Onboard> {
     final agents = FutureBuilder(
       future: NewSource.onboardAgents().catchError((e) {
         displayError(ctx.target, e);
+        return <String, int>{};
       }),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -141,6 +143,7 @@ class _OnboardState extends State<Onboard> {
           selectedAgents.toList(),
         ).catchError((e) {
           displayError(ctx.target, e);
+          return false;
         });
         setState(() {
           isLoading = false;

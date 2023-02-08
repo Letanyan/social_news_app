@@ -210,6 +210,7 @@ class _LoginPageState extends State<LoginPage> {
     final ctx = WeakReference(context);
     await NewSource.sendPasswordResetLink(email).catchError((e) {
       displayError(ctx.target, e);
+      return 0;
     });
   }
 

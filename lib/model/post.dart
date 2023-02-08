@@ -81,6 +81,27 @@ class Post {
     );
   }
 
+  factory Post.zero() {
+    return Post(
+      id: 0,
+      creator: Author.fromInt(0),
+      content: "",
+      tags: [],
+      createdAt: DateTime.now().toLocal(),
+      location: [],
+      upvotes: 0,
+      downvotes: 0,
+      commentCount: 0,
+      trashed: false,
+      edited: DateTime.now().toLocal(),
+      flagCount: 0,
+      views: 0,
+      score: 0,
+      cred: 0,
+      rank: 0,
+    );
+  }
+
   void Function() openComments(
     BuildContext context,
     void Function() updateState,
@@ -110,13 +131,6 @@ class Post {
         ),
         body: CommentsPage(post: this, scrollComments: null),
       );
-      if (User.current != null) {
-        NewSource.addUserCont(
-                uid: User.current!.id, kind: UserContKind.viewed, pid: id)
-            .catchError((e) {
-          displayError(context, e);
-        });
-      }
       Navigator.push(
         context,
         route(
@@ -158,6 +172,7 @@ class Post {
           User.current!.credits = value;
         }).catchError((e) {
           displayError(context, e);
+          return;
         });
       } catch (e) {
         displayError(context, e);
@@ -239,6 +254,7 @@ class Post {
         trashed = true;
         NewSource.deletePost(id).catchError((e) {
           displayError(context, e);
+          return false;
         });
         Navigator.of(context).pop();
       },
@@ -257,6 +273,7 @@ class Post {
       UserContKind.readLater,
     ).catchError((e) {
       displayError(context, e);
+      return false;
     });
   }
 
@@ -271,6 +288,7 @@ class Post {
       pid: id,
     ).catchError((e) {
       displayError(context, e);
+      return false;
     });
   }
 
@@ -378,6 +396,7 @@ class Post {
       pid: creator.id,
     ).catchError((e) {
       displayError(context, e);
+      return false;
     });
   }
 

@@ -30,6 +30,16 @@ class NewsAgent {
     );
   }
 
+  factory NewsAgent.zero() {
+    return NewsAgent(
+      id: 0,
+      name: "",
+      origin: "",
+      lastUpdated: DateTime.now(),
+      subs: [],
+    );
+  }
+
   PopupMenuItem buildDeleteAgent(
       BuildContext context, void Function(NewsAgent?) updateState) {
     return PopupMenuItem(
@@ -47,6 +57,7 @@ class NewsAgent {
                   },
                 ).catchError((e) {
                   displayError(context, e);
+                  return;
                 });
               },
               child: const Text("DELETE"),
@@ -142,6 +153,7 @@ class NewsAgent {
       onTap: () {
         NewSource.updateAgent(id).catchError((e) {
           displayError(context, e);
+          return false;
         });
       },
       child: const Text("Update"),

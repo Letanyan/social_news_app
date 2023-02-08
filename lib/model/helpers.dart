@@ -546,7 +546,9 @@ void displayError(BuildContext? context, Object e) {
 }
 
 void displayString(BuildContext? context, String s) {
-  if (context != null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
-  }
+  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
+    }
+  });
 }

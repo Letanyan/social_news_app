@@ -79,6 +79,7 @@ class _FlagDialogState extends State<FlagDialog> {
                 controller.text,
               ).catchError((e) {
                 displayError(ctx.target, e);
+                return false;
               });
             }
             Navigator.pop(context);

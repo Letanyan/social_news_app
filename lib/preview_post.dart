@@ -129,6 +129,7 @@ class _PostPreviewState extends State<PostPreview> {
       preview = FutureBuilder(
         future: NewSource.createPost(trimContent, true).catchError((e) {
           displayError(context, e);
+          return Post.zero();
         }),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

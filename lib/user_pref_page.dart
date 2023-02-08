@@ -120,6 +120,7 @@ class _UserPrefPageState extends State<UserPrefPage> {
       onlyCount: true,
     ).then((value) => value[0].author.id).catchError((e) {
       displayError(context, e);
+      return 0;
     });
   }
 

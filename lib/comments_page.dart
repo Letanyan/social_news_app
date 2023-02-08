@@ -70,6 +70,17 @@ class _CommentsPageState extends State<CommentsPage> {
       }
     });
 
+    if (User.current != null) {
+      NewSource.addUserCont(
+        uid: User.current!.id,
+        kind: UserContKind.viewed,
+        pid: widget.post.id,
+      ).catchError((e) {
+        displayError(context, e);
+        return false;
+      });
+    }
+
     timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (User.current == null) {
         return;
@@ -81,6 +92,7 @@ class _CommentsPageState extends State<CommentsPage> {
       final ctx = WeakReference(context);
       NewSource.watchPost(User.current!.id, widget.post.id, 1).catchError((e) {
         displayError(ctx.target, e);
+        return false;
       });
     });
   }
@@ -102,6 +114,7 @@ class _CommentsPageState extends State<CommentsPage> {
       isReview: -1,
     ).catchError((e) {
       displayError(ctx.target, e);
+      return <Comment>[];
     });
 
     // sortComments uses the keys from comments to decide which comments to

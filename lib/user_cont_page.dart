@@ -149,6 +149,7 @@ class _UserContPageState extends State<UserContPage> {
         onlyCount: true,
       ).then((value) => value[0].id).catchError((e) {
         displayError(context, e);
+        return 0;
       });
     }
     return 0;

@@ -8,6 +8,7 @@ import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
+import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/user_pref_page.dart';
@@ -92,6 +93,7 @@ class Comment {
         }),
       ).catchError((e) {
         displayError(context, e);
+        return;
       });
     };
   }
@@ -143,6 +145,7 @@ class Comment {
           User.current!.credits = value;
         }).catchError((e) {
           displayError(context, e);
+          return;
         });
       } catch (e) {
         displayError(context, e);
@@ -268,6 +271,7 @@ class Comment {
         updateState();
         NewSource.deleteComment(postId, id).catchError((e) {
           displayError(context, e);
+          return false;
         });
       },
       child: Text(TRGeneral.remove),

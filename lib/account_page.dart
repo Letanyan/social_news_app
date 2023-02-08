@@ -95,6 +95,7 @@ class _AccountPageState extends State<AccountPage> {
             final ctx = WeakReference(context);
             NewSource.updateUserDetails(User.current!).catchError((e) {
               displayError(ctx.target, e);
+              return false;
             });
           }
           return true;
@@ -139,6 +140,7 @@ class _AccountPageState extends State<AccountPage> {
           final ctx = WeakReference(context);
           NewSource.signOut(User.current?.id ?? 0).catchError((e) {
             displayError(ctx.target, e);
+            return false;
           });
           User.removeUser().then((value) {
             User.current = null;
