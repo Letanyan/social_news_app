@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:social_news_app/account_page.dart';
+import 'package:social_news_app/chat_page.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/comment_reply.dart';
+import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
@@ -105,15 +107,20 @@ class Post {
   void Function() openComments(
     BuildContext context,
     void Function() updateState,
+    Comment? scrollToComment,
   ) {
     return () {
-      var actions = <Widget>[];
-      if (sourceUrl != null) {
-        actions.add(IconButton(
-          onPressed: () => launchURL(sourceUrl ?? ""),
-          icon: const Icon(Icons.open_in_browser_rounded),
-        ));
-      }
+      var actions = <Widget>[
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            route(
+              builder: (context) => CommentReplyPage(post: this, isEdit: false),
+            ),
+          ),
+          icon: const Icon(Icons.add_comment_rounded),
+        )
+      ];
       if (User.current?.readLater.contains(id) ?? false) {
         actions.add(IconButton(
           onPressed: () {
@@ -129,7 +136,7 @@ class Post {
           title: Text(TRGeneral.comments),
           actions: actions,
         ),
-        body: CommentsPage(post: this, scrollComments: null),
+        body: ChatPage(post: this, scrollComments: scrollToComment),
       );
       Navigator.push(
         context,
@@ -604,6 +611,20 @@ class Post {
       ],
     );
 
+    var openOriginal = <Widget>[];
+
+    if (sourceUrl != null) {
+      openOriginal.add(
+        InkWell(
+          onTap: () => launchURL(sourceUrl ?? ""),
+          child: Padding(
+            padding: EdgeInsets.all(8),
+            child: const Icon(Icons.open_in_browser_rounded),
+          ),
+        ),
+      );
+    }
+
     final buttonRow = SizedBox(
       width: query.width,
       child: SingleChildScrollView(
@@ -615,6 +636,7 @@ class Post {
             children: [
               voteItems,
               replyItems,
+              ...openOriginal,
               viewItem,
               // showSimilar,
               moreButton,
@@ -799,7 +821,7 @@ class Post {
       ),
     );
     final replyCount = buildReplyCountButton(
-        context, commentCount, false, openComments(context, updateState));
+        context, commentCount, false, openComments(context, updateState, null));
     final removePost = buildRemove(context, updateState);
     final removePostList = <PopupMenuItem>[];
     if (creator.id == User.current?.id) {
@@ -840,7 +862,7 @@ class Post {
 
     final tile = Material(
       child: InkWell(
-        onTap: openComments(context, updateState),
+        onTap: openComments(context, updateState, null),
         child: Column(
           children: [
             const Divider(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/account_page.dart';
+import 'package:social_news_app/chat_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/model/flag.dart';
@@ -81,16 +82,9 @@ class Comment {
   void Function() showParentPost(BuildContext context) {
     return () {
       NewSource.getPost(postId).then(
-        ((value) {
-          final page = Scaffold(
-            appBar: AppBar(title: Text(TRGeneral.comments)),
-            body: CommentsPage(post: value, scrollComments: this),
-          );
-          Navigator.push(
-            context,
-            route(builder: (context) => page),
-          );
-        }),
+        (value) {
+          value.openComments(context, () {}, this)();
+        },
       ).catchError((e) {
         displayError(context, e);
         return;
@@ -421,5 +415,286 @@ class Comment {
         Expanded(child: card),
       ]),
     );
+  }
+
+  Widget tile(
+    BuildContext context,
+    bool showReply,
+    int offset,
+    Comment? replyTo,
+    void Function(Comment)? onTap,
+    VoidCallback updateState,
+    Function()? showReplyField,
+    bool isReplyingTo,
+    bool highlightedReplies,
+    bool isPreview, {
+    int? postAuthor,
+    int? up,
+    int? down,
+    bool? scrolledTo,
+  }) {
+    if (trashed) {
+      return const SizedBox();
+    }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultStyle = TextStyle(
+      color: isDark ? Colors.white : Colors.black,
+      fontFamily: "Helvetica",
+      fontWeight: FontWeight.normal,
+    );
+    final parser = Parser.basic(defaultStyle);
+    final urlParser = ParserMapping.url(ParserMapping.defaultMap);
+    final firstUrl = urlParser.pattern.firstMatch(content);
+    late String newContent;
+    if (flagCount >= flagReasonLimit) {
+      if (showReplyField != null) {
+        newContent = TRFlag.flaggedContentMessageShowReport;
+      } else {
+        newContent = TRFlag.flaggedContentMessage;
+      }
+    } else if (firstUrl != null && firstUrl.start == 0) {
+      newContent = content.substring(firstUrl.end);
+    } else {
+      newContent = content;
+    }
+    final query = MediaQuery.of(context).size;
+    final size = <String, dynamic>{
+      "w": query.width,
+      "h": query.height,
+      "img": author.isAgent
+    };
+    final text = RichText(text: parser.parse(newContent, size));
+    final creator = buildCreator(context);
+    final date = Text(
+      (edited.isAfter(createdAt)
+              ? "${TRGeneral.edited} ${formatDateTime(edited)}"
+              : formatDateTime(createdAt)) +
+          " ",
+      style: const TextStyle(color: Colors.grey),
+    );
+    final meta = Padding(
+      padding: const EdgeInsets.all(2),
+      child: Row(children: [
+        creator,
+        Expanded(child: Align(alignment: Alignment.centerRight, child: date))
+      ]),
+    );
+    final reply = buildReplyButton(context, isReplyingTo, () {
+      if (showReplyField != null) {
+        showReplyField();
+      }
+    });
+    final kind = isReview ? UserVoteKind.review : UserVoteKind.comment;
+    final upvoteButton = buildVoteButton(
+      context,
+      upvotes,
+      true,
+      kind,
+      updateVote(updateState),
+    );
+    final downvoteButton = buildVoteButton(
+      context,
+      downvotes,
+      false,
+      kind,
+      updateVote(updateState),
+    );
+
+    var buttonRowItems = <Widget>[
+      const SizedBox(width: 8),
+      upvoteButton,
+      const SizedBox(width: 2),
+      downvoteButton
+    ];
+    if (showReply) {
+      buttonRowItems.add(const SizedBox(width: 4));
+      buttonRowItems.add(reply);
+    }
+
+    var replyingTo = <Widget>[];
+    if (replyTo != null) {
+      final preview = replyTo.tile(
+        context,
+        false,
+        0,
+        null,
+        onTap,
+        () {},
+        () => null,
+        false,
+        false,
+        true,
+      );
+      replyingTo.add(preview);
+    }
+
+    var items = <Widget>[
+      ...replyingTo,
+      Padding(
+        padding: const EdgeInsets.only(left: 8, top: 8, bottom: 2, right: 2),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: text,
+        ),
+      ),
+      meta,
+    ];
+
+    final removeComment = PopupMenuItem(
+      onTap: () {
+        displayString(context, TRGeneral.removed);
+        trashed = true;
+        updateState();
+        NewSource.deleteComment(postId, id).catchError((e) {
+          displayError(context, e);
+          return false;
+        });
+      },
+      child: Text(TRGeneral.remove),
+    );
+    final editComment = PopupMenuItem(
+      value: 3517,
+      onTap: () {},
+      child: Text(TRGeneral.edit),
+    );
+
+    final votedFor = PopupMenuItem(
+      onTap: () {
+        final title = contentKindToString(ContentKind.user);
+
+        final body = UserPrefPage(
+          title: title,
+          showSearch: true,
+          prefKind: ContentKind.comment,
+          user: User.current?.toAuthor(),
+          isViewed: false,
+          pid: postId,
+          sid: id,
+        );
+        WidgetsBinding.instance.addPostFrameCallback((ts) {
+          Navigator.push(
+            context,
+            route(builder: (context) => body),
+          );
+        });
+      },
+      child: Text(TRGeneral.votedBy),
+    );
+    final userActionsList = <PopupMenuItem>[];
+    userActionsList.add(votedFor);
+    if (author.id == User.current?.id ||
+        (User.current?.id == postAuthor && postAuthor != null)) {
+      userActionsList.add(removeComment);
+      userActionsList.add(editComment);
+    }
+
+    final report = PopupMenuItem(
+      onTap: () {
+        showPlatformDialog(
+          context: context,
+          builder: (context) => FlagDialog(pid: postId, sid: id),
+        );
+      },
+      child: Text(TRGeneral.report),
+    );
+    final reportReasons = PopupMenuItem(
+      onTap: () => showPlatformDialog(
+        context: context,
+        builder: (context) => FlagReasonDialog(pid: postId, sid: id),
+      ),
+      child: Text(TRGeneral.showReport),
+    );
+    var reportItems = <PopupMenuItem>[report];
+    if (flagCount >= flagReasonLimit) {
+      reportItems.add(reportReasons);
+    }
+
+    final moreButton = PopupMenuButton(
+      onSelected: (value) {
+        final page = CommentReplyPage(comment: this, isEdit: true);
+        Navigator.of(context)
+            .push(
+              route(builder: (context) => page),
+            )
+            .then((value) => updateState());
+      },
+      itemBuilder: (context) => [
+        ...userActionsList,
+        ...reportItems,
+      ],
+    );
+    buttonRowItems.add(moreButton);
+
+    if (!isPreview) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.all(0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: buttonRowItems,
+          ),
+        ),
+      );
+    }
+
+    if (!isPreview && up != null && down != null) {
+      final upChip = buildVoteChip(context, up, true);
+      final downChip = buildVoteChip(context, down, false);
+      final desc = Padding(
+        padding: EdgeInsets.all(4),
+        child: Text(TRGeneral.votesFromUser),
+      );
+
+      items.add(Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          desc,
+          const SizedBox(width: 4),
+          upChip,
+          downChip,
+          const SizedBox(width: 8),
+        ],
+      ));
+    }
+    items.add(const SizedBox(height: 8));
+
+    final body = Column(children: items);
+
+    Function()? cardTap = null;
+    if (isPreview) {
+      if (onTap != null) {
+        cardTap = () => onTap(this);
+      }
+    } else if (showReplyField != null) {
+      if (flagCount >= flagReasonLimit) {
+        cardTap = () {
+          flagCount = -1;
+          updateState();
+        };
+      } else {
+        cardTap = () => showReplyField();
+      }
+    } else if (onTap != null) {
+      cardTap = showParentPost(context);
+    }
+
+    final card = Material(
+      color: scrolledTo == true
+          ? MyTheme.primary.withAlpha(20)
+          : isPreview
+              ? Colors.white.withAlpha(0)
+              : null,
+      child: InkWell(
+        onTap: cardTap,
+        child: Padding(
+          padding: isPreview
+              ? EdgeInsets.only(left: 32, top: 16, right: 4, bottom: 4)
+              : EdgeInsets.all(0),
+          child: body,
+        ),
+      ),
+    );
+
+    return card;
   }
 }

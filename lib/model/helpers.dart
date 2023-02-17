@@ -359,7 +359,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       onTap: () => user.showUserPage(context));
                 } else if (isTypeEqual<T, Comment>()) {
                   final comment = item as Comment;
-                  return comment.card(
+                  return comment.tile(
                       context,
                       false,
                       0,
@@ -367,6 +367,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       (c) => c.showParentPost(context)(),
                       updateState,
                       null,
+                      false,
                       false,
                       false);
                 } else if (isTypeEqual<T, FlaggedPost>()) {
@@ -376,7 +377,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                   return Column(children: [content, review]);
                 } else if (isTypeEqual<T, FlaggedComment>()) {
                   final flag = (item as FlaggedComment);
-                  final content = flag.content.card(
+                  final content = flag.content.tile(
                     context,
                     false,
                     0,
@@ -384,6 +385,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                     (c) => c.showParentPost(context)(),
                     updateState,
                     null,
+                    false,
                     false,
                     false,
                   );
@@ -403,7 +405,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       up: user.upvotes, down: user.downvotes);
                 } else if (isTypeEqual<T, UserPrefComment>()) {
                   final comment = (item as UserPrefComment);
-                  return comment.comment.card(
+                  return comment.comment.tile(
                       context,
                       false,
                       0,
@@ -411,6 +413,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       (c) => c.showParentPost(context)(),
                       updateState,
                       null,
+                      false,
                       false,
                       false,
                       up: comment.upvotes,

@@ -168,8 +168,18 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
     final isCreation = widget.post == null && widget.comment == null;
     if (!widget.isEdit) {
       if (widget.comment != null) {
-        preview = widget.comment!.card(
-            context, false, 0, null, null, updateState, null, false, false);
+        preview = widget.comment!.tile(
+          context,
+          false,
+          0,
+          null,
+          null,
+          updateState,
+          null,
+          false,
+          false,
+          false,
+        );
       } else if (widget.post != null) {
         preview = widget.post!.card(context, updateState);
         final sel = CupertinoSlidingSegmentedControl(

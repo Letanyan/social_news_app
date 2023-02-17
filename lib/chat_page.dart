@@ -12,15 +12,14 @@ import 'package:social_news_app/model/post.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/user.dart';
 
-class CommentsPage extends StatefulWidget {
+class ChatPage extends StatefulWidget {
   final Post post;
   final Comment? scrollComments;
 
-  const CommentsPage(
-      {super.key, required this.post, required this.scrollComments});
+  const ChatPage({super.key, required this.post, required this.scrollComments});
 
   @override
-  State<CommentsPage> createState() => _CommentsPageState();
+  State<ChatPage> createState() => _ChatPageState();
 }
 
 class _IndentedComment {
@@ -30,21 +29,17 @@ class _IndentedComment {
   const _IndentedComment(this.comment, this.indent);
 }
 
-class _CommentsPageState extends State<CommentsPage> {
-  late Map<int, List<Comment>> comments;
-  late List<Comment> allCommentsLoaded;
+class _ChatPageState extends State<ChatPage> {
   late Future<List<Comment>> allComments;
-  late Future<List<_IndentedComment>> visibleComments;
-  List<_IndentedComment>? reviews;
-  late Future<List<_IndentedComment>> visibleReviews;
-  late HashSet<int> visibleReplyIds;
-  final selectorKey = GlobalKey();
+  late Future<List<Comment>> reviews;
+  late Future<List<Comment>> comments;
+  late Map<int, Comment> indexedComments;
   Timer? timer;
   bool isLoading = true;
   int count = 0;
   int reviewCount = 0;
   bool isReview = false;
-  SortOrder sortOrder = SortOrder.upvotes;
+  SortOrder sortOrder = SortOrder.createdAt;
 
   final controller = TextEditingController();
   final scroller = ItemScrollController();
@@ -56,11 +51,16 @@ class _CommentsPageState extends State<CommentsPage> {
   @override
   void initState() {
     super.initState();
+
+    comments = Future(() => []);
+    reviews = Future(() => []);
+    indexedComments = {};
+
     loadComments(-1);
     replyingTo = null;
     scrollToComment = widget.scrollComments;
     isReview = widget.scrollComments?.isReview ?? false;
-    visibleReplyIds = HashSet();
+
     var keyboardVisibilityController = KeyboardVisibilityController();
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((visible) {
@@ -116,92 +116,17 @@ class _CommentsPageState extends State<CommentsPage> {
       displayError(ctx.target, e);
       return <Comment>[];
     });
-
-    // sortComments uses the keys from comments to decide which comments to
-    // show. So we include the 0 key here so the top level comments are shown
-    // after sorting.
-    comments = <int, List<Comment>>{0: []};
-
-    visibleComments = Future(() => []);
-    visibleReviews = Future(() => []);
     sortComments();
   }
 
-  void flattenComments() {
-    var path = <int>[0];
-    var pathCount = <int>[0];
-    var indents = <_IndentedComment>[];
-    loop:
-    for (var i = 0; i < count; i++) {
-      var currentReplies = comments[path.last];
-      while (
-          currentReplies == null || pathCount.last >= currentReplies.length) {
-        path.removeLast();
-        pathCount.removeLast();
-        if (path.isEmpty) {
-          continue loop;
-        }
-        pathCount[pathCount.length - 1] += 1;
-        currentReplies = comments[path.last];
-      }
-      var item = comments[path.last]![pathCount.last];
-      item.replyCount = comments[item.id]
-              ?.fold(0, (p, e) => (p ?? 0) + (e.trashed ? 0 : 1)) ??
-          item.replyCount;
-      final indent = path.length - 1;
-      if (comments[item.id] != null) {
-        path.add(item.id);
-        pathCount.add(0);
-      } else {
-        pathCount[pathCount.length - 1] += 1;
-      }
-      indents.add(_IndentedComment(item, indent));
-    }
-
-    visibleComments = Future(() => indents).then((value) {
-      setState(() {});
-      return value;
-    });
-  }
-
-  void showComments(int replyId) {
-    var list = <Comment>[];
-    final oldCount = comments[replyId]?.length ?? 0;
-    for (final c in allCommentsLoaded) {
-      if (c.replyId == replyId) {
-        list.add(c);
-      }
-    }
-    comments[replyId] = list;
-    count += list.length - oldCount;
-    flattenComments();
-  }
-
-  void hideComments(int replyId) {
-    final len = comments[replyId]?.length ?? 0;
-    comments.remove(replyId);
-    count -= len;
-    flattenComments();
-  }
-
-  void toggleComments(int replyId) {
-    if (comments.containsKey(replyId)) {
-      visibleReplyIds.remove(replyId);
-      hideComments(replyId);
-    } else {
-      visibleReplyIds.add(replyId);
-      showComments(replyId);
-    }
-  }
-
   Future<void> sortComments() async {
-    var keys = comments;
     var source = await allComments;
+    isLoading = false;
 
     source.sort((a, b) {
       switch (sortOrder) {
         case SortOrder.addedOn:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.score:
           return -a.score.compareTo(b.score);
         case SortOrder.cred:
@@ -213,64 +138,50 @@ class _CommentsPageState extends State<CommentsPage> {
         case SortOrder.controversial:
           return -controversial(a.cred).compareTo(controversial(b.cred));
         case SortOrder.createdAt:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedAt:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedOn:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.rank:
           return a.rank.compareTo(b.rank);
       }
     });
     allComments = Future(() => source);
-    allCommentsLoaded = source.map((e) => e).toList();
-
-    // Add the comment chain to the comment selected by the user from scrollToComment
-    var chain = scrollToComment?.replyId;
-    while (chain != null && chain != 0) {
-      final oldChain = chain;
-      for (final c in allCommentsLoaded) {
-        if (c.id == chain) {
-          chain = c.replyId;
-          break;
-        }
-      }
-      if (chain == scrollToComment?.replyId) {
-        // some parent comment was deleted so impossible to show thread
-        scrollToComment = null;
-        displayString(context, TRCommentsPage.threadWasDeleted);
-        break;
-      }
-      comments[oldChain] = [];
-    }
-
-    comments = <int, List<Comment>>{};
-    reviews = [];
-    count = 0;
-    for (final c in allCommentsLoaded) {
+    var reviewSource = <Comment>[];
+    var commentSource = <Comment>[];
+    for (final c in source) {
       if (c.isReview) {
-        reviews?.add(_IndentedComment(c, 0));
-      } else if (keys.keys.contains(c.replyId)) {
-        if (comments.containsKey(c.replyId)) {
-          comments[c.replyId]?.add(c);
-        } else {
-          comments[c.replyId] = [c];
-        }
-        count += 1;
+        reviewSource.add(c);
+      } else {
+        commentSource.add(c);
+        indexedComments[c.id] = c;
       }
     }
-    reviewCount = reviews?.length ?? 0;
-    visibleReviews = Future(() => reviews ?? []);
-
-    flattenComments();
+    count = commentSource.length;
+    reviewCount = reviewSource.length;
+    reviews = Future(() => reviewSource);
+    comments = Future(() => commentSource);
+    updateState();
   }
 
   void updateState() {
     setState(() {
-      visibleComments = visibleComments;
-      visibleReviews = visibleReviews;
+      allComments = allComments;
+      comments = comments;
       reviews = reviews;
     });
+  }
+
+  int indexOfComment(int commentId, List<Comment> source) {
+    int i = 0;
+    for (final c in source) {
+      if (c.id == commentId) {
+        return i;
+      }
+      i += 1;
+    }
+    return -1;
   }
 
   void replyToComment() async {
@@ -286,14 +197,12 @@ class _CommentsPageState extends State<CommentsPage> {
         controller.text,
         false,
       );
-      for (var comment in allCommentsLoaded) {
+      for (var comment in await comments) {
         if (comment.id == replyId) {
           comment.replyCount += 1;
         }
       }
-      allCommentsLoaded.add(result);
-      allComments = Future(() => allCommentsLoaded);
-      showComments(replyId);
+      (await comments).add(result);
       replyingTo = null;
       controller.text = "";
     } catch (e) {
@@ -345,12 +254,11 @@ class _CommentsPageState extends State<CommentsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final list = FutureBuilder<List<_IndentedComment>>(
-      future: isReview ? visibleReviews : visibleComments,
+    final list = FutureBuilder<List<Comment>>(
+      future: isReview ? reviews : comments,
       builder: (context, snapshot) {
         final card = widget.post.card(context, updateState);
         final sel = CupertinoSlidingSegmentedControl(
-          key: selectorKey,
           children: {
             false: Text(TRGeneral.discussion),
             true: Text(TRGeneral.critique),
@@ -417,11 +325,9 @@ class _CommentsPageState extends State<CommentsPage> {
         }
 
         if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-          final empty = SingleChildScrollView(
-            child: Column(
-              children: [
-                ...previewItems,
-                Padding(
+          final indicator = isLoading
+              ? CircularProgressIndicator()
+              : Padding(
                   padding: const EdgeInsets.all(32),
                   child: Text(
                     isReview
@@ -429,7 +335,12 @@ class _CommentsPageState extends State<CommentsPage> {
                         : TRCommentsPage.noDiscussion,
                     style: const TextStyle(fontSize: 16),
                   ),
-                ),
+                );
+          final empty = SingleChildScrollView(
+            child: Column(
+              children: [
+                ...previewItems,
+                indicator,
               ],
             ),
           );
@@ -454,50 +365,36 @@ class _CommentsPageState extends State<CommentsPage> {
             if (index - 1 >= snapshot.data!.length) {
               return const SizedBox();
             }
-
-            if (index == (isReview ? reviewCount : count)) {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                if (commentIndex != null && scrollToComment != null) {
-                  scrollToComment = null;
-                  scroller.scrollTo(
-                    index: commentIndex!,
-                    duration: const Duration(milliseconds: 150),
-                  );
-                }
-              });
-            }
             final item = snapshot.data![index - 1];
-            var calcReplyCount = 0;
-            for (final c in allCommentsLoaded) {
-              if (!c.trashed && c.replyId == item.comment.id) {
-                calcReplyCount += 1;
-              }
+            Comment? itemReply;
+            if (item.replyId > 0) {
+              itemReply = indexedComments[item.replyId] ?? null;
             }
-            if (item.comment.id == scrollToComment?.id) {
-              commentIndex = index;
-            }
-            return item.comment.tile(
+            return item.tile(
               context,
               !isReview,
-              item.indent,
-              null,
+              0,
+              itemReply,
               isReview
                   ? null
                   : (c) {
-                      toggleComments(c.id);
-                      setState(() {});
+                      setState(() {
+                        if (itemReply != null) {
+                          scrollToComment = itemReply;
+                        }
+                      });
                     },
               updateState,
               isReview
                   ? null
                   : () => setState(() {
-                        replyingTo = item.comment;
+                        replyingTo = item;
                       }),
-              replyingTo?.id == item.comment.id,
-              visibleReplyIds.contains(item.comment.id),
+              replyingTo?.id == item.id,
+              false,
               false,
               postAuthor: widget.post.creator.id,
-              scrolledTo: scrollToComment?.id == item.comment.id,
+              scrolledTo: scrollToComment?.id == item.id,
             );
           },
         );
@@ -518,6 +415,21 @@ class _CommentsPageState extends State<CommentsPage> {
             replyField,
           ],
         );
+
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          if (scrollToComment != null) {
+            final scrollIndex =
+                indexOfComment(scrollToComment!.id, snapshot.data!);
+            if (scrollIndex < 0) {
+              return;
+            }
+            scroller.scrollTo(
+              index: scrollIndex + 1,
+              duration: const Duration(milliseconds: 150),
+            );
+          }
+        });
+
         return KeyboardDismissOnTap(dismissOnCapturedTaps: true, child: body);
       },
     );
