@@ -436,7 +436,7 @@ class Comment {
     if (trashed) {
       return const SizedBox();
     }
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = MyTheme.isDark;
     final defaultStyle = TextStyle(
       color: isDark ? Colors.white : Colors.black,
       fontFamily: "Helvetica",
@@ -456,6 +456,9 @@ class Comment {
       newContent = content.substring(firstUrl.end);
     } else {
       newContent = content;
+    }
+    if (isPreview && newContent.length > 256) {
+      newContent = newContent.substring(0, 256);
     }
     final query = MediaQuery.of(context).size;
     final size = <String, dynamic>{
@@ -539,6 +542,10 @@ class Comment {
       ),
       meta,
     ];
+
+    if (!isPreview) {
+      items.insert(0, Divider(height: 2));
+    }
 
     final removeComment = PopupMenuItem(
       onTap: () {
@@ -682,18 +689,28 @@ class Comment {
       color: scrolledTo == true
           ? MyTheme.primary.withAlpha(20)
           : isPreview
-              ? Colors.white.withAlpha(0)
+              ? isDark
+                  ? Colors.black.withAlpha(20)
+                  : Colors.white.withAlpha(20)
               : null,
       child: InkWell(
         onTap: cardTap,
-        child: Padding(
-          padding: isPreview
-              ? EdgeInsets.only(left: 32, top: 16, right: 4, bottom: 4)
-              : EdgeInsets.all(0),
-          child: body,
-        ),
+        child: body,
       ),
     );
+
+    if (isPreview) {
+      return Padding(
+        padding: EdgeInsets.all(8),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: card,
+        ),
+      );
+    }
 
     return card;
   }
