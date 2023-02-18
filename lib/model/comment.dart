@@ -691,7 +691,7 @@ class Comment {
           : isPreview
               ? isDark
                   ? Colors.black.withAlpha(20)
-                  : Colors.white.withAlpha(20)
+                  : Colors.black.withAlpha(10)
               : null,
       child: InkWell(
         onTap: cardTap,
