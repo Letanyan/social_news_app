@@ -34,7 +34,7 @@ class MainAppState extends State<MainApp> {
     return MaterialApp(
       title: TRGeneral.newSource,
       debugShowCheckedModeBanner: false,
-      scrollBehavior: TouchAndMouseScrollBehaviour(),
+      scrollBehavior: AlwaysScroll(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,

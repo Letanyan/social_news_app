@@ -68,7 +68,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      scrollBehavior: TouchAndMouseScrollBehaviour(),
+      scrollBehavior: AlwaysScroll(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,

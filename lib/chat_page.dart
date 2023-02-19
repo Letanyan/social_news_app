@@ -358,9 +358,7 @@ class _ChatPageState extends State<ChatPage> {
           itemScrollController: scroller,
           itemBuilder: (context, index) {
             if (index == 0) {
-              return SingleChildScrollView(
-                child: Column(children: previewItems),
-              );
+              return Column(children: previewItems);
             }
             if (index - 1 >= snapshot.data!.length) {
               return const SizedBox();

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -169,7 +170,7 @@ class HomeViewState extends State<HomeView>
     return MaterialApp(
       title: TRGeneral.newSource,
       debugShowCheckedModeBanner: false,
-      scrollBehavior: TouchAndMouseScrollBehaviour(),
+      scrollBehavior: AlwaysScroll(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,

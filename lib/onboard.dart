@@ -170,7 +170,7 @@ class _OnboardState extends State<Onboard> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      scrollBehavior: TouchAndMouseScrollBehaviour(),
+      scrollBehavior: AlwaysScroll(),
       theme: ThemeData(
         primarySwatch: MyTheme.primary,
         brightness: MyTheme.isDark ? Brightness.dark : Brightness.light,
