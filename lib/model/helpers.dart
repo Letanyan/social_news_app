@@ -335,43 +335,14 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [CircularProgressIndicator()],
                     );
-                  } else if (hasMore[filterState.current]) {
-                    // final newItems = getNewItems<T>();
-                    // if (isTypeEqual<T, Tag>()) {
-                    //   loadMore(newItems, tags);
-                    // } else if (isTypeEqual<T, Post>()) {
-                    //   loadMore(newItems, posts);
-                    // } else if (isTypeEqual<T, Author>()) {
-                    //   loadMore(newItems, users);
-                    // } else if (isTypeEqual<T, Comment>()) {
-                    //   loadMore(newItems, comments);
-                    // } else if (isTypeEqual<T, FlaggedPost>()) {
-                    //   loadMore(newItems, flaggedPosts);
-                    // } else if (isTypeEqual<T, FlaggedComment>()) {
-                    //   loadMore(newItems, flaggedComments);
-                    // } else if (isTypeEqual<T, UserPrefTag>()) {
-                    //   loadMore(newItems, prefTags);
-                    // } else if (isTypeEqual<T, UserPrefPost>()) {
-                    //   loadMore(newItems, prefPosts);
-                    // } else if (isTypeEqual<T, UserPrefUser>()) {
-                    //   loadMore(newItems, prefUsers);
-                    // } else if (isTypeEqual<T, UserPrefComment>()) {
-                    //   loadMore(newItems, prefComments);
-                    // }
-                    // isLoading[filterState.current] = true;
-                    // return Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: const [CircularProgressIndicator()],
-                    // );
                   } else {
                     return const SizedBox();
                   }
                 }
                 const remainingItemsBeforeLoadingMore = 10;
-                if (hasMore[filterState.current] &&
-                    index ==
-                        count[filterState.current] -
-                            remainingItemsBeforeLoadingMore) {
+                final indexPoint = count[filterState.current] -
+                    remainingItemsBeforeLoadingMore;
+                if (hasMore[filterState.current] && index == indexPoint) {
                   final newItems = getNewItems<T>();
                   if (isTypeEqual<T, Tag>()) {
                     loadMore(newItems, tags);
