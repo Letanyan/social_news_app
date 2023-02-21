@@ -270,6 +270,15 @@ abstract class TRGeneral {
     }
   }
 
+  static String get thread {
+    switch (locale) {
+      case LC.en:
+        return "Thread";
+      case LC.es:
+        return "Hilo";
+    }
+  }
+
   static String get preview {
     switch (locale) {
       case LC.en:

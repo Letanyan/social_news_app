@@ -12,14 +12,19 @@ import 'package:social_news_app/model/post.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/user.dart';
 
-class ChatPage extends StatefulWidget {
-  final Post post;
+class CommentsThreadPage extends StatefulWidget {
+  final Comment origin;
+  final List<Comment> sourceData;
   final Comment? scrollComments;
 
-  const ChatPage({super.key, required this.post, required this.scrollComments});
+  const CommentsThreadPage(
+      {super.key,
+      required this.origin,
+      required this.sourceData,
+      required this.scrollComments});
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<CommentsThreadPage> createState() => _CommentsThreadPageState();
 }
 
 class _IndentedComment {
@@ -29,17 +34,21 @@ class _IndentedComment {
   const _IndentedComment(this.comment, this.indent);
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _CommentsThreadPageState extends State<CommentsThreadPage> {
+  late Map<int, List<Comment>> comments;
+  late List<Comment> allCommentsLoaded;
   late Future<List<Comment>> allComments;
-  late Future<List<Comment>> reviews;
-  late Future<List<Comment>> comments;
-  late Map<int, Comment> indexedComments;
+  late Future<List<_IndentedComment>> visibleComments;
+  List<_IndentedComment>? reviews;
+  late Future<List<_IndentedComment>> visibleReviews;
+  late HashSet<int> visibleReplyIds;
+  final selectorKey = GlobalKey();
   Timer? timer;
   bool isLoading = true;
   int count = 0;
   int reviewCount = 0;
   bool isReview = false;
-  SortOrder sortOrder = SortOrder.createdAt;
+  SortOrder sortOrder = SortOrder.upvotes;
 
   final controller = TextEditingController();
   final scroller = ItemScrollController();
@@ -51,16 +60,11 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-
-    comments = Future(() => []);
-    reviews = Future(() => []);
-    indexedComments = {};
-
     loadComments(-1);
     replyingTo = null;
     scrollToComment = widget.scrollComments;
     isReview = widget.scrollComments?.isReview ?? false;
-
+    visibleReplyIds = HashSet();
     var keyboardVisibilityController = KeyboardVisibilityController();
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((visible) {
@@ -70,17 +74,6 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
 
-    if (User.current != null) {
-      NewSource.addUserCont(
-        uid: User.current!.id,
-        kind: UserContKind.viewed,
-        pid: widget.post.id,
-      ).catchError((e) {
-        displayError(context, e);
-        return false;
-      });
-    }
-
     timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (User.current == null) {
         return;
@@ -89,11 +82,6 @@ class _ChatPageState extends State<ChatPage> {
       if (!isTop) {
         return;
       }
-      final ctx = WeakReference(context);
-      NewSource.watchPost(User.current!.id, widget.post.id, 1).catchError((e) {
-        displayError(ctx.target, e);
-        return false;
-      });
     });
   }
 
@@ -106,27 +94,93 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> loadComments(int commentId) async {
-    final ctx = WeakReference(context);
-    allComments = NewSource.getComments(
-      postId: widget.post.id,
-      replyId: commentId,
-      order: SortOrder.createdAt,
-      isReview: -1,
-    ).catchError((e) {
-      displayError(ctx.target, e);
-      return <Comment>[];
-    });
+    allComments = Future(() => widget.sourceData);
+
+    // sortComments uses the keys from comments to decide which comments to
+    // show. So we include the 0 key here so the top level comments are shown
+    // after sorting.
+    comments = <int, List<Comment>>{widget.origin.id: []};
+
+    visibleComments = Future(() => []);
+    visibleReviews = Future(() => []);
     sortComments();
   }
 
+  void flattenComments() {
+    var path = <int>[widget.origin.id];
+    var pathCount = <int>[0];
+    var indents = <_IndentedComment>[];
+    loop:
+    for (var i = 0; i < count; i++) {
+      var currentReplies = comments[path.last];
+      while (
+          currentReplies == null || pathCount.last >= currentReplies.length) {
+        path.removeLast();
+        pathCount.removeLast();
+        if (path.isEmpty) {
+          continue loop;
+        }
+        pathCount[pathCount.length - 1] += 1;
+        currentReplies = comments[path.last];
+      }
+      var item = comments[path.last]![pathCount.last];
+      item.replyCount = comments[item.id]
+              ?.fold(0, (p, e) => (p ?? 0) + (e.trashed ? 0 : 1)) ??
+          item.replyCount;
+      final indent = path.length - 1;
+      if (comments[item.id] != null) {
+        path.add(item.id);
+        pathCount.add(0);
+      } else {
+        pathCount[pathCount.length - 1] += 1;
+      }
+      indents.add(_IndentedComment(item, indent));
+    }
+
+    visibleComments = Future(() => indents).then((value) {
+      setState(() {});
+      return value;
+    });
+  }
+
+  void showComments(int replyId) {
+    var list = <Comment>[];
+    final oldCount = comments[replyId]?.length ?? 0;
+    for (final c in allCommentsLoaded) {
+      if (c.replyId == replyId) {
+        list.add(c);
+      }
+    }
+    comments[replyId] = list;
+    count += list.length - oldCount;
+    flattenComments();
+  }
+
+  void hideComments(int replyId) {
+    final len = comments[replyId]?.length ?? 0;
+    comments.remove(replyId);
+    count -= len;
+    flattenComments();
+  }
+
+  void toggleComments(int replyId) {
+    if (comments.containsKey(replyId)) {
+      visibleReplyIds.remove(replyId);
+      hideComments(replyId);
+    } else {
+      visibleReplyIds.add(replyId);
+      showComments(replyId);
+    }
+  }
+
   Future<void> sortComments() async {
+    var keys = comments;
     var source = await allComments;
-    isLoading = false;
 
     source.sort((a, b) {
       switch (sortOrder) {
         case SortOrder.addedOn:
-          return -a.createdAt.compareTo(b.createdAt);
+          return a.createdAt.compareTo(b.createdAt);
         case SortOrder.score:
           return -a.score.compareTo(b.score);
         case SortOrder.cred:
@@ -138,50 +192,64 @@ class _ChatPageState extends State<ChatPage> {
         case SortOrder.controversial:
           return -controversial(a.cred).compareTo(controversial(b.cred));
         case SortOrder.createdAt:
-          return -a.createdAt.compareTo(b.createdAt);
+          return a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedAt:
-          return -a.createdAt.compareTo(b.createdAt);
+          return a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedOn:
-          return -a.createdAt.compareTo(b.createdAt);
+          return a.createdAt.compareTo(b.createdAt);
         case SortOrder.rank:
           return a.rank.compareTo(b.rank);
       }
     });
     allComments = Future(() => source);
-    var reviewSource = <Comment>[];
-    var commentSource = <Comment>[];
-    for (final c in source) {
+    allCommentsLoaded = source.map((e) => e).toList();
+
+    // Add the comment chain to the comment selected by the user from scrollToComment
+    var chain = scrollToComment?.replyId;
+    while (chain != null && chain != 0) {
+      final oldChain = chain;
+      for (final c in allCommentsLoaded) {
+        if (c.id == chain) {
+          chain = c.replyId;
+          break;
+        }
+      }
+      if (chain == scrollToComment?.replyId) {
+        // some parent comment was deleted so impossible to show thread
+        scrollToComment = null;
+        displayString(context, TRCommentsPage.threadWasDeleted);
+        break;
+      }
+      comments[oldChain] = [];
+    }
+
+    comments = <int, List<Comment>>{};
+    reviews = [];
+    count = 0;
+    for (final c in allCommentsLoaded) {
       if (c.isReview) {
-        reviewSource.add(c);
-      } else {
-        commentSource.add(c);
-        indexedComments[c.id] = c;
+        reviews?.add(_IndentedComment(c, 0));
+      } else if (keys.keys.contains(c.replyId)) {
+        if (comments.containsKey(c.replyId)) {
+          comments[c.replyId]?.add(c);
+        } else {
+          comments[c.replyId] = [c];
+        }
+        count += 1;
       }
     }
-    count = commentSource.length;
-    reviewCount = reviewSource.length;
-    reviews = Future(() => reviewSource);
-    comments = Future(() => commentSource);
-    updateState();
+    reviewCount = reviews?.length ?? 0;
+    visibleReviews = Future(() => reviews ?? []);
+
+    flattenComments();
   }
 
   void updateState() {
     setState(() {
-      allComments = allComments;
-      comments = comments;
+      visibleComments = visibleComments;
+      visibleReviews = visibleReviews;
       reviews = reviews;
     });
-  }
-
-  int indexOfComment(int commentId, List<Comment> source) {
-    int i = 0;
-    for (final c in source) {
-      if (c.id == commentId) {
-        return i;
-      }
-      i += 1;
-    }
-    return -1;
   }
 
   void replyToComment() async {
@@ -197,12 +265,14 @@ class _ChatPageState extends State<ChatPage> {
         controller.text,
         false,
       );
-      for (var comment in await comments) {
+      for (var comment in allCommentsLoaded) {
         if (comment.id == replyId) {
           comment.replyCount += 1;
         }
       }
-      (await comments).add(result);
+      allCommentsLoaded.add(result);
+      allComments = Future(() => allCommentsLoaded);
+      showComments(replyId);
       replyingTo = null;
       controller.text = "";
     } catch (e) {
@@ -254,23 +324,21 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final list = FutureBuilder<List<Comment>>(
-      future: isReview ? reviews : comments,
+    final list = FutureBuilder<List<_IndentedComment>>(
+      future: isReview ? visibleReviews : visibleComments,
       builder: (context, snapshot) {
-        final card = widget.post.card(context, updateState);
-        final sel = CupertinoSlidingSegmentedControl(
-          children: {
-            false: Text(TRGeneral.discussion),
-            true: Text(TRGeneral.critique),
-          },
-          groupValue: isReview,
-          onValueChanged: (value) {
-            final didChange = value != isReview && value != null;
-            isReview = value ?? false;
-            if (didChange) {
-              updateState();
-            }
-          },
+        final card = widget.origin.tile(
+          context,
+          false,
+          0,
+          null,
+          widget.origin.replyCount,
+          (p0) {},
+          () {},
+          () => null,
+          false,
+          false,
+          true,
         );
         final sort = PopupMenuButton(
           itemBuilder: (context) {
@@ -296,10 +364,9 @@ class _ChatPageState extends State<ChatPage> {
         );
         final previewItems = <Widget>[
           card,
-          const SizedBox(height: 8),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(child: Center(child: sel)),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: sort,
@@ -325,9 +392,11 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         if (snapshot.data == null || snapshot.data?.isEmpty == true) {
-          final indicator = isLoading
-              ? CircularProgressIndicator()
-              : Padding(
+          final empty = SingleChildScrollView(
+            child: Column(
+              children: [
+                ...previewItems,
+                Padding(
                   padding: const EdgeInsets.all(32),
                   child: Text(
                     isReview
@@ -335,12 +404,7 @@ class _ChatPageState extends State<ChatPage> {
                         : TRCommentsPage.noDiscussion,
                     style: const TextStyle(fontSize: 16),
                   ),
-                );
-          final empty = SingleChildScrollView(
-            child: Column(
-              children: [
-                ...previewItems,
-                indicator,
+                ),
               ],
             ),
           );
@@ -358,43 +422,55 @@ class _ChatPageState extends State<ChatPage> {
           itemScrollController: scroller,
           itemBuilder: (context, index) {
             if (index == 0) {
-              return Column(children: previewItems);
+              return SingleChildScrollView(
+                child: Column(children: previewItems),
+              );
             }
             if (index - 1 >= snapshot.data!.length) {
               return const SizedBox();
             }
-            final item = snapshot.data![index - 1];
-            Comment? itemReply;
-            if (item.replyId > 0) {
-              itemReply = indexedComments[item.replyId] ?? null;
+
+            if (index == (isReview ? reviewCount : count)) {
+              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+                if (commentIndex != null && scrollToComment != null) {
+                  scrollToComment = null;
+                  scroller.scrollTo(
+                    index: commentIndex!,
+                    duration: const Duration(milliseconds: 150),
+                  );
+                }
+              });
             }
-            return item.tile(
+            final item = snapshot.data![index - 1];
+            var calcReplyCount = 0;
+            for (final c in allCommentsLoaded) {
+              if (!c.trashed && c.replyId == item.comment.id) {
+                calcReplyCount += 1;
+              }
+            }
+            if (item.comment.id == scrollToComment?.id) {
+              commentIndex = index;
+            }
+            return item.comment.card(
               context,
               !isReview,
-              0,
-              itemReply,
-              item.replyCount,
+              item.indent,
+              null,
               isReview
                   ? null
                   : (c) {
-                      setState(() {
-                        if (itemReply != null) {
-                          scrollToComment = itemReply;
-                        }
-                      });
+                      toggleComments(c.id);
+                      setState(() {});
                     },
               updateState,
               isReview
                   ? null
                   : () => setState(() {
-                        replyingTo = item;
+                        replyingTo = item.comment;
                       }),
-              replyingTo?.id == item.id,
-              false,
-              false,
-              sourceData: snapshot.data,
-              postAuthor: widget.post.creator.id,
-              scrolledTo: scrollToComment?.id == item.id,
+              replyingTo?.id == item.comment.id,
+              visibleReplyIds.contains(item.comment.id),
+              scrolledTo: scrollToComment?.id == item.comment.id,
             );
           },
         );
@@ -415,25 +491,26 @@ class _ChatPageState extends State<ChatPage> {
             replyField,
           ],
         );
-
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          if (scrollToComment != null) {
-            final scrollIndex =
-                indexOfComment(scrollToComment!.id, snapshot.data!);
-            if (scrollIndex < 0) {
-              return;
-            }
-            scroller.scrollTo(
-              index: scrollIndex + 1,
-              duration: const Duration(milliseconds: 150),
-            );
-          }
-        });
-
         return KeyboardDismissOnTap(dismissOnCapturedTaps: true, child: body);
       },
     );
 
-    return list;
+    final actions = <Widget>[
+      IconButton(
+        onPressed: () => setState(() {
+          replyingTo = widget.origin;
+        }),
+        icon: const Icon(Icons.add_comment_rounded),
+      )
+    ];
+    final page = Scaffold(
+      appBar: AppBar(
+        title: Text(TRGeneral.thread),
+        actions: actions,
+      ),
+      body: list,
+    );
+
+    return page;
   }
 }

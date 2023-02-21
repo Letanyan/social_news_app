@@ -481,6 +481,7 @@ class _CommentsPageState extends State<CommentsPage> {
               !isReview,
               item.indent,
               null,
+              item.comment.replyCount,
               isReview
                   ? null
                   : (c) {

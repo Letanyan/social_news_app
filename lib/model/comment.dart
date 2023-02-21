@@ -4,6 +4,7 @@ import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/chat_page.dart';
 import 'package:social_news_app/comment_reply.dart';
 import 'package:social_news_app/comments_page.dart';
+import 'package:social_news_app/comments_thread_page.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
@@ -144,6 +145,23 @@ class Comment {
       } catch (e) {
         displayError(context, e);
       }
+    };
+  }
+
+  Function() showCommentThread(
+      BuildContext context, List<Comment>? sourceData, Function() showReply) {
+    return () {
+      final body = CommentsThreadPage(
+        origin: this,
+        sourceData: sourceData ?? [],
+        scrollComments: null,
+      );
+      WidgetsBinding.instance.addPostFrameCallback((ts) {
+        Navigator.push(
+          context,
+          route(builder: (context) => body),
+        );
+      });
     };
   }
 
@@ -341,12 +359,17 @@ class Comment {
         ...reportItems,
       ],
     );
-    buttonRowItems.add(Expanded(
-        child: Align(alignment: Alignment.centerRight, child: moreButton)));
+    buttonRowItems.add(moreButton);
 
-    items.add(Padding(
+    items.add(
+      Padding(
         padding: const EdgeInsets.all(2),
-        child: Row(children: buttonRowItems)));
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: buttonRowItems,
+        ),
+      ),
+    );
 
     if (up != null && down != null) {
       final upChip = buildVoteChip(context, up, true);
@@ -368,6 +391,7 @@ class Comment {
       ));
     }
     items.add(const SizedBox(height: 8));
+    items.insert(0, Divider(height: 2));
 
     final body = Column(children: items);
 
@@ -422,12 +446,14 @@ class Comment {
     bool showReply,
     int offset,
     Comment? replyTo,
+    int? replyCount,
     void Function(Comment)? onTap,
     VoidCallback updateState,
     Function()? showReplyField,
     bool isReplyingTo,
     bool highlightedReplies,
     bool isPreview, {
+    List<Comment>? sourceData,
     int? postAuthor,
     int? up,
     int? down,
@@ -487,6 +513,14 @@ class Comment {
         showReplyField();
       }
     });
+    final replyCountChip = buildReplyCountButton(
+      context,
+      replyCount ?? this.replyCount,
+      highlightedReplies,
+      onTap == null || replyCount == 0
+          ? null
+          : showCommentThread(context, sourceData, showReplyField ?? () {}),
+    );
     final kind = isReview ? UserVoteKind.review : UserVoteKind.comment;
     final upvoteButton = buildVoteButton(
       context,
@@ -512,6 +546,8 @@ class Comment {
     if (showReply) {
       buttonRowItems.add(const SizedBox(width: 4));
       buttonRowItems.add(reply);
+      buttonRowItems.add(const SizedBox(width: 1));
+      buttonRowItems.add(replyCountChip);
     }
 
     var replyingTo = <Widget>[];
@@ -520,6 +556,7 @@ class Comment {
         context,
         false,
         0,
+        null,
         null,
         onTap,
         () {},
@@ -587,7 +624,12 @@ class Comment {
       },
       child: Text(TRGeneral.votedBy),
     );
+    final threadView = PopupMenuItem(
+      onTap: showCommentThread(context, sourceData, showReplyField ?? () {}),
+      child: Text(TRGeneral.thread),
+    );
     final userActionsList = <PopupMenuItem>[];
+    userActionsList.add(threadView);
     userActionsList.add(votedFor);
     if (author.id == User.current?.id ||
         (User.current?.id == postAuthor && postAuthor != null)) {
