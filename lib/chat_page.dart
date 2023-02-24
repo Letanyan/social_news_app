@@ -45,6 +45,7 @@ class _ChatPageState extends State<ChatPage> {
   final scroller = ItemScrollController();
   int? commentIndex;
   Comment? replyingTo;
+  String? searchString;
   Comment? scrollToComment;
   late StreamSubscription<bool> keyboardSubscription;
 
@@ -58,6 +59,7 @@ class _ChatPageState extends State<ChatPage> {
 
     loadComments(-1);
     replyingTo = null;
+    searchString = null;
     scrollToComment = widget.scrollComments;
     isReview = widget.scrollComments?.isReview ?? false;
 
@@ -66,6 +68,7 @@ class _ChatPageState extends State<ChatPage> {
         keyboardVisibilityController.onChange.listen((visible) {
       if (!visible) {
         replyingTo = null;
+        searchString = null;
         updateState();
       }
     });
@@ -152,10 +155,23 @@ class _ChatPageState extends State<ChatPage> {
     var commentSource = <Comment>[];
     for (final c in source) {
       if (c.isReview) {
-        reviewSource.add(c);
+        if (searchString != null) {
+          if (c.content.contains(searchString!)) {
+            reviewSource.add(c);
+          }
+        } else {
+          reviewSource.add(c);
+        }
       } else {
-        commentSource.add(c);
-        indexedComments[c.id] = c;
+        if (searchString != null) {
+          if (c.content.contains(searchString!)) {
+            commentSource.add(c);
+            indexedComments[c.id] = c;
+          }
+        } else {
+          commentSource.add(c);
+          indexedComments[c.id] = c;
+        }
       }
     }
     count = commentSource.length;
@@ -219,22 +235,38 @@ class _ChatPageState extends State<ChatPage> {
       onSubmitted: (value) => replyToComment(),
       decoration: InputDecoration(
         border: OutlineInputBorder(),
-        hintText: TRCommentsPage.enterReply,
+        hintText:
+            replyingTo != null ? TRCommentsPage.enterReply : TRGeneral.search,
       ),
     );
     final send = Padding(
       padding: const EdgeInsets.all(8),
       child: TextButton(
-        onPressed: () => replyToComment(),
-        child: Text(TRGeneral.reply),
+        onPressed: () {
+          if (replyingTo != null) {
+            replyToComment();
+          } else if (searchString != null) {
+            setState(() {
+              searchString = controller.text;
+              sortComments();
+            });
+          }
+        },
+        child: Text(replyingTo != null ? TRGeneral.reply : TRGeneral.search),
       ),
     );
     final cancel = Padding(
       padding: const EdgeInsets.all(8),
       child: TextButton(
         onPressed: () {
-          replyingTo = null;
-          updateState();
+          setState(() {
+            controller.text = "";
+            replyingTo = null;
+            if (searchString != null) {
+              searchString = null;
+              sortComments();
+            }
+          });
         },
         child: Text(TRGeneral.cancel),
       ),
@@ -245,7 +277,7 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     return Visibility(
-      visible: replyingTo != null,
+      visible: replyingTo != null || searchString != null,
       child: Row(
         children: [Expanded(child: textField), actions],
       ),
@@ -271,6 +303,15 @@ class _ChatPageState extends State<ChatPage> {
               updateState();
             }
           },
+        );
+        final searchGlass = InkWell(
+          onTap: () {
+            setState(() {
+              scrollToComment = null;
+              searchString = "";
+            });
+          },
+          child: Icon(Icons.search_rounded),
         );
         final sort = PopupMenuButton(
           itemBuilder: (context) {
@@ -299,6 +340,10 @@ class _ChatPageState extends State<ChatPage> {
           const SizedBox(height: 8),
           Row(
             children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: searchGlass,
+              ),
               Expanded(child: Center(child: sel)),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
@@ -306,7 +351,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
         ];
         if (!snapshot.hasData) {
           return RefreshIndicator(
@@ -387,6 +432,7 @@ class _ChatPageState extends State<ChatPage> {
               isReview
                   ? null
                   : () => setState(() {
+                        scrollToComment = null;
                         replyingTo = item;
                       }),
               replyingTo?.id == item.id,
@@ -427,6 +473,9 @@ class _ChatPageState extends State<ChatPage> {
               index: scrollIndex + 1,
               duration: const Duration(milliseconds: 150),
             );
+            Future.delayed(Duration(seconds: 10), () {
+              scrollToComment = null;
+            });
           }
         });
 
