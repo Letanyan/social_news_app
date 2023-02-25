@@ -341,13 +341,13 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: searchGlass,
+                padding: const EdgeInsets.only(right: 8),
+                child: sort,
               ),
               Expanded(child: Center(child: sel)),
               Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: sort,
+                padding: const EdgeInsets.only(left: 8),
+                child: searchGlass,
               ),
             ],
           ),

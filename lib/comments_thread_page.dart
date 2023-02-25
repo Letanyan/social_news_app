@@ -54,6 +54,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
   final scroller = ItemScrollController();
   int? commentIndex;
   Comment? replyingTo;
+  String? searchString;
   Comment? scrollToComment;
   late StreamSubscription<bool> keyboardSubscription;
 
@@ -62,6 +63,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
     super.initState();
     loadComments(-1);
     replyingTo = null;
+    searchString = null;
     scrollToComment = widget.scrollComments;
     isReview = widget.scrollComments?.isReview ?? false;
     visibleReplyIds = HashSet();
@@ -70,6 +72,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
         keyboardVisibilityController.onChange.listen((visible) {
       if (!visible) {
         replyingTo = null;
+        searchString = null;
         updateState();
       }
     });
@@ -97,8 +100,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
     allComments = Future(() => widget.sourceData);
 
     // sortComments uses the keys from comments to decide which comments to
-    // show. So we include the 0 key here so the top level comments are shown
-    // after sorting.
+    // show. So we include the source key here to show only the replies.
     comments = <int, List<Comment>>{widget.origin.id: []};
 
     visibleComments = Future(() => []);
@@ -174,7 +176,6 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
   }
 
   Future<void> sortComments() async {
-    var keys = comments;
     var source = await allComments;
 
     source.sort((a, b) {
@@ -204,38 +205,58 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
     allComments = Future(() => source);
     allCommentsLoaded = source.map((e) => e).toList();
 
-    // Add the comment chain to the comment selected by the user from scrollToComment
-    var chain = scrollToComment?.replyId;
-    while (chain != null && chain != 0) {
-      final oldChain = chain;
-      for (final c in allCommentsLoaded) {
-        if (c.id == chain) {
-          chain = c.replyId;
-          break;
-        }
+    var indexedComments = <int, Comment>{};
+    for (final c in allCommentsLoaded) {
+      indexedComments[c.id] = c;
+      if (comments.keys.contains(c.replyId)) {
+        comments[c.id] = [];
       }
-      if (chain == scrollToComment?.replyId) {
-        // some parent comment was deleted so impossible to show thread
-        scrollToComment = null;
-        displayString(context, TRCommentsPage.threadWasDeleted);
-        break;
-      }
-      comments[oldChain] = [];
     }
+    var keys = comments;
 
     comments = <int, List<Comment>>{};
     reviews = [];
     count = 0;
     for (final c in allCommentsLoaded) {
       if (c.isReview) {
-        reviews?.add(_IndentedComment(c, 0));
-      } else if (keys.keys.contains(c.replyId)) {
-        if (comments.containsKey(c.replyId)) {
-          comments[c.replyId]?.add(c);
+        if (searchString != null) {
+          if (c.content.contains(searchString!)) {
+            reviews?.add(_IndentedComment(c, 0));
+          }
         } else {
-          comments[c.replyId] = [c];
+          reviews?.add(_IndentedComment(c, 0));
         }
-        count += 1;
+      } else if (keys.keys.contains(c.replyId)) {
+        if (searchString != null) {
+          if (c.content.contains(searchString!)) {
+            if (comments.containsKey(c.replyId)) {
+              comments[c.replyId]?.add(c);
+            } else {
+              comments[c.replyId] = [c];
+            }
+            var d = c;
+            while (d.replyId != 0 && d.replyId != widget.origin.id) {
+              if (indexedComments[d.replyId] == null) {
+                break;
+              }
+              d = indexedComments[d.replyId]!;
+              if (comments.containsKey(d.replyId)) {
+                comments[d.replyId]?.add(d);
+              } else {
+                comments[d.replyId] = [d];
+              }
+              count += 1;
+            }
+            count += 1;
+          }
+        } else {
+          if (comments.containsKey(c.replyId)) {
+            comments[c.replyId]?.add(c);
+          } else {
+            comments[c.replyId] = [c];
+          }
+          count += 1;
+        }
       }
     }
     reviewCount = reviews?.length ?? 0;
@@ -289,22 +310,38 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
       onSubmitted: (value) => replyToComment(),
       decoration: InputDecoration(
         border: OutlineInputBorder(),
-        hintText: TRCommentsPage.enterReply,
+        hintText:
+            replyingTo != null ? TRCommentsPage.enterReply : TRGeneral.search,
       ),
     );
     final send = Padding(
       padding: const EdgeInsets.all(8),
       child: TextButton(
-        onPressed: () => replyToComment(),
-        child: Text(TRGeneral.reply),
+        onPressed: () {
+          if (replyingTo != null) {
+            replyToComment();
+          } else if (searchString != null) {
+            setState(() {
+              searchString = controller.text;
+              sortComments();
+            });
+          }
+        },
+        child: Text(replyingTo != null ? TRGeneral.reply : TRGeneral.search),
       ),
     );
     final cancel = Padding(
       padding: const EdgeInsets.all(8),
       child: TextButton(
         onPressed: () {
-          replyingTo = null;
-          updateState();
+          setState(() {
+            controller.text = "";
+            replyingTo = null;
+            if (searchString != null) {
+              searchString = null;
+              sortComments();
+            }
+          });
         },
         child: Text(TRGeneral.cancel),
       ),
@@ -315,7 +352,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
     );
 
     return Visibility(
-      visible: replyingTo != null,
+      visible: replyingTo != null || searchString != null,
       child: Row(
         children: [Expanded(child: textField), actions],
       ),
@@ -362,14 +399,27 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
           },
           child: const Icon(Icons.sort_rounded),
         );
+        final searchGlass = InkWell(
+          onTap: () {
+            setState(() {
+              scrollToComment = null;
+              searchString = "";
+            });
+          },
+          child: Icon(Icons.search_rounded),
+        );
         final previewItems = <Widget>[
           card,
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: sort,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: searchGlass,
               ),
             ],
           ),
