@@ -360,6 +360,24 @@ abstract class TRGeneral {
     }
   }
 
+  static String get following {
+    switch (locale) {
+      case LC.en:
+        return "Following";
+      case LC.es:
+        return "Siguiente";
+    }
+  }
+
+  static String get ignoring {
+    switch (locale) {
+      case LC.en:
+        return "Ignoring";
+      case LC.es:
+        return "Postergación";
+    }
+  }
+
   static String get follow {
     switch (locale) {
       case LC.en:
