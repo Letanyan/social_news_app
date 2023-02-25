@@ -181,7 +181,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
     source.sort((a, b) {
       switch (sortOrder) {
         case SortOrder.addedOn:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.score:
           return -a.score.compareTo(b.score);
         case SortOrder.cred:
@@ -193,11 +193,11 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
         case SortOrder.controversial:
           return -controversial(a.cred).compareTo(controversial(b.cred));
         case SortOrder.createdAt:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedAt:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.updatedOn:
-          return a.createdAt.compareTo(b.createdAt);
+          return -a.createdAt.compareTo(b.createdAt);
         case SortOrder.rank:
           return a.rank.compareTo(b.rank);
       }
