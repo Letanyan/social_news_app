@@ -467,6 +467,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
           );
         }
 
+        final dataSource = snapshot.data!.toList();
         final list = ScrollablePositionedList.builder(
           itemCount: (isReview ? reviewCount : count) + 1,
           itemScrollController: scroller,
@@ -476,7 +477,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
                 child: Column(children: previewItems),
               );
             }
-            if (index - 1 >= snapshot.data!.length) {
+            if (index - 1 >= dataSource.length) {
               return const SizedBox();
             }
 
@@ -491,7 +492,7 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
                 }
               });
             }
-            final item = snapshot.data![index - 1];
+            final item = dataSource[index - 1];
             var calcReplyCount = 0;
             for (final c in allCommentsLoaded) {
               if (!c.trashed && c.replyId == item.comment.id) {

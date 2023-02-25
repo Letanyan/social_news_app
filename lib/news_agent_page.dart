@@ -62,11 +62,12 @@ class _NewsAgentPageState extends State<NewsAgentPage> {
           if (snapshot.data == null || snapshot.data?.isEmpty == true) {
             return const SizedBox();
           }
+          final dataSource = snapshot.data!.toList();
           final list = ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: count,
             itemBuilder: (context, index) {
-              final item = snapshot.data![index];
+              final item = dataSource[index];
               return item.tile(context, (a) async {
                 if (a != null) {
                   await updateAgentList(a);

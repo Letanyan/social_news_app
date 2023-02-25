@@ -323,6 +323,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
             return SliverList(delegate: SliverChildListDelegate.fixed([empty]));
           }
 
+          final dataSource = snapshot.data!.toList();
           final list = SliverList(
             delegate: SliverChildBuilderDelegate(
               childCount: count[filterState.current] + 1 + 1,
@@ -367,7 +368,7 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                   }
                   isLoading[filterState.current] = true;
                 }
-                final item = snapshot.data![index];
+                final item = dataSource[index];
                 if (isTypeEqual<T, Tag>()) {
                   final tag = item as Tag;
                   final page = PostsPage(title: tag.name, tags: [tag.id]);

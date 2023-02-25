@@ -398,6 +398,7 @@ class _ChatPageState extends State<ChatPage> {
           );
         }
 
+        final dataSource = snapshot.data!.toList();
         final list = ScrollablePositionedList.builder(
           itemCount: (isReview ? reviewCount : count) + 1,
           itemScrollController: scroller,
@@ -405,10 +406,10 @@ class _ChatPageState extends State<ChatPage> {
             if (index == 0) {
               return Column(children: previewItems);
             }
-            if (index - 1 >= snapshot.data!.length) {
+            if (index - 1 >= dataSource.length) {
               return const SizedBox();
             }
-            final item = snapshot.data![index - 1];
+            final item = dataSource[index - 1];
             Comment? itemReply;
             if (item.replyId > 0) {
               itemReply = indexedComments[item.replyId] ?? null;
