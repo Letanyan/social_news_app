@@ -267,7 +267,7 @@ class NewSource {
       case "google_play":
         path = ["auth", "google-iap"];
         break;
-      case "apple_app_store":
+      case "app_store":
         path = ["auth", "apple-iap"];
         break;
       default:
