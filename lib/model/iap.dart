@@ -1,8 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:get/get.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_platform_interface/src/in_app_purchase_platform_addition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/user.dart';
 
@@ -74,8 +78,30 @@ void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
           final newAmount = await NewSource.authenticateIAP(
               platform, User.current!.id, verifyKey, productId);
           if (newAmount != -1 && newAmount != oldAmount) {
+            final diff = newAmount - (User.current?.credits ?? 0);
             User.current?.credits = newAmount;
             IAPConnection.instance.completePurchase(purchase);
+            User.current?.credits = newAmount;
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              final ctx = Get.context;
+              if (ctx != null) {
+                showPlatformDialog(
+                  context: ctx,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text(TRHome.addCreditsTitle(diff)),
+                      content: Text(TRHome.addCreditsBody(diff, diff)),
+                      actions: [
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(TRGeneral.gotIt),
+                        )
+                      ],
+                    );
+                  },
+                );
+              }
+            });
           }
         } catch (e) {
           cachePurchaseDetails(User.current!.id, purchase);
@@ -117,7 +143,28 @@ void handleCachePurchases() async {
         final newAmount = await NewSource.authenticateIAP(
             platform, User.current!.id, verifyKey, productId);
         if (newAmount != -1 && newAmount != oldAmount) {
+          final diff = newAmount - (User.current?.credits ?? 0);
           User.current?.credits = newAmount;
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            final ctx = Get.context;
+            if (ctx != null) {
+              showPlatformDialog(
+                context: ctx,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text(TRHome.addCreditsTitle(diff)),
+                    content: Text(TRHome.addCreditsBody(diff, diff)),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(TRGeneral.gotIt),
+                      )
+                    ],
+                  );
+                },
+              );
+            }
+          });
         }
       } catch (e) {
         purchases.add(purchase);

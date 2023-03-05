@@ -468,12 +468,6 @@ class _CommentsPageState extends State<CommentsPage> {
               });
             }
             final item = dataSource[index - 1];
-            var calcReplyCount = 0;
-            for (final c in allCommentsLoaded) {
-              if (!c.trashed && c.replyId == item.comment.id) {
-                calcReplyCount += 1;
-              }
-            }
             if (item.comment.id == scrollToComment?.id) {
               commentIndex = index;
             }
