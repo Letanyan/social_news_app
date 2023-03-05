@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/iap.dart';
 import 'package:social_news_app/model/locale.dart';
@@ -11,6 +13,18 @@ class PurchaseCredit extends StatefulWidget {
 
 class _PurchaseCreditState extends State<PurchaseCredit> {
   String selectedPurchase = "";
+  late StreamSubscription<bool> purchaseViewer;
+
+  @override
+  void initState() {
+    purchaseViewer = PurchasableCredit.purchaseViewer.stream.listen((event) {
+      setState(() {
+        selectedPurchase = "";
+      });
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +56,7 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
                     setState(() {
                       selectedPurchase = e.id;
                     });
-                    buyCredit(e).then((value) {
-                      setState(() {
-                        selectedPurchase = "";
-                      });
-                    });
+                    buyCredit(e);
                   },
                 ),
               )

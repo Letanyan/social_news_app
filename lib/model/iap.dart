@@ -24,6 +24,7 @@ class PurchasableCredit {
     'credit50': 50,
     'credit100': 100,
   };
+  static final purchaseViewer = StreamController<bool>.broadcast();
 
   String get id => details.id;
   String get title => details.title;
@@ -82,7 +83,6 @@ void handlePurchases(
             final diff = newAmount - (User.current?.credits ?? 0);
             User.current?.credits = newAmount;
             IAPConnection.instance.completePurchase(purchase);
-            User.current?.credits = newAmount;
             if (context != null) {
               showPlatformDialog(
                 context: context,
@@ -107,6 +107,7 @@ void handlePurchases(
         }
       }
     }
+    PurchasableCredit.purchaseViewer.add(true);
   }
 }
 
