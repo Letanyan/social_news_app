@@ -10,17 +10,7 @@ class PurchaseCredit extends StatefulWidget {
 }
 
 class _PurchaseCreditState extends State<PurchaseCredit> {
-  void purchaseCredits() {
-    // IAPConnection.instance = TestIAPConnection();
-    //       final purchaseUpdated = IAPConnection.instance.purchaseStream;
-    // final subscription = purchaseUpdated.listen((purchaseDetailsList) {
-    //   handlePurchases(purchaseDetailsList);
-    // }, onDone: () {
-    //   print("Done");
-    // }, onError: (error) {
-    //   print(error);
-    // });
-  }
+  String selectedPurchase = "";
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +35,19 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
                   title: Text(e.title),
                   subtitle: Text(e.description),
                   trailing: Text(e.price),
-                  onTap: () => buyCredit(e),
+                  leading: selectedPurchase == e.id
+                      ? CircularProgressIndicator()
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      selectedPurchase = e.id;
+                    });
+                    buyCredit(e).then((value) {
+                      setState(() {
+                        selectedPurchase = "";
+                      });
+                    });
+                  },
                 ),
               )
               .toList();
