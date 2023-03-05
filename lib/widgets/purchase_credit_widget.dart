@@ -56,7 +56,13 @@ class _PurchaseCreditState extends State<PurchaseCredit> {
                     setState(() {
                       selectedPurchase = e.id;
                     });
-                    buyCredit(e);
+                    buyCredit(e).then((x) {
+                      if (!x) {
+                        setState(() {
+                          selectedPurchase = "";
+                        });
+                      }
+                    });
                   },
                 ),
               )

@@ -83,6 +83,7 @@ void handlePurchases(
             final diff = newAmount - (User.current?.credits ?? 0);
             User.current?.credits = newAmount;
             IAPConnection.instance.completePurchase(purchase);
+            PurchasableCredit.purchaseViewer.add(true);
             if (context != null) {
               showPlatformDialog(
                 context: context,
@@ -107,7 +108,9 @@ void handlePurchases(
         }
       }
     }
-    PurchasableCredit.purchaseViewer.add(true);
+    if (purchase.status != PurchaseStatus.pending) {
+      PurchasableCredit.purchaseViewer.add(true);
+    }
   }
 }
 
@@ -144,6 +147,7 @@ void handleCachePurchases(BuildContext? context) async {
         if (newAmount != -1 && newAmount != oldAmount) {
           final diff = newAmount - (User.current?.credits ?? 0);
           User.current?.credits = newAmount;
+          PurchasableCredit.purchaseViewer.add(true);
           if (context != null) {
             showPlatformDialog(
               context: context,
@@ -163,7 +167,11 @@ void handleCachePurchases(BuildContext? context) async {
           }
         }
       } catch (e) {
+        PurchasableCredit.purchaseViewer.add(true);
         purchases.add(purchase);
+      }
+      if (purchase.details.status != PurchaseStatus.pending) {
+        PurchasableCredit.purchaseViewer.add(true);
       }
     }
   }

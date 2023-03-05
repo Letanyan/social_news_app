@@ -53,8 +53,10 @@ class HomeViewState extends State<HomeView>
       handlePurchases(ctx.target, purchaseDetailsList);
       handleCachePurchases(ctx.target);
     }, onDone: () {
+      PurchasableCredit.purchaseViewer.add(true);
       subscription.cancel();
     }, onError: (error) {
+      PurchasableCredit.purchaseViewer.add(true);
       print(error);
     });
 
