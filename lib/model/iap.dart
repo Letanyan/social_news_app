@@ -65,7 +65,8 @@ Future<bool> buyCredit(PurchasableCredit product) async {
   return false;
 }
 
-void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
+void handlePurchases(
+    BuildContext? context, List<PurchaseDetails> purchaseDetailsList) async {
   for (final purchase in purchaseDetailsList) {
     final amount = PurchasableCredit.ids[purchase.productID];
     if (amount != null && purchase.status == PurchaseStatus.purchased) {
@@ -82,26 +83,23 @@ void handlePurchases(List<PurchaseDetails> purchaseDetailsList) async {
             User.current?.credits = newAmount;
             IAPConnection.instance.completePurchase(purchase);
             User.current?.credits = newAmount;
-            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              final ctx = Get.context;
-              if (ctx != null) {
-                showPlatformDialog(
-                  context: ctx,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Text(TRHome.addCreditsTitle(diff)),
-                      content: Text(TRHome.addCreditsBody(diff, diff)),
-                      actions: [
-                        ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(TRGeneral.gotIt),
-                        )
-                      ],
-                    );
-                  },
-                );
-              }
-            });
+            if (context != null) {
+              showPlatformDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text(TRHome.addCreditsTitle(diff)),
+                    content: Text(TRHome.addCreditsBody(diff, diff)),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(TRGeneral.gotIt),
+                      )
+                    ],
+                  );
+                },
+              );
+            }
           }
         } catch (e) {
           cachePurchaseDetails(User.current!.id, purchase);
@@ -124,7 +122,7 @@ class IAPConnection {
   }
 }
 
-void handleCachePurchases() async {
+void handleCachePurchases(BuildContext? context) async {
   final pref = await SharedPreferences.getInstance();
   final len = pref.getInt("iap:len");
   if (len == null) {
@@ -145,26 +143,23 @@ void handleCachePurchases() async {
         if (newAmount != -1 && newAmount != oldAmount) {
           final diff = newAmount - (User.current?.credits ?? 0);
           User.current?.credits = newAmount;
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            final ctx = Get.context;
-            if (ctx != null) {
-              showPlatformDialog(
-                context: ctx,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text(TRHome.addCreditsTitle(diff)),
-                    content: Text(TRHome.addCreditsBody(diff, diff)),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(TRGeneral.gotIt),
-                      )
-                    ],
-                  );
-                },
-              );
-            }
-          });
+          if (context != null) {
+            showPlatformDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text(TRHome.addCreditsTitle(diff)),
+                  content: Text(TRHome.addCreditsBody(diff, diff)),
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(TRGeneral.gotIt),
+                    )
+                  ],
+                );
+              },
+            );
+          }
         }
       } catch (e) {
         purchases.add(purchase);
