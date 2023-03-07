@@ -12,18 +12,17 @@ import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/preview_post.dart';
 
-class CommentReplyPage extends StatefulWidget {
+class CreatePage extends StatefulWidget {
   final Comment? comment;
   final Post? post;
   final bool isEdit;
-  const CommentReplyPage(
-      {super.key, this.comment, this.post, required this.isEdit});
+  const CreatePage({super.key, this.comment, this.post, required this.isEdit});
 
   @override
-  State<CommentReplyPage> createState() => _CommentReplyPageState();
+  State<CreatePage> createState() => _CreatePageState();
 }
 
-class _CommentReplyPageState extends State<CommentReplyPage> {
+class _CreatePageState extends State<CreatePage> {
   late TextEditingController controller;
   late FocusNode focus;
   bool isReview = false;
@@ -218,6 +217,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
       keyboardType: TextInputType.multiline,
       maxLines: null,
       controller: controller,
+      scrollPhysics: NeverScrollableScrollPhysics(),
       focusNode: focus,
       autofocus: true,
       decoration: InputDecoration(
@@ -346,6 +346,7 @@ class _CommentReplyPageState extends State<CommentReplyPage> {
         KeyboardDismissOnTap(dismissOnCapturedTaps: false, child: page);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: bar,
       body: keyHandler,
     );

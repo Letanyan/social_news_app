@@ -115,7 +115,7 @@ class Post {
           onPressed: () => Navigator.push(
             context,
             route(
-              builder: (context) => CommentReplyPage(post: this, isEdit: false),
+              builder: (context) => CreatePage(post: this, isEdit: false),
             ),
           ),
           icon: const Icon(Icons.add_comment_rounded),
@@ -536,7 +536,7 @@ class Post {
       () => Navigator.push(
         context,
         route(
-          builder: (context) => CommentReplyPage(post: this, isEdit: false),
+          builder: (context) => CreatePage(post: this, isEdit: false),
         ),
       ),
     );
@@ -563,7 +563,7 @@ class Post {
         child: const Icon(Icons.more_horiz),
         onSelected: (value) {
           if (value == 3517) {
-            final page = CommentReplyPage(post: this, isEdit: true);
+            final page = CreatePage(post: this, isEdit: true);
             Navigator.of(context)
                 .push(
                   route(builder: (context) => page),
@@ -816,7 +816,7 @@ class Post {
       () => Navigator.push(
         context,
         route(
-          builder: (context) => CommentReplyPage(post: this, isEdit: false),
+          builder: (context) => CreatePage(post: this, isEdit: false),
         ),
       ),
     );

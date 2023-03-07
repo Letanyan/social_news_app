@@ -156,7 +156,7 @@ class HomeViewState extends State<HomeView>
           case 1:
             return SearchPage(title: TRGeneral.trending, isTrending: true);
           case 2:
-            return const CommentReplyPage(isEdit: false);
+            return const CreatePage(isEdit: false);
           case 3:
             return SearchPage(title: TRGeneral.search, isTrending: false);
           case 4:

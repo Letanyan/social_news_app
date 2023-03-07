@@ -347,7 +347,7 @@ class Comment {
 
     final moreButton = PopupMenuButton(
       onSelected: (value) {
-        final page = CommentReplyPage(comment: this, isEdit: true);
+        final page = CreatePage(comment: this, isEdit: true);
         Navigator.of(context)
             .push(
               route(builder: (context) => page),
@@ -660,7 +660,7 @@ class Comment {
 
     final moreButton = PopupMenuButton(
       onSelected: (value) {
-        final page = CommentReplyPage(comment: this, isEdit: true);
+        final page = CreatePage(comment: this, isEdit: true);
         Navigator.of(context)
             .push(
               route(builder: (context) => page),
