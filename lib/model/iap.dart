@@ -70,6 +70,9 @@ void handlePurchases(
     BuildContext? context, List<PurchaseDetails> purchaseDetailsList) async {
   for (final purchase in purchaseDetailsList) {
     final amount = PurchasableCredit.ids[purchase.productID];
+    if (purchase.status == PurchaseStatus.canceled) {
+      IAPConnection.instance.completePurchase(purchase);
+    }
     if (amount != null && purchase.status == PurchaseStatus.purchased) {
       if (User.current != null) {
         final platform = purchase.verificationData.source;
