@@ -27,7 +27,6 @@ class _CreatePageState extends State<CreatePage> {
   late FocusNode focus;
   bool isReview = false;
   late StreamSubscription<bool> keyboardSubscription;
-  double bottomOffset = 48;
   Post? toBePosted;
   bool isLoading = false;
 
@@ -39,7 +38,6 @@ class _CreatePageState extends State<CreatePage> {
     var keyboardVisibilityController = KeyboardVisibilityController();
     keyboardSubscription =
         keyboardVisibilityController.onChange.listen((visible) {
-      bottomOffset = visible ? 0 : 48;
       if (!visible) {
         updateState();
       }
@@ -336,7 +334,7 @@ class _CreatePageState extends State<CreatePage> {
         Visibility(
           visible: isReview || isCreation,
           child: Column(
-            children: [formatting, SizedBox(height: bottomOffset)],
+            children: [formatting],
           ),
         ),
       ],
