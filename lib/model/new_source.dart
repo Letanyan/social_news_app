@@ -23,6 +23,7 @@ class NewSource {
       ? "http://192.168.50.64:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
   // admin: @@:AbstractServer8080
+  // demo: demo@new-source.app:alpinehills
 
   static String buildURL(List<String> path, List<String> args) {
     var result = host;

@@ -343,22 +343,20 @@ class _AccountPageState extends State<AccountPage> {
       onTap: showAgents(context),
     );
     var settingsSection = <Widget>[];
-    if (NewSource.isDebug) {
-      if (isOwner) {
-        settingsSection.add(const Divider(thickness: 1));
-        settingsSection.add(
-          Padding(
-            padding: EdgeInsets.all(8),
-            child: Text(TRGeneral.preferences),
-          ),
-        );
-        settingsSection.add(const Divider(thickness: 1));
-        settingsSection.add(settings);
-        if (User.current?.id == -1 && NewSource.isDebug) {
-          settingsSection.add(postFlags);
-          settingsSection.add(commentFlags);
-          settingsSection.add(agents);
-        }
+    if (isOwner) {
+      settingsSection.add(const Divider(thickness: 1));
+      settingsSection.add(
+        Padding(
+          padding: EdgeInsets.all(8),
+          child: Text(TRGeneral.preferences),
+        ),
+      );
+      settingsSection.add(const Divider(thickness: 1));
+      settingsSection.add(settings);
+      if (User.current?.id == -1 && NewSource.isDebug) {
+        settingsSection.add(postFlags);
+        settingsSection.add(commentFlags);
+        settingsSection.add(agents);
       }
     }
 

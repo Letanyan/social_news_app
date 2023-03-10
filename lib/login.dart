@@ -81,16 +81,7 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       SharedPreferences.getInstance()
           .then((value) => value.remove("client:key"));
-      late final String message;
-      if (e.toString() == "missing") {
-        // if email not in database
-        gotoSignUpPage();
-        return;
-      } else if (e.toString() == "incorrect") {
-        message = TRSignIn.incorrectPasswordOrEmail;
-      } else {
-        message = e.toString();
-      }
+      final message = TRSignIn.incorrectPasswordOrEmail;
       displayString(context, message);
     } finally {
       openApp();
@@ -110,11 +101,12 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void signInEmailConfirm() async {
-    final email = emailController.text == ""
+    final email = emailController.text == "" && NewSource.isDebug
         ? "ribet@new-source.app"
         : emailController.text;
-    final password =
-        passwordController.text == "" ? "123456" : passwordController.text;
+    final password = passwordController.text == "" && NewSource.isDebug
+        ? "123456"
+        : passwordController.text;
 
     if (email.isEmpty) {
       gotoSignUpPage();

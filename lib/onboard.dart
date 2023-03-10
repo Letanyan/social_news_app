@@ -17,12 +17,22 @@ class Onboard extends StatefulWidget {
 class _OnboardState extends State<Onboard> {
   late Set<int> selectedTags;
   late Set<int> selectedAgents;
+  late Future<Map<String, int>> allTags;
+  late Future<Map<String, int>> allAgents;
   bool isLoading = false;
 
   @override
   void initState() {
     selectedTags = <int>{};
     selectedAgents = <int>{};
+    allTags = NewSource.onboardTags().catchError((e) {
+      displayError(context, e);
+      return <String, int>{};
+    });
+    allAgents = NewSource.onboardAgents().catchError((e) {
+      displayError(context, e);
+      return <String, int>{};
+    });
     super.initState();
   }
 
@@ -30,10 +40,7 @@ class _OnboardState extends State<Onboard> {
   Widget build(BuildContext context) {
     final ctx = WeakReference(context);
     final tags = FutureBuilder(
-      future: NewSource.onboardTags().catchError((e) {
-        displayError(ctx.target, e);
-        return <String, int>{};
-      }),
+      future: allTags,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Row(
@@ -71,10 +78,7 @@ class _OnboardState extends State<Onboard> {
       },
     );
     final agents = FutureBuilder(
-      future: NewSource.onboardAgents().catchError((e) {
-        displayError(ctx.target, e);
-        return <String, int>{};
-      }),
+      future: allAgents,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Row(
