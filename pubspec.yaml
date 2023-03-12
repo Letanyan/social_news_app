@@ -59,6 +59,7 @@ dependencies:
   device_info_plus: ^8.0.0
   get: ^4.6.5
   crypto: ^3.0.2
+  cached_network_image: ^3.2.3
 
 dev_dependencies:
   flutter_test:

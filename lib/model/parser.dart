@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/new_source.dart';
@@ -324,10 +325,10 @@ class Parser {
                   return well;
                 }
                 final m = min(c["w"] as double, c["h"] as double);
-                final img = Image.network(
-                  s,
+                final img = CachedNetworkImage(
+                  imageUrl: s,
                   width: m * 0.75,
-                  errorBuilder: (context, error, stackTrace) =>
+                  errorWidget: (context, error, stackTrace) =>
                       SizedBox(width: m * 0.75),
                 );
                 final clip = ClipRRect(

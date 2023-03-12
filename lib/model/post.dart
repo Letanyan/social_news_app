@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -761,23 +762,17 @@ class Post {
         final clipped = ClipRRect(
           borderRadius: BorderRadius.circular(8.0),
           clipBehavior: Clip.antiAlias,
-          child: Image.network(
-            url!,
+          child: CachedNetworkImage(
+            imageUrl: url!,
             width: imageWidth,
             fit: BoxFit.fill,
-            loadingBuilder: (context, child, loadingProgress) {
-              final loaded = loadingProgress?.cumulativeBytesLoaded ?? 0;
-              final expect = loadingProgress?.expectedTotalBytes ?? 0;
-              if (loaded >= expect) {
-                return child;
-              } else {
-                return const SizedBox(
-                  width: imageWidth,
-                  child: Icon(Icons.image_rounded),
-                );
-              }
+            progressIndicatorBuilder: (context, child, loadingProgress) {
+              return const SizedBox(
+                width: imageWidth,
+                child: Icon(Icons.image_rounded),
+              );
             },
-            errorBuilder: (context, error, stackTrace) {
+            errorWidget: (context, error, stackTrace) {
               return const SizedBox(
                 width: imageWidth,
                 child: Icon(Icons.broken_image_rounded),
