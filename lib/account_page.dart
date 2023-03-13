@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/comment_notification_page.dart';
 import 'package:social_news_app/flags_page.dart';
 import 'package:social_news_app/home.dart';
 import 'package:social_news_app/main.dart';
@@ -80,6 +81,19 @@ class _AccountPageState extends State<AccountPage> {
         forContent: forContent,
         pid: currentUser?.id,
         sid: -1,
+      );
+
+      Navigator.push(context, route(builder: (context) => body))
+          .then((value) => setState(() {}));
+    };
+  }
+
+  void Function() showCommentNotificationPage(BuildContext context) {
+    return () {
+      final body = CommentNotificationPage(
+        title: TRGeneral.replies,
+        showSearch: false,
+        user: widget.user,
       );
 
       Navigator.push(context, route(builder: (context) => body))
@@ -226,6 +240,10 @@ class _AccountPageState extends State<AccountPage> {
         false,
       ),
     );
+    final userReplies = ListTile(
+      title: Text(TRGeneral.replies),
+      onTap: showCommentNotificationPage(context),
+    );
 
     final viewed = ListTile(
       title: Text(TRAccountPage.viewed),
@@ -371,6 +389,7 @@ class _AccountPageState extends State<AccountPage> {
       userPosts,
       userComments,
       userReviews,
+      userReplies,
       const Divider(thickness: 1),
       Padding(
         padding: EdgeInsets.all(8),

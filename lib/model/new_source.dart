@@ -1121,6 +1121,38 @@ class NewSource {
   }
 
   //----------------------------------------------------------------------------
+  // Notifications
+  //----------------------------------------------------------------------------
+
+  static Future<List<Comment>> getCommentNotifications(
+      int userId, int limit, int offset) async {
+    var args = <String>[];
+    addI("offset", offset, args);
+    addI("limit", limit, args);
+    addSecret(args);
+
+    final obj = await get(["notifications", "$userId", "comments"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return handlePayload(obj, Comment.fromJson);
+  }
+
+  static Future<bool> readCommentNotifications(int userId, int id) async {
+    var args = <String>[];
+    addSecret(args);
+
+    final obj = await get(
+        ["notifications", "$userId", "read", "comments", "$id"], args);
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    return true;
+  }
+
+  //----------------------------------------------------------------------------
   // Vote
   //----------------------------------------------------------------------------
   static Future<List<String>> getCurrentLocation() async {
