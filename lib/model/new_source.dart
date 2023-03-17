@@ -1125,10 +1125,30 @@ class NewSource {
   //----------------------------------------------------------------------------
 
   static Future<List<Comment>> getCommentNotifications(
-      int userId, int limit, int offset) async {
+      {int? postId,
+      int? userId,
+      int? replyId,
+      DateTime? startCreated,
+      DateTime? endCreated,
+      int? upvotes,
+      int? downvotes,
+      SortOrder? order,
+      int? limit,
+      int? offset,
+      int? isReview,
+      String? search}) async {
     var args = <String>[];
+    addI("pid", postId, args);
+    addI("reply", replyId, args);
+    addI("upvotes", upvotes, args);
+    addI("downvotes", downvotes, args);
+    addSO("order", order, args);
     addI("offset", offset, args);
     addI("limit", limit, args);
+    addD("startCreated", startCreated, args);
+    addD("endCreated", endCreated, args);
+    addI("isReview", isReview, args);
+    addS("search", search, args);
     addSecret(args);
 
     final obj = await get(["notifications", "$userId", "comments"], args);

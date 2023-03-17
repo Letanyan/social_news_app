@@ -47,17 +47,17 @@ class _CommentNotificationPageState extends State<CommentNotificationPage> {
     controller = TextEditingController();
     filterState = FilterBoxState(
       current: 0,
-      search: null,
+      search: "",
       displaySelector: null,
-      displaySorting: null,
-      startDate: null,
-      endDate: null,
+      displaySorting: sortOrdersIncluding([SortOrder.addedOn]),
+      startDate: forContent ? null : DateTime(2022),
+      endDate: forContent ? null : DateTime.now(),
       order: SortOrder.addedOn,
       location: null,
     );
 
     comments = getNewItems<Comment>().then(updateItemsState);
-    offset = pageSize;
+    offset[0] = pageSize[0];
   }
 
   @override
@@ -84,8 +84,20 @@ class _CommentNotificationPageState extends State<CommentNotificationPage> {
 
   Future<List<T>> getNewItems<T>() async {
     try {
+      final sd = filterState.startDate;
+      final ed = filterState.endDate;
+      final srt = filterState.order;
+      final src =
+          filterState.search?.isEmpty == true ? null : filterState.search;
       return NewSource.getCommentNotifications(
-          widget.user.id, pageSize[0], offset[0]) as Future<List<T>>;
+        userId: widget.user.id,
+        limit: pageSize[0],
+        offset: offset[0],
+        startCreated: sd,
+        endCreated: ed,
+        order: srt,
+        search: src,
+      ) as Future<List<T>>;
     } catch (e) {
       displayError(context, e);
       return Future(() => <T>[]);
@@ -106,7 +118,7 @@ class _CommentNotificationPageState extends State<CommentNotificationPage> {
       isLoading[0] = true;
       hasMore[0] = true;
       comments = getNewItems<Comment>().then(updateItemsState);
-      offset = pageSize;
+      offset[0] = pageSize[0];
     });
   }
 
