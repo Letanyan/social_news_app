@@ -295,6 +295,19 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
     return FutureBuilder<List<T>>(
         future: items,
         builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return SliverList(
+              delegate: SliverChildListDelegate.fixed(
+                [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Text(TRGeneral.errorOccurred)],
+                  )
+                ],
+              ),
+            );
+          }
+
           if (!snapshot.hasData) {
             final circle = Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -302,14 +315,6 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
             );
             return SliverList(
               delegate: SliverChildListDelegate.fixed([circle]),
-            );
-          }
-
-          if (snapshot.hasError) {
-            return SliverList(
-              delegate: SliverChildListDelegate.fixed(
-                [Text("${snapshot.error}")],
-              ),
             );
           }
 

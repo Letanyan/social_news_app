@@ -47,22 +47,13 @@ class _CommentNotificationPageState extends State<CommentNotificationPage> {
     controller = TextEditingController();
     filterState = FilterBoxState(
       current: 0,
-      search: "",
+      search: null,
       displaySelector: null,
-      displaySorting: forContent
-          ? [
-              SortOrder.addedOn,
-              SortOrder.controversial,
-              SortOrder.upvotes,
-              SortOrder.downvotes,
-            ]
-          : sortOrdersIncluding([
-              SortOrder.addedOn,
-            ]),
-      startDate: forContent ? null : DateTime(2022),
-      endDate: forContent ? null : DateTime.now(),
+      displaySorting: null,
+      startDate: null,
+      endDate: null,
       order: SortOrder.addedOn,
-      location: forContent ? null : [],
+      location: null,
     );
 
     comments = getNewItems<Comment>().then(updateItemsState);

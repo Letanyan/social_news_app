@@ -1518,18 +1518,18 @@ abstract class TRFilterWidget {
   static String get from {
     switch (locale) {
       case LC.en:
-        return "De";
+        return "From";
       case LC.es:
-        return "Créditos Disponibles";
+        return "De";
     }
   }
 
   static String get to {
     switch (locale) {
       case LC.en:
-        return "A";
+        return "To";
       case LC.es:
-        return "Créditos Disponibles";
+        return "A";
     }
   }
 
