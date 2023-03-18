@@ -35,6 +35,7 @@ class HomeViewState extends State<HomeView>
   late StreamSubscription<List<PurchaseDetails>> subscription;
   late final StreamSubscription<StreakMessage> streakSubscription;
   StreakMessage? streakAmount;
+  bool showingStreak = false;
 
   @override
   void initState() {
@@ -91,12 +92,22 @@ class HomeViewState extends State<HomeView>
   }
 
   void showStreakAmount() {
+    if (showingStreak) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
+        if (showingStreak) {
+          return;
+        }
         if (streakAmount != null && streakAmount?.current != 0) {
           final amount = streakAmount!.current;
           final nextAmount = streakAmount!.next;
           streakAmount = null;
+          showingStreak = true;
+          Future.delayed(Duration(seconds: 10), () {
+            showingStreak = false;
+          });
           showPlatformDialog(
             context: context,
             builder: (context) {
