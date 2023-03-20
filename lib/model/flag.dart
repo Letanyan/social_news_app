@@ -326,11 +326,7 @@ class FlaggedComment {
     );
     final remove = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.remove, updateState),
-      child: const Text("Remove"),
-    );
-    final ignore = ElevatedButton(
-      onPressed: () => handleFlag(context, FlagHandle.ignore, updateState),
-      child: const Text("Ignore Flag"),
+      child: const Text("Remove Content"),
     );
     final ignoreAll = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.ignoreAll, updateState),
@@ -367,7 +363,7 @@ class FlaggedComment {
 
     final buttonRow = Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [total, report, remove, ignore, ignoreAll],
+      children: [total, report, remove, ignoreAll],
     );
     final bansRow = SizedBox(
       height: 48,
