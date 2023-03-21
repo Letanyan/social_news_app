@@ -113,7 +113,7 @@ class SearchPageState extends State<SearchPage> {
         ) as Future<List<T>>;
       } else if (isTypeEqual<T, Post>()) {
         return NewSource.getPosts(
-          offset: offset[idx],
+          offset: InOut(offset[idx]),
           limit: pageSize,
           order: so,
           start: sd,

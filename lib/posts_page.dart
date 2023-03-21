@@ -49,7 +49,7 @@ enum _PostsPageKind { similar, forYou, basic }
 
 class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   late Future<List<Post>> posts;
-  var offset = [0];
+  var offset = [InOut(0)];
   var count = [0];
   var pageSize = 20;
   var isLoading = [true];
@@ -59,11 +59,15 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   var filterKey = GlobalKey();
   double? filterHeight;
   late final _PostsPageKind pageKind;
+  InOut<int>? startIndex;
+  InOut<int>? endIndex;
 
   @override
   void initState() {
     super.initState();
     posts = Future(() => []);
+    startIndex = InOut(0);
+    endIndex = InOut(widget.forUser != null ? 1 : 0);
     if (widget.forUser != 0) {
       if (widget.postId == null) {
         pageKind = _PostsPageKind.forYou;
@@ -98,7 +102,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
           start: widget.start,
           end: widget.end,
           order: so,
-          offset: offset[0],
+          offset: offset[0].value,
           limit: pageSize,
           postId: widget.postId,
         ) as Future<List<T>>;
@@ -117,6 +121,8 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
           end: widget.end,
           startCreated: widget.startCreated,
           endCreated: widget.endCreated,
+          startIndex: startIndex,
+          endIndex: endIndex,
           search: src,
           forUser: widget.forUser,
         ) as Future<List<T>>;
@@ -130,7 +136,10 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
   void loadMore<T>(Future<List<T>> newItems, Future<List<T>> oldItems) async {
     final newPosts = await newItems;
     var oldPosts = await oldItems;
-    offset[0] += newPosts.length;
+    if (widget.forUser == null) {
+      // if forUser then server will manage offset
+      offset[0].value += newPosts.length;
+    }
     if (newPosts.isEmpty) {
       hasMore[0] = false;
     }
@@ -155,9 +164,9 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
       isLoading[0] = true;
       hasMore[0] = true;
 
-      offset[0] = 0;
+      offset[0].value = 0;
       posts = getNewItems<Post>().then(updateItemsState);
-      offset[0] = pageSize;
+      offset[0].value = pageSize;
     });
   }
 
