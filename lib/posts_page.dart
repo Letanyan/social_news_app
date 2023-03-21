@@ -252,18 +252,24 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
       null,
     );
 
+    final filterButton = IconButton(
+      onPressed: () {
+        showingFilter = !showingFilter;
+        updateState();
+      },
+      icon: showingFilter
+          ? const Icon(Icons.filter_alt_rounded)
+          : const Icon(Icons.filter_alt_outlined),
+    );
+    var filterButtonItems = <Widget>[];
+    if (widget.forUser == null) {
+      filterButtonItems.add(filterButton);
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.title), actions: [
         ...buildTagFollow(),
-        IconButton(
-          onPressed: () {
-            showingFilter = !showingFilter;
-            updateState();
-          },
-          icon: showingFilter
-              ? const Icon(Icons.filter_alt_rounded)
-              : const Icon(Icons.filter_alt_outlined),
-        ),
+        ...filterButtonItems,
       ]),
       body: page,
     );

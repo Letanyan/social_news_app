@@ -709,6 +709,24 @@ abstract class TRHome {
         return "Se agregó $amount crédito por inicio de sesión diario. Inicie sesión nuevamente dentro de las 24 horas posteriores a las ${utcMidnight()} para obtener ${nextAmount} créditos adicionales";
     }
   }
+
+  static String addIAPCreditsTitle(int amount) {
+    switch (locale) {
+      case LC.en:
+        return "Purchased $amount Credit";
+      case LC.es:
+        return "Compró $amount Crédito";
+    }
+  }
+
+  static String addIAPCreditsBody(int amount, int nextAmount) {
+    switch (locale) {
+      case LC.en:
+        return "You have completed the purchase of $amount credit";
+      case LC.es:
+        return "Ha completado la compra de $amount crédito";
+    }
+  }
 }
 
 abstract class TRSignUp {

@@ -92,8 +92,8 @@ void handlePurchases(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: Text(TRHome.addCreditsTitle(diff)),
-                    content: Text(TRHome.addCreditsBody(diff, diff)),
+                    title: Text(TRHome.addIAPCreditsTitle(diff)),
+                    content: Text(TRHome.addIAPCreditsBody(diff, diff)),
                     actions: [
                       ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
@@ -156,8 +156,8 @@ void handleCachePurchases(BuildContext? context) async {
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: Text(TRHome.addCreditsTitle(diff)),
-                  content: Text(TRHome.addCreditsBody(diff, diff)),
+                  title: Text(TRHome.addIAPCreditsTitle(diff)),
+                  content: Text(TRHome.addIAPCreditsBody(diff, diff)),
                   actions: [
                     ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
