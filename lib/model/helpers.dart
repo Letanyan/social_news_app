@@ -592,3 +592,8 @@ void displayString(BuildContext? context, String s) {
     }
   });
 }
+
+class InOut<T> {
+  T value;
+  InOut(this.value);
+}

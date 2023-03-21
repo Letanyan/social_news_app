@@ -927,13 +927,15 @@ class NewSource {
       int? upvotes,
       int? downvotes,
       SortOrder? order,
-      int? offset,
+      InOut<int>? offset,
       int? limit,
       DateTime? start,
       DateTime? end,
       DateTime? startCreated,
       DateTime? endCreated,
       int? forUser,
+      InOut<int>? startIndex,
+      InOut<int>? endIndex,
       String? search}) async {
     var args = <String>[];
     addI("uid", userId, args);
@@ -943,13 +945,15 @@ class NewSource {
     addI("upvotes", upvotes, args);
     addI("downvotes", downvotes, args);
     addSO("order", order, args);
-    addI("offset", offset, args);
+    addI("offset", offset?.value, args);
     addI("limit", limit, args);
     addD("start", start, args);
     addD("end", end, args);
     addD("startCreated", startCreated, args);
     addD("endCreated", endCreated, args);
     addI("for", forUser, args);
+    addI("startIndex", startIndex?.value, args);
+    addI("endIndex", endIndex?.value, args);
     addS("search", search, args);
     if (forUser != null && forUser != 0) {
       addSecret(args);
@@ -963,7 +967,16 @@ class NewSource {
     if (obj["success"] == false) {
       throw err(obj["reason"]);
     } else {
-      final list = obj["payload"];
+      late final list;
+      if (forUser != null) {
+        final data = obj["payload"];
+        list = data["results"];
+        startIndex?.value = data["start"];
+        endIndex?.value = data["end"];
+        offset?.value = data["offset"];
+      } else {
+        list = obj["payload"];
+      }
       var result = <Post>[];
       var uncached = <int>[];
       for (final item in list) {
