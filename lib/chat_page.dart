@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/post.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/user.dart';
 
 class ChatPage extends StatefulWidget {
@@ -22,13 +21,6 @@ class ChatPage extends StatefulWidget {
 
   @override
   State<ChatPage> createState() => _ChatPageState();
-}
-
-class _IndentedComment {
-  final Comment comment;
-  final int indent;
-
-  const _IndentedComment(this.comment, this.indent);
 }
 
 class _ChatPageState extends State<ChatPage> {

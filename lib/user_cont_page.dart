@@ -131,10 +131,6 @@ class _UserContPageState extends State<UserContPage> {
   }
 
   Future<int> getItemsCount() async {
-    final sd = filterState.startDate;
-    final ed = filterState.endDate;
-    final loc =
-        filterState.location?.isEmpty == true ? null : filterState.location;
     final srt = filterState.order;
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
     if (forContent && pid != null && sid != null) {

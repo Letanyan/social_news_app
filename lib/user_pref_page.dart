@@ -88,10 +88,6 @@ class _UserPrefPageState extends State<UserPrefPage> {
   }
 
   Future<int> getItemsCount() async {
-    final sd = filterState.startDate;
-    final ed = filterState.endDate;
-    final loc =
-        filterState.location?.isEmpty == true ? null : filterState.location;
     final srt = filterState.order;
     final src = filterState.search?.isEmpty == true ? null : filterState.search;
     late final UserPrefKind kind;

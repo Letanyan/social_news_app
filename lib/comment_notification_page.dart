@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/tag.dart';
 import 'package:social_news_app/widgets/filter_widget.dart';

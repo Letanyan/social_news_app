@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:social_news_app/account_page.dart';
-import 'package:social_news_app/chat_page.dart';
 import 'package:social_news_app/create_page.dart';
-import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/comments_thread_page.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/parser.dart';
-import 'package:social_news_app/model/post.dart';
 import 'package:social_news_app/model/theme.dart';
 import 'package:social_news_app/model/user.dart';
 import 'package:social_news_app/user_pref_page.dart';

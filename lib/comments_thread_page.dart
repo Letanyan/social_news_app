@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
-import 'package:social_news_app/model/post.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:social_news_app/model/user.dart';
 
@@ -493,12 +491,6 @@ class _CommentsThreadPageState extends State<CommentsThreadPage> {
               });
             }
             final item = dataSource[index - 1];
-            var calcReplyCount = 0;
-            for (final c in allCommentsLoaded) {
-              if (!c.trashed && c.replyId == item.comment.id) {
-                calcReplyCount += 1;
-              }
-            }
             if (item.comment.id == scrollToComment?.id) {
               commentIndex = index;
             }

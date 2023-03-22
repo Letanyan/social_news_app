@@ -3,12 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:intl/date_symbol_data_file.dart';
-import 'package:intl/intl.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/create_page.dart';
 import 'package:social_news_app/model/helpers.dart';

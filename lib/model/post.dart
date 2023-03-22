@@ -6,7 +6,6 @@ import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/chat_page.dart';
-import 'package:social_news_app/comments_page.dart';
 import 'package:social_news_app/create_page.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
