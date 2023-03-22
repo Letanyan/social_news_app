@@ -15,8 +15,10 @@ import 'package:social_news_app/model/user.dart';
 class ChatPage extends StatefulWidget {
   final Post post;
   final Comment? scrollComments;
+  final StreamController<Comment> commentController;
 
-  const ChatPage({super.key, required this.post, required this.scrollComments});
+  ChatPage({super.key, required this.post, required this.scrollComments})
+      : commentController = StreamController<Comment>.broadcast();
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -48,6 +50,7 @@ class _ChatPageState extends State<ChatPage> {
   String? searchString;
   Comment? scrollToComment;
   late StreamSubscription<bool> keyboardSubscription;
+  late StreamSubscription<Comment> commentSubscription;
 
   @override
   void initState() {
@@ -83,6 +86,26 @@ class _ChatPageState extends State<ChatPage> {
         return false;
       });
     }
+
+    commentSubscription = widget.commentController.stream.listen((event) async {
+      final commentsList = await allComments;
+      var isEdit = false;
+      var i = 0;
+      for (final comment in commentsList) {
+        if (comment.id == event.id) {
+          isEdit = true;
+          break;
+        }
+        i += 1;
+      }
+      if (!isEdit) {
+        commentsList.add(event);
+      } else {
+        commentsList[i] = event;
+      }
+      allComments = Future(() => commentsList);
+      sortComments();
+    });
 
     timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (User.current == null) {
@@ -213,14 +236,17 @@ class _ChatPageState extends State<ChatPage> {
         controller.text,
         false,
       );
-      for (var comment in await comments) {
+      var nextComments = await allComments;
+      for (var comment in nextComments) {
         if (comment.id == replyId) {
           comment.replyCount += 1;
         }
       }
-      (await comments).add(result);
+      nextComments.add(result);
+      allComments = Future(() => nextComments);
       replyingTo = null;
       controller.text = "";
+      sortComments();
     } catch (e) {
       displayError(context, e);
     }

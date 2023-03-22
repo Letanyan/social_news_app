@@ -65,17 +65,24 @@ class _CreatePageState extends State<CreatePage> {
         if (widget.comment != null) {
           widget.comment?.content = controller.text;
           widget.comment?.edited = DateTime.now();
+          final newContent = controller.text;
           await NewSource.updateComment(
             widget.comment!.postId,
             widget.comment!.id,
-            controller.text,
-          ).then((value) => Navigator.pop(context));
+            newContent,
+          ).then((value) {
+            var result = widget.comment;
+            result?.content = newContent;
+            Navigator.pop(context, result);
+          });
         } else if (widget.post != null) {
           int count = 0;
           widget.post?.content = controller.text;
           widget.post?.edited = DateTime.now();
-          await NewSource.updatePost(widget.post!.id, controller.text).then(
-              (value) => Navigator.popUntil(context, (route) => count++ >= 2));
+          final newContent = controller.text;
+          await NewSource.updatePost(widget.post!.id, newContent).then((value) {
+            Navigator.popUntil(context, (route) => count++ >= 2);
+          });
         }
       } else {
         if (widget.comment != null) {
@@ -84,14 +91,22 @@ class _CreatePageState extends State<CreatePage> {
             widget.comment!.id,
             controller.text,
             isReview,
-          ).then((value) => Navigator.pop(context));
+          ).then((value) {
+            Navigator.pop(context, value);
+          });
         } else if (widget.post != null) {
           await NewSource.createComment(
-                  widget.post!.id, 0, controller.text, isReview)
-              .then((value) => Navigator.pop(context));
+            widget.post!.id,
+            0,
+            controller.text,
+            isReview,
+          ).then((value) {
+            Navigator.pop(context, value);
+          });
         } else if (toBePosted != null) {
-          await NewSource.createPost(toBePosted!.content, false)
-              .then((value) => Navigator.pop(context, "posted"));
+          await NewSource.createPost(toBePosted!.content, false).then((value) {
+            Navigator.pop(context, "posted");
+          });
         }
       }
     } catch (e) {

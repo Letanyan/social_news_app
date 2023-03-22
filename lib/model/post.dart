@@ -7,7 +7,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:social_news_app/account_page.dart';
 import 'package:social_news_app/chat_page.dart';
 import 'package:social_news_app/comments_page.dart';
-import 'package:social_news_app/comment_reply.dart';
+import 'package:social_news_app/create_page.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
 import 'package:social_news_app/model/helpers.dart';
@@ -111,6 +111,8 @@ class Post {
     Comment? scrollToComment,
   ) {
     return () {
+      final page = ChatPage(post: this, scrollComments: scrollToComment);
+
       var actions = <Widget>[
         IconButton(
           onPressed: () => Navigator.push(
@@ -118,7 +120,7 @@ class Post {
             route(
               builder: (context) => CreatePage(post: this, isEdit: false),
             ),
-          ),
+          ).then((value) => page.commentController.add(value)),
           icon: const Icon(Icons.add_comment_rounded),
         )
       ];
@@ -137,7 +139,7 @@ class Post {
           title: Text(TRGeneral.comments),
           actions: actions,
         ),
-        body: ChatPage(post: this, scrollComments: scrollToComment),
+        body: page,
       );
       Navigator.push(
         context,

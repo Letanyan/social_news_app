@@ -10,7 +10,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl/date_symbol_data_file.dart';
 import 'package:intl/intl.dart';
 import 'package:social_news_app/account_page.dart';
-import 'package:social_news_app/comment_reply.dart';
+import 'package:social_news_app/create_page.dart';
 import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/iap.dart';
 import 'package:social_news_app/model/locale.dart';
