@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:social_news_app/model/helpers.dart';
 import 'package:social_news_app/model/locale.dart';
 import 'package:social_news_app/model/new_source.dart';
 import 'package:social_news_app/model/theme.dart';
@@ -91,6 +92,19 @@ class _VoteWidgetState extends State<VoteWidget> {
       return AlertDialog(
         title: Text(message),
         actions: [
+          ElevatedButton(
+              onPressed: () async {
+                if (User.current == null) {
+                  return;
+                }
+                try {
+                  await NewSource.sendVerificationLink(User.current!.id,
+                      User.current!.email, User.current!.validationKey);
+                } catch (e) {
+                  displayError(context, e);
+                }
+              },
+              child: Text(TREmailVerify.resend)),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(TRGeneral.okay),

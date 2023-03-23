@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:intl/intl.dart';
 import 'package:social_news_app/model/comment.dart';
 import 'package:social_news_app/model/flag.dart';
@@ -579,8 +580,36 @@ Map<K, V> combineMaps<K, V>(List<Map<K, V>> operands) {
 
 void displayError(BuildContext? context, Object e) {
   if (context != null) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(e.toString())));
+    if (e == notValidated) {
+      showPlatformDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(TRError.notValidated),
+          actions: [
+            ElevatedButton(
+                onPressed: () async {
+                  if (User.current == null) {
+                    return;
+                  }
+                  try {
+                    await NewSource.sendVerificationLink(User.current!.id,
+                        User.current!.email, User.current!.validationKey);
+                  } catch (e) {
+                    displayError(context, e);
+                  }
+                },
+                child: Text(TREmailVerify.resend)),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(TRGeneral.okay),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 }
 

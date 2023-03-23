@@ -818,9 +818,9 @@ abstract class TRSignIn {
   static String get sentPasswordReset {
     switch (locale) {
       case LC.en:
-        return "Password reset link sent";
+        return "Password reset link sent. Please check your spam folder if the email is not present.";
       case LC.es:
-        return "Enlace de restablecimiento de contraseña enviado";
+        return "Enlace de restablecimiento de contraseña enviado. Por favor revise su carpeta de correo no deseado si el correo electrónico no está presente.";
     }
   }
 }
@@ -1684,12 +1684,11 @@ abstract class TRError {
   }
 
   static String get notValidated {
-    // TODO: Show button for resending validation link
     switch (locale) {
       case LC.en:
-        return "Your email is not validated. Please confirm by clicking the 'validate' link sent to your email";
+        return "Your email is not validated. Please confirm by clicking the 'Verify Email' link sent to your email";
       case LC.es:
-        return "Su correo electrónico no está validado. Confirme haciendo clic en el enlace 'validar' enviado a su correo electrónico";
+        return "Su correo electrónico no está validado. Confirme haciendo clic en el enlace 'Verificar Correo Electrónico' enviado a su correo electrónico";
     }
   }
 }
