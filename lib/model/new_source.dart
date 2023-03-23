@@ -18,7 +18,7 @@ import 'user.dart';
 import 'tag.dart';
 
 class NewSource {
-  static const isDebug = true;
+  static const isDebug = false;
   static var host = isDebug
       ? "http://192.168.50.64:8080/api/v1"
       : "https://new-source-server-mhvly.ondigitalocean.app/api/v1";
