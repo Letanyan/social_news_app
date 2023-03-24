@@ -318,6 +318,8 @@ class Comment {
     if (author.id == User.current?.id ||
         (User.current?.id == postAuthor && postAuthor != null)) {
       userActionsList.add(removeComment);
+    }
+    if (author.id == User.current?.id) {
       userActionsList.add(editComment);
     }
 
@@ -631,6 +633,8 @@ class Comment {
     if (author.id == User.current?.id ||
         (User.current?.id == postAuthor && postAuthor != null)) {
       userActionsList.add(removeComment);
+    }
+    if (author.id == User.current?.id) {
       userActionsList.add(editComment);
     }
 
