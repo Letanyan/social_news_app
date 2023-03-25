@@ -352,17 +352,25 @@ class Author {
     );
   }
 
+  bool isFollowingCurrentUser() {
+    return User.current?.following
+            .firstWhere((u) => u.id == id,
+                orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
+            .id !=
+        User.current?.id;
+  }
+
+  bool isIgnoredByCurrentUser() {
+    return User.current?.ignored
+            .firstWhere((u) => u.id == id,
+                orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
+            .id !=
+        User.current?.id;
+  }
+
   Widget followButton(BuildContext context, Function() updateState) {
-    final isFollowing = User.current?.following
-            .firstWhere((u) => u.id == id,
-                orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
-            .id !=
-        User.current?.id;
-    final isIgnored = User.current?.ignored
-            .firstWhere((u) => u.id == id,
-                orElse: () => User.current?.toAuthor() ?? Author.fromInt(-1))
-            .id !=
-        User.current?.id;
+    final isFollowing = isFollowingCurrentUser();
+    final isIgnored = isIgnoredByCurrentUser();
     final actionText = User.current == null
         ? TRGeneral.signIn
         : isIgnored

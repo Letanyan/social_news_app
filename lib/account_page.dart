@@ -376,6 +376,31 @@ class _AccountPageState extends State<AccountPage> {
         settingsSection.add(commentFlags);
         settingsSection.add(agents);
       }
+    } else if (!widget.user.isIgnoredByCurrentUser()) {
+      settingsSection.add(const Divider(thickness: 1));
+      settingsSection.add(
+        Padding(
+          padding: EdgeInsets.all(8),
+          child: Text(TRGeneral.preferences),
+        ),
+      );
+      settingsSection.add(const Divider(thickness: 1));
+      settingsSection.add(ListTile(
+        title: Text(TRPosts.ignoreUser),
+        onTap: () {
+          if (User.current == null) {
+            return;
+          }
+          displayString(context, TRPosts.confirmIgnoreUser);
+          NewSource.ignoreUser(
+            uid: User.current!.id,
+            author: widget.user,
+          ).catchError((e) {
+            displayError(context, e);
+            return false;
+          });
+        },
+      ));
     }
 
     final list = ListView(children: [

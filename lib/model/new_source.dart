@@ -928,6 +928,7 @@ class NewSource {
       int? downvotes,
       SortOrder? order,
       InOut<int>? offset,
+      int? usersIgnoredBy,
       int? limit,
       DateTime? start,
       DateTime? end,
@@ -946,6 +947,7 @@ class NewSource {
     addI("downvotes", downvotes, args);
     addSO("order", order, args);
     addI("offset", offset?.value, args);
+    addI("ignore", usersIgnoredBy, args);
     addI("limit", limit, args);
     addD("start", start, args);
     addD("end", end, args);
@@ -955,7 +957,8 @@ class NewSource {
     addI("startIndex", startIndex?.value, args);
     addI("endIndex", endIndex?.value, args);
     addS("search", search, args);
-    if (forUser != null && forUser != 0) {
+    if ((forUser != null && forUser != 0) ||
+        (usersIgnoredBy != null && usersIgnoredBy != 0)) {
       addSecret(args);
     }
 
@@ -1102,6 +1105,7 @@ class NewSource {
       SortOrder? order,
       int? limit,
       int? offset,
+      int? usersIgnoredBy,
       DateTime? start,
       DateTime? end,
       int? forUser,
@@ -1116,6 +1120,7 @@ class NewSource {
     addI("downvotes", downvotes, args);
     addSO("order", order, args);
     addI("offset", offset, args);
+    addI("ignore", usersIgnoredBy, args);
     addI("limit", limit, args);
     addD("start", start, args);
     addD("end", end, args);
@@ -1124,6 +1129,9 @@ class NewSource {
     addI("for", forUser, args);
     addI("isReview", isReview, args);
     addS("search", search, args);
+    if (usersIgnoredBy != null && usersIgnoredBy != 0) {
+      addSecret(args);
+    }
 
     final obj = await get(["posts", "comments"], args);
     if (obj == null) {
@@ -1354,6 +1362,18 @@ class NewSource {
     } else {
       return false;
     }
+  }
+
+  static Future<bool> ignoreUser({
+    required int uid,
+    required Author author,
+  }) async {
+    if (!currentUserIsValidated()) {
+      throw notValidated;
+    }
+    User.current?.ignored.add(author);
+    await addUserCont(uid: uid, kind: UserContKind.ignored, pid: author.id);
+    return true;
   }
 
   static Future<bool> onboardCurrentUser(

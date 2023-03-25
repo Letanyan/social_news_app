@@ -130,6 +130,7 @@ class _ChatPageState extends State<ChatPage> {
       replyId: commentId,
       order: SortOrder.createdAt,
       isReview: -1,
+      usersIgnoredBy: User.current?.id ?? 0,
     ).catchError((e) {
       displayError(ctx.target, e);
       return <Comment>[];

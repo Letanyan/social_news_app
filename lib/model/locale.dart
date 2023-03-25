@@ -552,9 +552,9 @@ abstract class TRGeneral {
   static String get doNotIgnore {
     switch (locale) {
       case LC.en:
-        return "Don't Ignore";
+        return "Don't Block";
       case LC.es:
-        return "No Ignores";
+        return "No Bloquear";
     }
   }
 
@@ -930,9 +930,9 @@ abstract class TRSettings {
   static String get publicIgnoredUsers {
     switch (locale) {
       case LC.en:
-        return "Public Ignored Users";
+        return "Public Blocked Users";
       case LC.es:
-        return "Usuarios Públicos Ignorados";
+        return "Usuarios Bloqueadas Públicas";
     }
   }
 
@@ -1163,9 +1163,9 @@ abstract class TRAccountPage {
   static String get usersIgnored {
     switch (locale) {
       case LC.en:
-        return "Users Ignored";
+        return "Users Blocked";
       case LC.es:
-        return "Usuarios Ignoradas";
+        return "Usuarios Bloqueadas";
     }
   }
 
@@ -1181,9 +1181,9 @@ abstract class TRAccountPage {
   static String get ignoredBy {
     switch (locale) {
       case LC.en:
-        return "Ignored By";
+        return "Blocked By";
       case LC.es:
-        return "Ignorado por";
+        return "Bloqueado Por";
     }
   }
 
@@ -1248,18 +1248,18 @@ abstract class TRPosts {
   static String get ignoreUser {
     switch (locale) {
       case LC.en:
-        return "Ignore User";
+        return "Block User";
       case LC.es:
-        return "Ignorar Usuaria";
+        return "Bloquear Usuaria";
     }
   }
 
   static String get confirmIgnoreUser {
     switch (locale) {
       case LC.en:
-        return "Posts From This User Will Be Ignored";
+        return "Posts and comments from this user will not be shown";
       case LC.es:
-        return "Las Publicaciones De Este Usuario Serán Ignoradas";
+        return "Las publicaciones y los comentarios de este usuario no se mostrarán";
     }
   }
 }

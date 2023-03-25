@@ -114,6 +114,7 @@ class SearchPageState extends State<SearchPage> {
       } else if (isTypeEqual<T, Post>()) {
         return NewSource.getPosts(
           offset: InOut(offset[idx]),
+          usersIgnoredBy: User.current?.id ?? 0,
           limit: pageSize,
           order: so,
           start: sd,
@@ -137,6 +138,7 @@ class SearchPageState extends State<SearchPage> {
       } else if (isTypeEqual<T, Comment>()) {
         return NewSource.getComments(
           offset: offset[idx],
+          usersIgnoredBy: User.current?.id ?? 0,
           limit: pageSize,
           order: so,
           start: sd,

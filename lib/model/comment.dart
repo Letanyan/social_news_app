@@ -313,6 +313,22 @@ class Comment {
       },
       child: Text(TRGeneral.votedBy),
     );
+    final ignoreUser = PopupMenuItem(
+      onTap: () {
+        if (User.current == null) {
+          return;
+        }
+        displayString(context, TRPosts.confirmIgnoreUser);
+        NewSource.ignoreUser(
+          uid: User.current!.id,
+          author: author,
+        ).catchError((e) {
+          displayError(context, e);
+          return false;
+        });
+      },
+      child: Text(TRPosts.ignoreUser),
+    );
     final userActionsList = <PopupMenuItem>[];
     userActionsList.add(votedFor);
     if (author.id == User.current?.id ||
@@ -321,6 +337,8 @@ class Comment {
     }
     if (author.id == User.current?.id) {
       userActionsList.add(editComment);
+    } else {
+      userActionsList.add(ignoreUser);
     }
 
     final report = PopupMenuItem(

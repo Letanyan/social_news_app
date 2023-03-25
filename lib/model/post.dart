@@ -399,10 +399,9 @@ class Post {
     if (User.current == null) {
       return;
     }
-    await NewSource.addUserCont(
+    await NewSource.ignoreUser(
       uid: User.current!.id,
-      kind: UserContKind.ignored,
-      pid: creator.id,
+      author: creator,
     ).catchError((e) {
       displayError(context, e);
       return false;

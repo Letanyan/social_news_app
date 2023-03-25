@@ -116,6 +116,7 @@ class _PostsPageState extends State<PostsPage> with TickerProviderStateMixin {
           downvotes: widget.downvotes,
           order: so,
           offset: offset[0],
+          usersIgnoredBy: User.current?.id ?? 0,
           limit: pageSize,
           start: widget.start,
           end: widget.end,
