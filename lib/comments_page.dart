@@ -70,7 +70,7 @@ class _CommentsPageState extends State<CommentsPage> {
       }
     });
 
-    if (User.current != null) {
+    if (User.current != null && User.current?.email != "temp@new-source.app") {
       NewSource.addUserCont(
         uid: User.current!.id,
         kind: UserContKind.viewed,
