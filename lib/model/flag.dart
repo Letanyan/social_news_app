@@ -193,10 +193,6 @@ class FlaggedPost {
       onPressed: () => handleFlag(context, FlagHandle.remove, updateState),
       child: const Text("Remove"),
     );
-    final ignore = ElevatedButton(
-      onPressed: () => handleFlag(context, FlagHandle.ignore, updateState),
-      child: const Text("Ignore"),
-    );
     final ignoreAll = ElevatedButton(
       onPressed: () => handleFlag(context, FlagHandle.ignoreAll, updateState),
       child: const Text("Ignore All"),
@@ -236,7 +232,6 @@ class FlaggedPost {
         total,
         report,
         remove,
-        ignore,
         ignoreAll,
       ],
     );
