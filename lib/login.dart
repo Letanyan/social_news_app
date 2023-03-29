@@ -56,11 +56,11 @@ class _LoginPageState extends State<LoginPage> {
     });
     if (User.current != null) {
       late Widget page;
-      /*if (User.current?.following.isEmpty == true &&
+      if (User.current?.following.isEmpty == true &&
           User.current?.favourites.isEmpty == true) {
         page = const Onboard();
-      } else */
-      if (User.current?.validationKey != 0) {
+      } else if (User.current?.validationKey != 0 &&
+          User.current?.email != "temp@new-source.app") {
         page = const EmailVerificationPage();
       } else {
         page = const HomeView();
@@ -119,12 +119,20 @@ class _LoginPageState extends State<LoginPage> {
     signInTemplate(email, password);
   }
 
-  void signInAnon() {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      route(builder: (context) => const Onboard()),
-    );
+  void signInAnon() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final user = await NewSource.signInTempUser();
+      User.current = user;
+      openApp();
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      displayError(context, e);
+    }
   }
 
   void signInGoogle() async {
@@ -279,12 +287,11 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
-    var anon = TextButton(
+    var signInWithAnon = SignInButton(
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8))),
+      buttonType: MyTheme.isDark ? ButtonType.anon : ButtonType.anonDark,
       onPressed: isLoading ? null : signInAnon,
-      child: Text(
-        TRSignIn.justBrowse,
-        style: TextStyle(color: MyTheme.isDark ? Colors.white : Colors.black),
-      ),
     );
     var cancelEmailSignIn = TextButton(
       onPressed: isLoading ? null : undoSignInEmail,
@@ -314,8 +321,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(0),
-          child: isEmailLogin ? cancelEmailSignIn : anon,
+          padding: const EdgeInsets.all(16),
+          child: isEmailLogin ? cancelEmailSignIn : signInWithAnon,
         ),
       ],
     );

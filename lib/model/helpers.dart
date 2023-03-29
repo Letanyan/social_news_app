@@ -348,7 +348,10 @@ FutureBuilder<List<T>> Function<T>(Future<List<T>> items) buildFutureList(
                 const remainingItemsBeforeLoadingMore = 10;
                 final indexPoint = count[filterState.current] -
                     remainingItemsBeforeLoadingMore;
-                if (hasMore[filterState.current] && index == indexPoint) {
+                final underLimit =
+                    count[filterState.current] < 10 && index == 0;
+                if (hasMore[filterState.current] &&
+                    (index == indexPoint || underLimit)) {
                   final newItems = getNewItems<T>();
                   if (isTypeEqual<T, Tag>()) {
                     loadMore(newItems, tags);
@@ -580,7 +583,12 @@ Map<K, V> combineMaps<K, V>(List<Map<K, V>> operands) {
 
 void displayError(BuildContext? context, Object e) {
   if (context != null) {
-    if (e == notValidated) {
+    if (e == notValidated && User.current?.email != "") {
+      if (User.current?.email == "temp@new-source.app") {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+        return;
+      }
       showPlatformDialog(
         context: context,
         builder: (context) => AlertDialog(

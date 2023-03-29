@@ -275,13 +275,12 @@ class Comment {
 
     final removeComment = PopupMenuItem(
       onTap: () {
-        displayString(context, TRGeneral.removed);
         trashed = true;
         updateState();
         NewSource.deleteComment(postId, id).catchError((e) {
           displayError(context, e);
           return false;
-        });
+        }).then((value) => displayString(context, TRGeneral.removed));
       },
       child: Text(TRGeneral.remove),
     );
@@ -318,11 +317,12 @@ class Comment {
         if (User.current == null) {
           return;
         }
-        displayString(context, TRPosts.confirmIgnoreUser);
         NewSource.ignoreUser(
           uid: User.current!.id,
           author: author,
-        ).catchError((e) {
+        )
+            .then((value) => displayString(context, TRPosts.confirmIgnoreUser))
+            .catchError((e) {
           displayError(context, e);
           return false;
         });

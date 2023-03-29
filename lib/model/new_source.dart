@@ -18,7 +18,7 @@ import 'user.dart';
 import 'tag.dart';
 
 class NewSource {
-  static const isDebug = false;
+  static const isDebug = true;
   static var host = isDebug
       ? "http://192.168.50.64:8080/api/v1"
       : "https://www.new-source.app/api/v1";
@@ -162,6 +162,24 @@ class NewSource {
       final current = obj["payload"]["streak"];
       final next = obj["payload"]["user"]["Streak"];
       User.streakMessage.add(StreakMessage(current, next));
+      return User.fromSecretJson(obj["payload"]);
+    }
+  }
+
+  static Future<User> signInTempUser() async {
+    final device = await deviceId();
+    final obj = await post([
+      "temp-users"
+    ], [], {
+      "device": device,
+    });
+    if (obj == null) {
+      throw unknownError;
+    }
+
+    if (obj["success"] == false) {
+      throw err(obj["reason"]);
+    } else {
       return User.fromSecretJson(obj["payload"]);
     }
   }

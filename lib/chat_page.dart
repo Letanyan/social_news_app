@@ -100,7 +100,8 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (User.current == null) {
+      if (User.current == null ||
+          User.current?.email == "temp@new-source.app") {
         return;
       }
       final isTop = ModalRoute.of(context)?.isCurrent ?? false;

@@ -44,38 +44,47 @@ class _PostPreviewState extends State<PostPreview> {
         if (widget.comment != null) {
           widget.comment?.content = controller.text;
           widget.comment?.edited = DateTime.now();
-          displayString(context, TRPreviewPosts.updatedComment);
           await NewSource.updateComment(
             widget.comment!.postId,
             widget.comment!.id,
             controller.text,
-          ).then((value) => Navigator.pop(context));
+          ).then((value) {
+            displayString(context, TRPreviewPosts.updatedComment);
+            Navigator.pop(context);
+          });
         } else if (widget.post != null) {
           int count = 0;
           widget.post?.content = controller.text;
           widget.post?.edited = DateTime.now();
-          displayString(context, TRPreviewPosts.updatedPost);
-          await NewSource.updatePost(widget.post!.id, controller.text).then(
-              (value) => Navigator.popUntil(context, (route) => count++ >= 2));
+          await NewSource.updatePost(widget.post!.id, controller.text)
+              .then((value) {
+            displayString(context, TRPreviewPosts.updatedPost);
+            Navigator.popUntil(context, (route) => count++ >= 2);
+          });
         }
       } else {
         if (widget.comment != null) {
-          displayString(context, TRPreviewPosts.commented);
           await NewSource.createComment(
             widget.comment!.postId,
             widget.comment!.id,
             controller.text,
             widget.isReview,
-          ).then((value) => Navigator.pop(context));
+          ).then((value) {
+            displayString(context, TRPreviewPosts.commented);
+            Navigator.pop(context);
+          });
         } else if (widget.post != null) {
-          displayString(context, TRPreviewPosts.commented);
           await NewSource.createComment(
                   widget.post!.id, 0, controller.text, widget.isReview)
-              .then((value) => Navigator.pop(context));
+              .then((value) {
+            displayString(context, TRPreviewPosts.commented);
+            Navigator.pop(context);
+          });
         } else if (toBePosted != null) {
-          displayString(context, TRPreviewPosts.posted);
-          await NewSource.createPost(toBePosted!.content, false)
-              .then((value) => Navigator.pop(context, "posted"));
+          await NewSource.createPost(toBePosted!.content, false).then((value) {
+            displayString(context, TRPreviewPosts.posted);
+            Navigator.pop(context, "posted");
+          });
         }
       }
     } catch (e) {

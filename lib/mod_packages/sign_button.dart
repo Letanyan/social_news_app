@@ -189,6 +189,14 @@ class SignInButton extends StatelessWidget {
                 : Colors.grey[300],
         size: _imageSize,
       );
+    } else if (buttonType == ButtonType.anon ||
+        buttonType == ButtonType.anonDark) {
+      _image = Icon(
+        Icons.free_breakfast,
+        color:
+            buttonType == ButtonType.anon ? Colors.grey[800] : Colors.grey[300],
+        size: _imageSize,
+      );
     } else {
       _image = Image.asset(
         'assets/logos/${describeEnum(buttonType)}.png',
@@ -334,6 +342,18 @@ class SignInButton extends StatelessWidget {
         btnColor ??= Colors.grey[800];
         break;
 
+      case ButtonType.anon:
+        btnText ??= TRSignIn.justBrowse;
+        btnTextColor ??= Colors.black;
+        btnColor ??= Colors.white;
+        break;
+
+      case ButtonType.anonDark:
+        btnText ??= TRSignIn.justBrowse;
+        btnTextColor ??= Colors.white;
+        btnColor ??= Colors.grey[800];
+        break;
+
       case ButtonType.mail:
         btnText ??= TRGeneral.signInWith("Mail");
         btnTextColor ??= Colors.white;
@@ -392,6 +412,8 @@ enum ButtonType {
   emailDark,
   account,
   accountDark,
+  anon,
+  anonDark,
   mail,
   reddit,
   yahoo,

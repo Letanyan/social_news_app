@@ -391,11 +391,14 @@ class _AccountPageState extends State<AccountPage> {
           if (User.current == null) {
             return;
           }
-          displayString(context, TRPosts.confirmIgnoreUser);
           NewSource.ignoreUser(
             uid: User.current!.id,
             author: widget.user,
-          ).catchError((e) {
+          )
+              .then(
+            (value) => displayString(context, TRPosts.confirmIgnoreUser),
+          )
+              .catchError((e) {
             displayError(context, e);
             return false;
           });
