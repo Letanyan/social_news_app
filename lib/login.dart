@@ -39,11 +39,11 @@ class _LoginPageState extends State<LoginPage> {
     User savedUser = await User.fromStore();
     if (savedUser.id != 0 && savedUser.secret.isNotEmpty) {
       User.current = savedUser;
-      openApp();
       try {
         final user = await NewSource.getUser(savedUser.id);
         user.secret = savedUser.secret;
         User.current = user;
+        openApp();
       } catch (e) {
         print(e);
       }

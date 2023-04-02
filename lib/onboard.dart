@@ -120,6 +120,15 @@ class _OnboardState extends State<Onboard> {
       children: [
         Padding(
           padding: EdgeInsets.all(8),
+          child: Center(
+            child: Text(
+              TROnboard.instructions,
+            ),
+          ),
+        ),
+        Divider(),
+        Padding(
+          padding: EdgeInsets.all(8),
           child: Text(
             TROnboard.followTags,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -137,37 +146,40 @@ class _OnboardState extends State<Onboard> {
       ],
     );
 
+    final doneAction = () async {
+      setState(() {
+        isLoading = true;
+      });
+      await NewSource.onboardCurrentUser(
+        selectedTags.toList(),
+        selectedAgents.toList(),
+      ).catchError((e) {
+        displayError(ctx.target, e);
+        return false;
+      });
+      setState(() {
+        isLoading = false;
+      });
+      Navigator.pop(context);
+      final page = User.current?.validationKey == 0
+          ? const EmailVerificationPage()
+          : const HomeView();
+      Navigator.push(
+        context,
+        route(builder: (context) => page),
+      );
+    };
+
     final done = TextButton(
-      onPressed: () async {
-        setState(() {
-          isLoading = true;
-        });
-        await NewSource.onboardCurrentUser(
-          selectedTags.toList(),
-          selectedAgents.toList(),
-        ).catchError((e) {
-          displayError(ctx.target, e);
-          return false;
-        });
-        setState(() {
-          isLoading = false;
-        });
-        Navigator.pop(context);
-        final page = User.current?.validationKey == 0
-            ? const EmailVerificationPage()
-            : const HomeView();
-        Navigator.push(
-          context,
-          route(builder: (context) => page),
-        );
-      },
+      onPressed:
+          selectedAgents.isEmpty && selectedTags.isEmpty ? null : doneAction,
       child: isLoading ? CircularProgressIndicator() : Text(TRGeneral.done),
     );
 
     final page = Scaffold(
       appBar: AppBar(
         title: Text(TRGeneral.gettingStarted),
-        actions: selectedAgents.isEmpty && selectedTags.isEmpty ? [] : [done],
+        actions: [done],
       ),
       body: list,
     );

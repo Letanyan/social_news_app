@@ -1002,6 +1002,15 @@ abstract class TROnboard {
         return "Seguir Fuentes";
     }
   }
+
+  static String get instructions {
+    switch (locale) {
+      case LC.en:
+        return "Please select some tags and/or sources to follow. Click Done on the top right after you have one item followed.";
+      case LC.es:
+        return "Seleccione algunas etiquetas y/o fuentes para seguir. Haga clic en Listo en la parte superior derecha después de haber seguido un elemento.";
+    }
+  }
 }
 
 abstract class TREmailVerify {
